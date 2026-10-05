@@ -74,33 +74,6 @@ export function IntegrationPanel({
         <p>{t.integrationDesc}</p>
       </div>
       <div className="panel__body grid gap-5">
-        <div className="grid gap-2">
-          <Label>{t.integrationKeyLabel}</Label>
-          <div className="flex flex-wrap items-center gap-2">
-            <code className="perf text-sm">{maskKey(apiKey)}</code>
-            <Button type="button" size="sm" variant="outline" onClick={copyKey}>
-              {copied ? (
-                <>
-                  <Check className="size-3.5" aria-hidden />
-                  {t.copied}
-                </>
-              ) : (
-                <>
-                  <Copy className="size-3.5" aria-hidden />
-                  {t.copy}
-                </>
-              )}
-            </Button>
-            <Button type="button" size="sm" variant="ghost" asChild>
-              <a href="/docs">
-                {t.integrationDocs}
-                <ExternalLink className="size-3.5" aria-hidden />
-              </a>
-            </Button>
-          </div>
-          <p className="text-xs text-[var(--text-2)]">{t.integrationKeyHint}</p>
-        </div>
-
         <form className="grid gap-2" onSubmit={saveWallet}>
           <Label htmlFor="merchant-wallet">{t.integrationWalletLabel}</Label>
           <Input
@@ -133,6 +106,33 @@ export function IntegrationPanel({
             </Button>
           </div>
         </form>
+
+        <div className="grid gap-2">
+          <Label>{t.integrationKeyLabel}</Label>
+          <div className="flex flex-wrap items-center gap-2">
+            <code className="perf text-sm">{maskKey(apiKey)}</code>
+            <Button type="button" size="sm" variant="outline" onClick={copyKey}>
+              {copied ? (
+                <>
+                  <Check className="size-3.5" aria-hidden />
+                  {t.copied}
+                </>
+              ) : (
+                <>
+                  <Copy className="size-3.5" aria-hidden />
+                  {t.copy}
+                </>
+              )}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" asChild>
+              <a href="/docs">
+                {t.integrationDocs}
+                <ExternalLink className="size-3.5" aria-hidden />
+              </a>
+            </Button>
+          </div>
+          <p className="text-xs text-[var(--text-2)]">{t.integrationKeyHint}</p>
+        </div>
       </div>
     </section>
   );

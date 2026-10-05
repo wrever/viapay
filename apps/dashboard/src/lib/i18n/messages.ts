@@ -99,6 +99,11 @@ export type Messages = {
   historyColActions: string;
   historyNoMemo: string;
   historyShowMore: (n: number) => string;
+  navAria: string;
+  navCobros: string;
+  navHistorial: string;
+  navIntegracion: string;
+  navAvisos: string;
 };
 
 const es: Messages = {
@@ -196,7 +201,7 @@ const es: Messages = {
   historyTitle: "Historial",
   historyEmpty: "Todavía no hay cobros.",
   integrationTitle: "Integración",
-  integrationDesc: "Bearer con esta clave: cobros de tu comercio.",
+  integrationDesc: "Billetera de destino y API key de tu comercio.",
   integrationKeyLabel: "API key",
   integrationKeyHint: "Usala en Authorization: Bearer …",
   integrationDocs: "Ver docs",
@@ -215,6 +220,11 @@ const es: Messages = {
   historyColActions: "Acciones",
   historyNoMemo: "Sin concepto",
   historyShowMore: (n) => `Ver ${n} más`,
+  navAria: "Secciones del panel",
+  navCobros: "Cobros",
+  navHistorial: "Historial",
+  navIntegracion: "Integración",
+  navAvisos: "Avisos",
 };
 
 const en: Messages = {
@@ -310,7 +320,7 @@ const en: Messages = {
   historyTitle: "History",
   historyEmpty: "No charges yet.",
   integrationTitle: "Integration",
-  integrationDesc: "Bearer with this key scopes charges to your merchant.",
+  integrationDesc: "Destination wallet and API key for your merchant.",
   integrationKeyLabel: "API key",
   integrationKeyHint: "Use it as Authorization: Bearer …",
   integrationDocs: "View docs",
@@ -329,6 +339,11 @@ const en: Messages = {
   historyColActions: "Actions",
   historyNoMemo: "No memo",
   historyShowMore: (n) => `Show ${n} more`,
+  navAria: "Dashboard sections",
+  navCobros: "Charges",
+  navHistorial: "History",
+  navIntegracion: "Integration",
+  navAvisos: "Webhooks",
 };
 
 const pt: Messages = {
@@ -427,7 +442,7 @@ const pt: Messages = {
   historyTitle: "Histórico",
   historyEmpty: "Ainda não há cobranças.",
   integrationTitle: "Integração",
-  integrationDesc: "Bearer com esta chave: cobranças do seu comércio.",
+  integrationDesc: "Carteira de destino e API key do seu comércio.",
   integrationKeyLabel: "API key",
   integrationKeyHint: "Use em Authorization: Bearer …",
   integrationDocs: "Ver docs",
@@ -446,6 +461,11 @@ const pt: Messages = {
   historyColActions: "Ações",
   historyNoMemo: "Sem conceito",
   historyShowMore: (n) => `Ver mais ${n}`,
+  navAria: "Seções do painel",
+  navCobros: "Cobranças",
+  navHistorial: "Histórico",
+  navIntegracion: "Integração",
+  navAvisos: "Avisos",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

@@ -6,7 +6,7 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: header sticky, saludo corto + chips red/fee, stats merchant (cobros/recibido/pendientes; fee ViaPay acumulado queda para admin), composer, historial, Integración (API key + billetera), webhooks. Sin copy de marketing en el intro.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: app shell — top bar (logo, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile. Secciones con estado cliente + hash (`#cobros` `#historial` `#integracion` `#avisos`): Cobros (composer), Historial, Integración (wallet-first + API key), Avisos (webhooks). Stats strip solo en Cobros/Historial. Saludo corto + chips red/fee. Sin fee ViaPay acumulado (admin). Sin copy de marketing en el intro.
 
 **Prod Vercel (vivo, 2026-10-05):**
 - Sitio/panel: https://viapay.vercel.app (`apps/dashboard`). Envs cliente en `web` + `viapay-dashboard`: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app`. Redeploy production Ready (env bake-in).
@@ -206,7 +206,7 @@ i18n en **web, checkout y dashboard**: ES (default) → EN → PT. Detección po
 | Landing nav / footer | horizontal 128px / 112px |
 | Landing hero y 404 | isotipo 520px / 168px |
 | Landing `#modos` | tabs Link / Split / Agente — los tres con `FlowSplit` + badges `%` |
-| Dashboard header | horizontal 120px; watermark isotipo en la masthead |
+| Dashboard header | horizontal 120px; top bar + sidebar/tabs en `/app` |
 | Dashboard login | stacked 176px |
 | Checkout | horizontal 104px + watermark isotipo en la tarjeta |
 | Favicon / apple-icon | `icon.svg` del kit + `apple-icon.png` 180px (Next ignora SVG para apple-icon) |
