@@ -2,11 +2,13 @@
 
 Actualizado: 2026-10-04. Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
+**Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `scripts/rebuild-history.py` usa `git commit-tree` (sin hooks). Repo: https://github.com/wrever/viapay (88 commits limpios).
+
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod: https://viapay.vercel.app/ (`apps/web`). Panel prod: https://viapay-dashboard.vercel.app/ (`apps/dashboard`). `NEXT_PUBLIC_VIAPAY_DASHBOARD_URL` en Vercel web apunta al panel; `/login` en la landing redirige ahí. Docs local: `http://localhost:3003/docs`.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`.
 
-**Docs web (`/docs`):** layout 3 columnas (nav + contenido + TOC) con búsqueda. Capítulos ricos en ES/EN/PT (`apps/web/src/lib/i18n/docs-chapters.ts`): overview, fees, quickstart, link, redirect, split, agent/x402, checkout, webhooks, API, SDK, testnet. Sin “saltar al contenido”. Footer landing profesional (sin hackathon / contrato / GitHub).
+**Docs (`/docs`):** en el mismo deploy del panel (`apps/dashboard`). Capítulos ES/EN/PT en `apps/dashboard/src/lib/marketing/docs-chapters.ts`.
 
 ## Supabase (ViaPay)
 
@@ -103,7 +105,7 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 
 - Solo OAuth (Google / GitHub). Sin “Continuar en local” en producto.
 - Flujo: `/auth/oauth` → Supabase → `/auth/callback` → upsert `accounts` + `api_keys` en Postgres (service role) → cookies de sesión.
-- Site URL de Supabase Auth debe ser `https://viapay-dashboard.vercel.app` (nunca localhost en prod).
+- Site URL de Supabase Auth debe ser `https://viapay.vercel.app` (nunca localhost ni subdomain).
 - `VIAPAY_ALLOW_LOCAL_LOGIN=1` solo para emergencia en máquina local; en Vercel está apagado.
 
 ## Soroban: desplegado, no conectado

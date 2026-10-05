@@ -27,9 +27,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ViaPay — panel del comercio",
+  title: "ViaPay",
   description:
-    "Crea links de cobro en Stellar, reparte comisión con un revendedor y mira cuándo te pagan.",
+    "Links de pago en Stellar sin custodia. Landing, docs y panel del comercio en un solo sitio.",
 };
 
 export const viewport: Viewport = {

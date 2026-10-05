@@ -12,20 +12,23 @@
 
 Redirect OAuth en Supabase Auth → URL configuration (obligatorio):
 
-- Site URL: `https://viapay-dashboard.vercel.app`
-- Redirect URLs: `https://viapay-dashboard.vercel.app/auth/callback`
+- Site URL: `https://viapay.vercel.app`
+- Redirect URLs: `https://viapay.vercel.app/auth/callback`
 - Si Site URL queda en `http://localhost:3000`, Google/GitHub te tiran al localhost con `?code=`
+
+Todo el producto (landing, docs, login, panel) vive en **https://viapay.vercel.app** (`apps/dashboard`).
 
 ## Vercel — env públicas (web / dashboard / checkout)
 
 ```
 NEXT_PUBLIC_VIAPAY_WEB_URL=https://viapay.vercel.app
-NEXT_PUBLIC_VIAPAY_DASHBOARD_URL=<url del dashboard desplegado>
+NEXT_PUBLIC_VIAPAY_DASHBOARD_URL=https://viapay.vercel.app
 NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=<url del checkout desplegado>
 NEXT_PUBLIC_VIAPAY_API_URL=<url de la API desplegada>
 NEXT_PUBLIC_SUPABASE_URL=https://fcbdahduqesuotujqbez.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<sb_publishable_… o anon jwt>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon jwt>
+SUPABASE_SERVICE_ROLE_KEY=<solo server, panel>
 ```
 
 ## Vercel — env servidor (solo API)
@@ -45,19 +48,12 @@ USDC_ISSUER=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
 
 Local helper (gitignored): `.env.supabase.local` — cópialo a tus `.env` de apps, no lo subas.
 
-## Apps en Vercel (separadas)
+## Apps en Vercel
 
-| App | Root Directory | URL típica |
+| App | Root Directory | URL |
 |---|---|---|
-| Landing + docs | `apps/web` | `https://viapay.vercel.app` |
-| Panel (login / cobros) | `apps/dashboard` | `https://viapay-dashboard.vercel.app` → `NEXT_PUBLIC_VIAPAY_DASHBOARD_URL` en **web** y dashboard |
+| Sitio (landing `/`, docs `/docs`, login `/login`, panel `/app`) | `apps/dashboard` | `https://viapay.vercel.app` |
 | Checkout | `apps/checkout` | `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL` |
 | API | `apps/api` | `NEXT_PUBLIC_VIAPAY_API_URL` |
 
-`viapay.vercel.app/login` **no** es el panel: es la landing. Sin `NEXT_PUBLIC_VIAPAY_DASHBOARD_URL` apuntando a otro host, `/login` en web muestra un aviso (no un 404 de cobro).
-
-Build tip monorepo: Root Directory = `apps/<app>`, Install = `cd ../.. && pnpm install`, Build = `pnpm --filter @viapay/<app> build`.
-
-## Landing actual
-
-https://viapay.vercel.app/ — redeploy desde `main` para landing + `/docs` + puente `/login`.
+Build tip monorepo: Root Directory = `apps/dashboard`, Install = `cd ../.. && corepack pnpm install`, Build = `cd ../.. && corepack pnpm --filter @viapay/dashboard build`.

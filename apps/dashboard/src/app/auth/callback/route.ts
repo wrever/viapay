@@ -28,7 +28,7 @@ export async function GET(req: Request) {
 
   try {
     const linked = await linkAccountFromEmail(email, name);
-    const res = NextResponse.redirect(`${origin}/`);
+    const res = NextResponse.redirect(`${origin}/app`);
     res.cookies.set(
       SESSION_COOKIE,
       Buffer.from(

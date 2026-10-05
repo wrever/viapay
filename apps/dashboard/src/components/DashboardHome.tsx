@@ -46,7 +46,7 @@ export function DashboardHome({
   return (
     <div className="mx-auto min-h-[100dvh] w-full max-w-6xl px-4 py-6 md:px-6 md:py-8">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <Link href="/" className="brand-lockup" aria-label={t.homeAria}>
+        <Link href="/app" className="brand-lockup" aria-label={t.homeAria}>
           <Logo variant="horizontal" width={120} alt="" />
         </Link>
         <div className="flex items-center gap-3">

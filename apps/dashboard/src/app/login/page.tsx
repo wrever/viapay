@@ -9,7 +9,7 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const session = await getDemoSession();
-  if (session) redirect("/");
+  if (session) redirect("/app");
   const q = await searchParams;
   return (
     <LoginScreen oauth={supabaseConfigured()} error={q.error ?? null} />

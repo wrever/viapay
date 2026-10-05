@@ -3,7 +3,11 @@ import { publicOrigin } from "@/lib/origin";
 import { createSupabase, supabaseConfigured } from "@/lib/supabase";
 
 export async function GET(req: Request) {
-  const origin = publicOrigin(req);
+  // Un solo host en prod. Nunca redirect a localhost ni a subdomain.
+  const origin = process.env.VERCEL
+    ? "https://viapay.vercel.app"
+    : publicOrigin(req);
+
   if (!supabaseConfigured()) {
     return NextResponse.redirect(`${origin}/login?error=supabase`);
   }
@@ -17,7 +21,6 @@ export async function GET(req: Request) {
       provider,
       options: {
         redirectTo: `${origin}/auth/callback`,
-        skipBrowserRedirect: false,
       },
     });
     if (error || !data.url) {
