@@ -13,33 +13,11 @@ import {
 } from "@viapay/shared";
 import { LOCALE_TAG } from "@viapay/prefs";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { API } from "@/lib/config";
+import type { DashboardPayment } from "@/lib/payment-types";
 import { useLocale } from "@/lib/i18n";
-
-type Payment = {
-  id: string;
-  status: string;
-  amount: string;
-  fee_amount: string;
-  net_amount: string;
-  reseller_fee_bps?: number;
-  reseller_amount?: string;
-  reseller_address?: string | null;
-  asset: string;
-  description: string | null;
-  checkout_url: string;
-  created_at: string;
-  stellar_tx_hash?: string | null;
-};
 
 function pctToBps(raw: string): number | null {
   const cleaned = raw.trim().replace(",", ".");
@@ -59,12 +37,12 @@ function money(units: bigint, asset: string, localeTag: string): string {
 
 export function CreatePaymentLink({
   apiKey,
-  initial,
   feeBps = DEFAULT_FEE_BPS,
+  onPaymentCreated,
 }: {
   apiKey: string | null;
-  initial: Payment[];
   feeBps?: number;
+  onPaymentCreated: (payment: DashboardPayment) => void;
 }) {
   const { t, locale } = useLocale();
   const localeTag = LOCALE_TAG[locale];
@@ -77,7 +55,6 @@ export function CreatePaymentLink({
   const [resellerWarning, setResellerWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [payments, setPayments] = useState(initial);
   const [lastUrl, setLastUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -118,7 +95,10 @@ export function CreatePaymentLink({
       try {
         const res = await fetch(
           `${API}/v1/readiness?reseller=${encodeURIComponent(address)}`,
-          { headers: { Authorization: `Bearer ${apiKey}` }, signal: controller.signal },
+          {
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal: controller.signal,
+          },
         );
         if (!res.ok) return;
         const body = await res.json();
@@ -183,7 +163,7 @@ export function CreatePaymentLink({
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? t.errCreate);
-      setPayments((prev) => [body as Payment, ...prev]);
+      onPaymentCreated(body as DashboardPayment);
       setLastUrl(body.checkout_url as string);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.errGeneric);
@@ -199,263 +179,168 @@ export function CreatePaymentLink({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t.createTitle}</CardTitle>
-          <CardDescription>{t.createDesc}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="grid gap-4" onSubmit={onCreate}>
-            <div className="grid gap-2">
-              <Label htmlFor="amount">{t.amount}</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="amount"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="20"
-                  required
-                />
-                <select
-                  aria-label={t.asset}
-                  className="h-11 rounded-[var(--r-md)] border border-[var(--border)] bg-[var(--bg)] px-3 text-sm font-bold text-[var(--text)]"
-                  value={asset}
-                  onChange={(e) => setAsset(e.target.value as "USDC" | "XLM")}
-                >
-                  <option value="USDC">USDC</option>
-                  <option value="XLM">XLM</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="desc">{t.whyOptional}</Label>
+    <section className="panel panel--composer">
+      <div className="panel__head">
+        <h2 className="panel-title">{t.createTitle}</h2>
+        <p>{t.createDesc}</p>
+      </div>
+      <div className="panel__body">
+        <form className="grid gap-4" onSubmit={onCreate}>
+          <div className="grid gap-2">
+            <Label htmlFor="amount">{t.amount}</Label>
+            <div className="amount-row">
               <Input
-                id="desc"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t.whyPlaceholder}
+                id="amount"
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="20"
+                required
+                className="amount-input"
               />
+              <select
+                aria-label={t.asset}
+                className="asset-select"
+                value={asset}
+                onChange={(e) => setAsset(e.target.value as "USDC" | "XLM")}
+              >
+                <option value="USDC">USDC</option>
+                <option value="XLM">XLM</option>
+              </select>
             </div>
+          </div>
 
-            <div className="rounded-[var(--r-md)] border border-[var(--border)] px-4 py-3">
-              <label className="flex cursor-pointer items-center gap-2 text-sm font-bold">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 accent-[var(--primary)]"
-                  checked={resellerOpen}
-                  onChange={(e) => setResellerOpen(e.target.checked)}
-                />
-                {t.resellerToggle}
-              </label>
-              <p className="mt-1 text-xs text-[var(--text-2)]">{t.resellerHint}</p>
+          <div className="grid gap-2">
+            <Label htmlFor="desc">{t.whyOptional}</Label>
+            <Input
+              id="desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t.whyPlaceholder}
+            />
+          </div>
 
-              {resellerOpen && (
-                <div className="mt-3 grid gap-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor="reseller-pct">{t.resellerPct}</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="reseller-pct"
-                        inputMode="decimal"
-                        value={resellerPct}
-                        onChange={(e) => setResellerPct(e.target.value)}
-                        placeholder="7"
-                      />
-                      <span className="text-sm font-semibold text-[var(--text-2)]">
-                        %
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="reseller-address">{t.resellerWallet}</Label>
+          <div className="disclosure" data-open={resellerOpen}>
+            <label className="disclosure__toggle">
+              <input
+                type="checkbox"
+                checked={resellerOpen}
+                onChange={(e) => setResellerOpen(e.target.checked)}
+              />
+              <span>
+                <strong>{t.resellerToggle}</strong>
+                <span>{t.resellerHint}</span>
+              </span>
+            </label>
+
+            {resellerOpen && (
+              <div className="mt-3 grid gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="reseller-pct">{t.resellerPct}</Label>
+                  <div className="flex items-center gap-2">
                     <Input
-                      id="reseller-address"
-                      value={resellerAddress}
-                      onChange={(e) => setResellerAddress(e.target.value)}
-                      placeholder="G…"
-                      spellCheck={false}
-                      className="perf text-xs"
+                      id="reseller-pct"
+                      inputMode="decimal"
+                      value={resellerPct}
+                      onChange={(e) => setResellerPct(e.target.value)}
+                      placeholder="7"
                     />
+                    <span className="text-sm font-semibold text-[var(--text-2)]">
+                      %
+                    </span>
                   </div>
-                  {resellerWarning && (
-                    <p className="tone tone--warning px-3 py-2 text-xs font-medium">
-                      {resellerWarning}
-                    </p>
-                  )}
                 </div>
-              )}
-            </div>
-
-            {resellerError && (
-              <p className="text-sm font-medium text-[var(--error)]">
-                {resellerError}
-              </p>
-            )}
-
-            {preview && (
-              <dl className="grid gap-1.5 rounded-[var(--r-md)] bg-[var(--tint)] px-4 py-3 text-sm text-[var(--text-2)]">
-                <div className="flex justify-between gap-3">
-                  <dt>{t.feeVia(formatBps(preview.viaBps))}</dt>
-                  <dd className="perf">
-                    {money(preview.viaFee, asset, localeTag)}
-                  </dd>
+                <div className="grid gap-2">
+                  <Label htmlFor="reseller-address">{t.resellerWallet}</Label>
+                  <Input
+                    id="reseller-address"
+                    value={resellerAddress}
+                    onChange={(e) => setResellerAddress(e.target.value)}
+                    placeholder="G…"
+                    spellCheck={false}
+                    className="perf text-xs"
+                  />
                 </div>
-                {preview.resellerFee > 0n && (
-                  <div className="flex justify-between gap-3">
-                    <dt>{t.feeReseller(formatBps(preview.resellerBps))}</dt>
-                    <dd className="perf">
-                      {money(preview.resellerFee, asset, localeTag)}
-                    </dd>
-                  </div>
+                {resellerWarning && (
+                  <p className="tone tone--warning px-3 py-2 text-xs font-medium">
+                    {resellerWarning}
+                  </p>
                 )}
-                <div className="flex justify-between gap-3 border-t border-[var(--border)] pt-1.5 font-bold text-[var(--text)]">
-                  <dt>{t.youReceive}</dt>
+              </div>
+            )}
+          </div>
+
+          {resellerError && (
+            <p className="text-sm font-medium text-[var(--error)]">
+              {resellerError}
+            </p>
+          )}
+
+          {preview && (
+            <dl className="split-preview">
+              <div className="split-preview__row">
+                <dt>{t.feeVia(formatBps(preview.viaBps))}</dt>
+                <dd className="perf">
+                  {money(preview.viaFee, asset, localeTag)}
+                </dd>
+              </div>
+              {preview.resellerFee > 0n && (
+                <div className="split-preview__row">
+                  <dt>{t.feeReseller(formatBps(preview.resellerBps))}</dt>
                   <dd className="perf">
-                    {money(preview.net, asset, localeTag)}
+                    {money(preview.resellerFee, asset, localeTag)}
                   </dd>
                 </div>
-              </dl>
-            )}
-
-            {error && (
-              <p className="text-sm font-medium text-[var(--error)]">{error}</p>
-            )}
-
-            <Button type="submit" size="lg" disabled={busy} className="w-full">
-              {busy ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> {t.creating}
-                </>
-              ) : (
-                <>
-                  <Link2 className="h-4 w-4" /> {t.createCta}
-                </>
               )}
-            </Button>
-          </form>
-
-          {lastUrl && (
-            <div className="mt-5 rounded-[var(--r-lg)] border border-[var(--primary)] bg-[var(--tint)] p-4">
-              <p className="mb-2 text-sm font-bold text-[var(--text)]">
-                {t.readyCopy}
-              </p>
-              <p className="perf mb-3 break-all text-xs text-[var(--text-2)]">
-                {lastUrl}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" onClick={() => copy(lastUrl)}>
-                  {copied ? (
-                    <>
-                      <Check className="h-4 w-4" /> {t.copied}
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4" /> {t.copyLink}
-                    </>
-                  )}
-                </Button>
-                <Button type="button" variant="outline" asChild>
-                  <a href={lastUrl} target="_blank" rel="noreferrer">
-                    <ExternalLink className="h-4 w-4" /> {t.openCheckout}
-                  </a>
-                </Button>
+              <div className="split-preview__row split-preview__row--net">
+                <dt>{t.youReceive}</dt>
+                <dd className="perf">{money(preview.net, asset, localeTag)}</dd>
               </div>
+            </dl>
+          )}
+
+          {error && (
+            <p className="text-sm font-medium text-[var(--error)]">{error}</p>
+          )}
+
+          <Button type="submit" size="lg" disabled={busy} className="w-full">
+            {busy ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> {t.creating}
+              </>
+            ) : (
+              <>
+                <Link2 className="h-4 w-4" /> {t.createCta}
+              </>
+            )}
+          </Button>
+        </form>
+
+        {lastUrl && (
+          <div className="success-strip">
+            <p className="success-strip__label">{t.readyCopy}</p>
+            <p className="success-strip__url perf">{lastUrl}</p>
+            <div className="success-strip__actions">
+              <Button type="button" onClick={() => copy(lastUrl)}>
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4" /> {t.copied}
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" /> {t.copyLink}
+                  </>
+                )}
+              </Button>
+              <Button type="button" variant="outline" asChild>
+                <a href={lastUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="h-4 w-4" /> {t.openCheckout}
+                </a>
+              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t.recentTitle}</CardTitle>
-          <CardDescription>{t.recentDesc}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {payments.length === 0 ? (
-            <p className="rounded-[var(--r-md)] border border-dashed border-[var(--border)] px-4 py-8 text-center text-sm text-[var(--text-2)]">
-              {t.recentEmpty}
-            </p>
-          ) : (
-            <ul className="grid gap-3">
-              {payments.slice(0, 8).map((p) => (
-                <li
-                  key={p.id}
-                  className="rounded-[var(--r-md)] border border-[var(--border)] bg-[var(--surface)] p-3"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="perf text-base">
-                        {Number(p.amount).toLocaleString(localeTag, {
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        {p.asset}
-                      </p>
-                      <p className="text-xs text-[var(--text-2)]">
-                        {p.description || p.id}
-                      </p>
-                      {p.reseller_address && (
-                        <p className="mt-1 text-xs text-[var(--text-2)]">
-                          {t.resellerLine(
-                            formatBps(p.reseller_fee_bps ?? 0),
-                            p.reseller_amount ?? "",
-                            p.asset,
-                            p.reseller_address.slice(0, 6),
-                          )}
-                        </p>
-                      )}
-                      {p.stellar_tx_hash && (
-                        <p className="perf mt-1 break-all text-[10px] text-[var(--text-2)]">
-                          {p.stellar_tx_hash}
-                        </p>
-                      )}
-                    </div>
-                    <StatusBadge status={p.status} />
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => copy(p.checkout_url)}
-                    >
-                      <Copy className="h-3.5 w-3.5" /> {t.copy}
-                    </Button>
-                    <Button type="button" size="sm" variant="outline" asChild>
-                      <a href={p.checkout_url} target="_blank" rel="noreferrer">
-                        {t.open}
-                      </a>
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const { t } = useLocale();
-  const tone: Record<string, string> = {
-    requires_payment: "tone--warning",
-    succeeded: "tone--success",
-    canceled: "tone--neutral",
-    expired: "tone--error",
-  };
-  const label: Record<string, string> = {
-    requires_payment: t.statusPending,
-    succeeded: t.statusPaid,
-    canceled: t.statusCanceled,
-    expired: t.statusExpired,
-  };
-  return (
-    <span className={`badge ${tone[status] ?? "tone--neutral"}`}>
-      {label[status] ?? status}
-    </span>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { DEFAULT_FEE_BPS } from "@viapay/shared";
 import { DashboardHome } from "@/components/DashboardHome";
 import type { Readiness } from "@/components/ReceiveNotice";
+import type { DashboardPayment } from "@/lib/payment-types";
 import { API } from "@/lib/config";
 import { getApiKey, getDemoSession } from "@/lib/session";
 
@@ -61,7 +62,7 @@ export default async function HomePage() {
     <DashboardHome
       sessionName={session.name}
       apiKey={apiKey}
-      payments={payments as never[]}
+      payments={payments as DashboardPayment[]}
       readiness={readiness}
       webhooks={webhooks}
       feeBps={feeBps}

@@ -60,9 +60,9 @@ export function ReceiveNotice({ readiness }: { readiness: Readiness | null }) {
   }
 
   return (
-    <section className="tone tone--warning mb-6 px-5 py-4 text-sm">
-      <p className="font-bold">{t.receiveTitle(readiness.network)}</p>
-      <ul className="mt-2 grid gap-1">
+    <section className="tone tone--warning notice" role="status">
+      <p className="notice__title">{t.receiveTitle(readiness.network)}</p>
+      <ul className="notice__list">
         {merchantMissing && (
           <li>
             {t.receiveMerchantMissing}
@@ -83,9 +83,7 @@ export function ReceiveNotice({ readiness }: { readiness: Readiness | null }) {
           </li>
         )}
         {treasuryBlocked && (
-          <li>
-            {t.receiveTreasury(readiness.treasury_wallet.slice(0, 6))}
-          </li>
+          <li>{t.receiveTreasury(readiness.treasury_wallet.slice(0, 6))}</li>
         )}
         {resellersBlocked.map((reseller) => (
           <li key={reseller.address}>
@@ -97,7 +95,7 @@ export function ReceiveNotice({ readiness }: { readiness: Readiness | null }) {
           </li>
         ))}
       </ul>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="notice__actions">
         {readiness.trustline_sep7 && merchantNeedsUsdc && (
           <Button type="button" size="sm" variant="outline" onClick={copyTrustline}>
             {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
@@ -105,7 +103,7 @@ export function ReceiveNotice({ readiness }: { readiness: Readiness | null }) {
           </Button>
         )}
         <a
-          className="inline-flex h-9 items-center rounded-[var(--r-sm)] px-3 text-sm font-bold underline"
+          className="inline-flex h-9 items-center rounded-[var(--r-sm)] px-3 text-sm font-bold underline underline-offset-2"
           href={readiness.usdc_faucet_url}
           target="_blank"
           rel="noreferrer"

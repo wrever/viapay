@@ -3,13 +3,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { SiteControls, useLocale } from "@/lib/i18n";
 
 export function LoginScreen({
@@ -23,21 +16,18 @@ export function LoginScreen({
 
   return (
     <main className="gate">
-      <div className="w-full max-w-md">
-        <div className="prefs-bar justify-center mb-4">
+      <div className="gate__card">
+        <div className="prefs-bar mb-5 justify-center">
           <SiteControls />
         </div>
-        <Logo variant="stacked" width={176} className="gate__logo" />
-        <p className="mb-7 text-center text-[var(--text-2)]">{t.loginTagline}</p>
+        <Logo variant="stacked" width={168} className="gate__logo" />
+        <p className="gate__tagline">{t.loginTagline}</p>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.loginTitle}</CardTitle>
-            <CardDescription>
-              {oauth ? t.loginDescOauth : t.loginDescLocal}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+        <div className="gate__panel">
+          <h1 className="panel-title">{t.loginTitle}</h1>
+          <p>{oauth ? t.loginDescOauth : t.loginDescLocal}</p>
+
+          <div className="gate__actions">
             {oauth ? (
               <>
                 <Button asChild size="lg" className="w-full">
@@ -57,12 +47,15 @@ export function LoginScreen({
               </p>
             )}
             {error && (
-              <p className="text-center text-sm text-red-500" role="alert">
+              <p
+                className="text-center text-sm text-[var(--error)]"
+                role="alert"
+              >
                 {t.loginError(error)}
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </main>
   );

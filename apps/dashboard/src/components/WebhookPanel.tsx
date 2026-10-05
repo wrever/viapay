@@ -71,10 +71,14 @@ export function WebhookPanel({
   }
 
   return (
-    <section className="mb-6 rounded-[var(--r-xl)] border border-[var(--border)] bg-[var(--bg)] p-5 shadow-[var(--shadow-md)]">
-      <h2 className="panel-title text-lg">{t.webhooksTitle}</h2>
-      <p className="mt-1 text-sm text-[var(--text-2)]">{t.webhooksDesc}</p>
-      <form className="mt-4 flex flex-wrap gap-2" onSubmit={create}>
+    <section className="hooks">
+      <div className="hooks__head">
+        <div>
+          <h2 className="panel-title">{t.webhooksTitle}</h2>
+          <p>{t.webhooksDesc}</p>
+        </div>
+      </div>
+      <form className="hooks__form" onSubmit={create}>
         <Label className="sr-only" htmlFor="webhook-url">
           URL
         </Label>
@@ -94,17 +98,17 @@ export function WebhookPanel({
           {t.webhooksDeliveries}
         </Button>
       </form>
-      {secret && (
-        <p className="perf mt-3 break-all rounded-[var(--r-md)] bg-[var(--tint)] px-3 py-2 text-xs">
-          {secret}
-        </p>
-      )}
+      {secret && <p className="hooks__secret perf">{secret}</p>}
       {error && <p className="mt-2 text-sm text-[var(--error)]">{error}</p>}
-      <ul className="mt-3 grid gap-1 text-sm text-[var(--text-2)]">
-        {endpoints.map((endpoint) => (
-          <li key={endpoint.id}>{endpoint.url}</li>
-        ))}
-      </ul>
+      {endpoints.length > 0 && (
+        <ul className="hooks__list">
+          {endpoints.map((endpoint) => (
+            <li key={endpoint.id} className="hooks__item">
+              {endpoint.url}
+            </li>
+          ))}
+        </ul>
+      )}
       {deliveries.length > 0 && (
         <ul className="mt-3 grid gap-1 text-xs text-[var(--text-2)]">
           {deliveries.map((delivery) => (

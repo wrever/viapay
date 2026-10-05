@@ -5,7 +5,7 @@ export type Messages = {
   locale: { switch: string };
   homeAria: string;
   signOut: string;
-  mastheadTitle: string;
+  mastheadTitle: (name: string) => string;
   mastheadBody: (fee: string) => string;
   stepCreateTitle: string;
   stepCreateBody: string;
@@ -77,6 +77,27 @@ export type Messages = {
   webhooksDeliveries: string;
   webhooksAttempts: (n: number) => string;
   webhooksCreateFail: string;
+  panelMetaAria: string;
+  statsAria: string;
+  statTotalCharges: string;
+  statTotalHint: string;
+  statReceived: string;
+  statReceivedHint: (paid: number) => string;
+  statPending: string;
+  statPendingHint: string;
+  statViaPayFees: string;
+  statFeesHint: string;
+  historyTitle: string;
+  historyDesc: string;
+  historyEmpty: string;
+  historyColWhen: string;
+  historyColConcept: string;
+  historyColAmount: string;
+  historyColNet: string;
+  historyColStatus: string;
+  historyColActions: string;
+  historyNoMemo: string;
+  historyShowMore: (n: number) => string;
 };
 
 const es: Messages = {
@@ -84,9 +105,9 @@ const es: Messages = {
   locale: { switch: "Elegir idioma" },
   homeAria: "ViaPay, inicio",
   signOut: "Cerrar sesión",
-  mastheadTitle: "Cobra con un link y reparte la comisión",
+  mastheadTitle: (name) => `Hola, ${name}`,
   mastheadBody: (fee) =>
-    `Tú pones el monto. ViaPay se queda ${fee}, el revendedor se queda lo que acuerdes con él, y el resto llega directo a tu billetera. Todo en el mismo pago.`,
+    `Creá un link, compartilo y cobrá. ViaPay se queda ${fee}; el resto va a tu billetera (y al revendedor si lo configurás).`,
   stepCreateTitle: "Creas el link",
   stepCreateBody: "Monto, moneda y, si hace falta, el revendedor.",
   stepShareTitle: "Lo compartes",
@@ -112,30 +133,29 @@ const es: Messages = {
     if (code === "supabase") return "Auth no está disponible ahora. Reintentá en unos minutos.";
     return "Algo salió mal al entrar. Probá otra vez.";
   },
-  createTitle: "Crear link de pago",
-  createDesc:
-    "En 10 segundos tienes un link para cobrar. Compártelo por WhatsApp, mail o tu web.",
+  createTitle: "Nuevo cobro",
+  createDesc: "Monto, moneda y listo. El link se puede compartir al toque.",
   amount: "Monto",
   asset: "Moneda",
-  whyOptional: "¿Por qué cobran? (opcional)",
+  whyOptional: "Concepto (opcional)",
   whyPlaceholder: "Ej. Pedido #1042",
-  resellerToggle: "Reparte una comisión con un revendedor",
+  resellerToggle: "Comisión para un revendedor",
   resellerHint:
-    "Para marketplaces o partners que traen la venta. Se paga en la misma transacción, antes de tu neto.",
+    "Marketplaces o partners. Se paga en la misma transacción, antes de tu neto.",
   resellerPct: "Comisión del revendedor",
   resellerWallet: "Billetera del revendedor",
   feeVia: (bps) => `Fee ViaPay (${bps})`,
   feeReseller: (bps) => `Revendedor (${bps})`,
   youReceive: "Tú recibes",
   creating: "Creando…",
-  createCta: "Crear link de pago",
-  readyCopy: "Listo. Copia y comparte:",
+  createCta: "Crear link",
+  readyCopy: "Listo — copiá y compartí:",
   copied: "Copiado",
   copyLink: "Copiar link",
   openCheckout: "Abrir checkout",
-  recentTitle: "Tus links recientes",
-  recentDesc: "Estado en tiempo real. Cuando el cliente paga, pasa a pagado.",
-  recentEmpty: "Aún no hay links. Crea el primero a la izquierda.",
+  recentTitle: "Links recientes",
+  recentDesc: "Cuando el cliente paga, el estado pasa a pagado.",
+  recentEmpty: "Todavía no hay cobros. Creá el primero acá al lado.",
   resellerLine: (bps, amount, asset, short) =>
     `Revendedor ${bps} · ${amount} ${asset} a ${short}…`,
   copy: "Copiar",
@@ -165,13 +185,35 @@ const es: Messages = {
     ". Su comisión va en la misma transacción, así que el cobro falla hasta que pueda recibir.",
   copyTrustline: "Copiar trustline USDC",
   faucetUsdc: "Faucet USDC",
-  webhooksTitle: "Avisos (webhooks)",
+  webhooksTitle: "Avisos al pagar",
   webhooksDesc:
     "Cuando un cobro pasa a pagado, ViaPay avisa a tu URL. El secreto se muestra una sola vez.",
   webhooksSave: "Guardar",
   webhooksDeliveries: "Entregas",
   webhooksAttempts: (n) => `${n} intentos`,
   webhooksCreateFail: "No se pudo crear el webhook",
+  panelMetaAria: "Estado de la cuenta",
+  statsAria: "Resumen de cobros",
+  statTotalCharges: "Cobros",
+  statTotalHint: "Links creados en tu cuenta",
+  statReceived: "Recibido",
+  statReceivedHint: (paid) =>
+    paid === 0 ? "Neto acreditado cuando pagan" : `${paid} pago${paid === 1 ? "" : "s"} confirmado${paid === 1 ? "" : "s"}`,
+  statPending: "Pendientes",
+  statPendingHint: "Esperando pago del cliente",
+  statViaPayFees: "Fee ViaPay",
+  statFeesHint: "Comisión acumulada en cobros pagados",
+  historyTitle: "Historial de cobros",
+  historyDesc: "Todos tus links, con estado, neto y enlace al checkout.",
+  historyEmpty: "Todavía no hay cobros. Creá el primero arriba.",
+  historyColWhen: "Fecha",
+  historyColConcept: "Concepto",
+  historyColAmount: "Total",
+  historyColNet: "Tu neto",
+  historyColStatus: "Estado",
+  historyColActions: "Acciones",
+  historyNoMemo: "Sin concepto",
+  historyShowMore: (n) => `Ver ${n} más`,
 };
 
 const en: Messages = {
@@ -179,9 +221,9 @@ const en: Messages = {
   locale: { switch: "Choose language" },
   homeAria: "ViaPay, home",
   signOut: "Sign out",
-  mastheadTitle: "Charge with a link and split the fee",
+  mastheadTitle: (name) => `Hi, ${name}`,
   mastheadBody: (fee) =>
-    `You set the amount. ViaPay keeps ${fee}, the reseller keeps what you agree, and the rest goes straight to your wallet — all in the same payment.`,
+    `Create a link, share it, get paid. ViaPay keeps ${fee}; the rest goes to your wallet (and the reseller if you set one).`,
   stepCreateTitle: "Create the link",
   stepCreateBody: "Amount, currency, and reseller if needed.",
   stepShareTitle: "Share it",
@@ -206,30 +248,29 @@ const en: Messages = {
     if (code === "supabase") return "Auth is unavailable right now. Try again in a moment.";
     return "Something went wrong signing in. Please try again.";
   },
-  createTitle: "Create payment link",
-  createDesc:
-    "In 10 seconds you have a link to get paid. Share it on WhatsApp, email, or your site.",
+  createTitle: "New charge",
+  createDesc: "Amount, currency, done. Share the link right away.",
   amount: "Amount",
   asset: "Currency",
-  whyOptional: "What is this for? (optional)",
+  whyOptional: "Memo (optional)",
   whyPlaceholder: "e.g. Order #1042",
-  resellerToggle: "Split a fee with a reseller",
+  resellerToggle: "Reseller fee",
   resellerHint:
-    "For marketplaces or partners who bring the sale. Paid in the same transaction, before your net.",
+    "Marketplaces or partners. Paid in the same transaction, before your net.",
   resellerPct: "Reseller fee",
   resellerWallet: "Reseller wallet",
   feeVia: (bps) => `ViaPay fee (${bps})`,
   feeReseller: (bps) => `Reseller (${bps})`,
   youReceive: "You receive",
   creating: "Creating…",
-  createCta: "Create payment link",
-  readyCopy: "Done. Copy and share:",
+  createCta: "Create link",
+  readyCopy: "Done — copy and share:",
   copied: "Copied",
   copyLink: "Copy link",
   openCheckout: "Open checkout",
-  recentTitle: "Your recent links",
-  recentDesc: "Live status. When the customer pays, it becomes paid.",
-  recentEmpty: "No links yet. Create the first one on the left.",
+  recentTitle: "Recent links",
+  recentDesc: "When the customer pays, status flips to paid.",
+  recentEmpty: "No charges yet. Create the first one next to this.",
   resellerLine: (bps, amount, asset, short) =>
     `Reseller ${bps} · ${amount} ${asset} to ${short}…`,
   copy: "Copy",
@@ -258,13 +299,35 @@ const en: Messages = {
     ". Their cut is in the same transaction, so the charge fails until they can receive.",
   copyTrustline: "Copy USDC trustline",
   faucetUsdc: "USDC faucet",
-  webhooksTitle: "Webhooks",
+  webhooksTitle: "Paid notifications",
   webhooksDesc:
     "When a charge becomes paid, ViaPay POSTs to your URL. The secret is shown once.",
   webhooksSave: "Save",
   webhooksDeliveries: "Deliveries",
   webhooksAttempts: (n) => `${n} attempts`,
   webhooksCreateFail: "Could not create the webhook",
+  panelMetaAria: "Account status",
+  statsAria: "Charge summary",
+  statTotalCharges: "Charges",
+  statTotalHint: "Payment links on your account",
+  statReceived: "Received",
+  statReceivedHint: (paid) =>
+    paid === 0 ? "Net credited when customers pay" : `${paid} confirmed payment${paid === 1 ? "" : "s"}`,
+  statPending: "Pending",
+  statPendingHint: "Waiting for customer payment",
+  statViaPayFees: "ViaPay fees",
+  statFeesHint: "Fees collected on paid charges",
+  historyTitle: "Charge history",
+  historyDesc: "All your links with status, net amount, and checkout link.",
+  historyEmpty: "No charges yet. Create the first one above.",
+  historyColWhen: "Date",
+  historyColConcept: "Memo",
+  historyColAmount: "Total",
+  historyColNet: "Your net",
+  historyColStatus: "Status",
+  historyColActions: "Actions",
+  historyNoMemo: "No memo",
+  historyShowMore: (n) => `Show ${n} more`,
 };
 
 const pt: Messages = {
@@ -272,9 +335,9 @@ const pt: Messages = {
   locale: { switch: "Escolher idioma" },
   homeAria: "ViaPay, início",
   signOut: "Sair",
-  mastheadTitle: "Cobre com um link e divida a comissão",
+  mastheadTitle: (name) => `Olá, ${name}`,
   mastheadBody: (fee) =>
-    `Você define o valor. A ViaPay fica com ${fee}, o revendedor com o que vocês combinarem, e o resto vai direto para sua carteira — tudo no mesmo pagamento.`,
+    `Crie um link, compartilhe e cobre. A ViaPay fica com ${fee}; o resto vai para sua carteira (e o revendedor se configurar).`,
   stepCreateTitle: "Crie o link",
   stepCreateBody: "Valor, moeda e, se precisar, o revendedor.",
   stepShareTitle: "Compartilhe",
@@ -299,30 +362,29 @@ const pt: Messages = {
     if (code === "supabase") return "Auth indisponível agora. Tente em alguns minutos.";
     return "Algo deu errado ao entrar. Tente novamente.";
   },
-  createTitle: "Criar link de pagamento",
-  createDesc:
-    "Em 10 segundos você tem um link para cobrar. Compartilhe no WhatsApp, e-mail ou site.",
+  createTitle: "Nova cobrança",
+  createDesc: "Valor, moeda e pronto. Compartilhe o link na hora.",
   amount: "Valor",
   asset: "Moeda",
-  whyOptional: "Por que estão cobrando? (opcional)",
+  whyOptional: "Conceito (opcional)",
   whyPlaceholder: "Ex. Pedido #1042",
-  resellerToggle: "Divida uma comissão com um revendedor",
+  resellerToggle: "Comissão para um revendedor",
   resellerHint:
-    "Para marketplaces ou parceiros que trazem a venda. Paga na mesma transação, antes do seu líquido.",
+    "Marketplaces ou parceiros. Paga na mesma transação, antes do seu líquido.",
   resellerPct: "Comissão do revendedor",
   resellerWallet: "Carteira do revendedor",
   feeVia: (bps) => `Taxa ViaPay (${bps})`,
   feeReseller: (bps) => `Revendedor (${bps})`,
   youReceive: "Você recebe",
   creating: "Criando…",
-  createCta: "Criar link de pagamento",
-  readyCopy: "Pronto. Copie e compartilhe:",
+  createCta: "Criar link",
+  readyCopy: "Pronto — copie e compartilhe:",
   copied: "Copiado",
   copyLink: "Copiar link",
   openCheckout: "Abrir checkout",
-  recentTitle: "Seus links recentes",
-  recentDesc: "Status em tempo real. Quando o cliente paga, fica como pago.",
-  recentEmpty: "Ainda não há links. Crie o primeiro à esquerda.",
+  recentTitle: "Links recentes",
+  recentDesc: "Quando o cliente paga, o status muda para pago.",
+  recentEmpty: "Ainda não há cobranças. Crie a primeira ao lado.",
   resellerLine: (bps, amount, asset, short) =>
     `Revendedor ${bps} · ${amount} ${asset} para ${short}…`,
   copy: "Copiar",
@@ -352,13 +414,37 @@ const pt: Messages = {
     ". A comissão vai na mesma transação, então a cobrança falha até poder receber.",
   copyTrustline: "Copiar trustline USDC",
   faucetUsdc: "Faucet USDC",
-  webhooksTitle: "Avisos (webhooks)",
+  webhooksTitle: "Avisos ao pagar",
   webhooksDesc:
     "Quando uma cobrança fica paga, a ViaPay avisa sua URL. O segredo aparece uma vez.",
   webhooksSave: "Salvar",
   webhooksDeliveries: "Entregas",
   webhooksAttempts: (n) => `${n} tentativas`,
   webhooksCreateFail: "Não foi possível criar o webhook",
+  panelMetaAria: "Estado da conta",
+  statsAria: "Resumo de cobranças",
+  statTotalCharges: "Cobranças",
+  statTotalHint: "Links criados na sua conta",
+  statReceived: "Recebido",
+  statReceivedHint: (paid) =>
+    paid === 0
+      ? "Líquido creditado quando pagam"
+      : `${paid} pagamento${paid === 1 ? "" : "s"} confirmado${paid === 1 ? "" : "s"}`,
+  statPending: "Pendentes",
+  statPendingHint: "Aguardando pagamento do cliente",
+  statViaPayFees: "Taxa ViaPay",
+  statFeesHint: "Taxa acumulada em cobranças pagas",
+  historyTitle: "Histórico de cobranças",
+  historyDesc: "Todos os seus links, com status, líquido e checkout.",
+  historyEmpty: "Ainda não há cobranças. Crie a primeira acima.",
+  historyColWhen: "Data",
+  historyColConcept: "Conceito",
+  historyColAmount: "Total",
+  historyColNet: "Seu líquido",
+  historyColStatus: "Status",
+  historyColActions: "Ações",
+  historyNoMemo: "Sem conceito",
+  historyShowMore: (n) => `Ver mais ${n}`,
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

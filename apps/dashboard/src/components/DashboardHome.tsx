@@ -1,113 +1,109 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { formatBps } from "@viapay/shared";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
 import { Logo } from "@/components/Logo";
+import { PaymentHistory } from "@/components/PaymentHistory";
+import { PaymentStatsStrip } from "@/components/PaymentStatsStrip";
 import { ReceiveNotice, type Readiness } from "@/components/ReceiveNotice";
 import { WebhookPanel } from "@/components/WebhookPanel";
 import { Button } from "@/components/ui/button";
+import type { DashboardPayment } from "@/lib/payment-types";
 import { SiteControls, useLocale } from "@/lib/i18n";
-
-type Payment = {
-  id: string;
-  status: string;
-  amount: string;
-  fee_amount: string;
-  net_amount: string;
-  reseller_fee_bps?: number;
-  reseller_amount?: string;
-  reseller_address?: string | null;
-  asset: string;
-  description: string | null;
-  checkout_url: string;
-  created_at: string;
-  stellar_tx_hash?: string | null;
-};
 
 export function DashboardHome({
   sessionName,
   apiKey,
-  payments,
+  payments: initialPayments,
   readiness,
   webhooks,
   feeBps,
 }: {
   sessionName: string;
   apiKey: string | null;
-  payments: Payment[];
+  payments: DashboardPayment[];
   readiness: Readiness | null;
   webhooks: { id: string; url: string; status: string }[];
   feeBps: number;
 }) {
   const { t } = useLocale();
   const fee = formatBps(feeBps);
+  const network = readiness?.network ?? "testnet";
+  const firstName = sessionName.split(/\s+/)[0] || sessionName;
+  const [payments, setPayments] = useState(initialPayments);
 
   return (
-    <div className="mx-auto min-h-[100dvh] w-full max-w-6xl px-4 py-6 md:px-6 md:py-8">
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <Link href="/app" className="brand-lockup" aria-label={t.homeAria}>
-          <Logo variant="horizontal" width={120} alt="" />
-        </Link>
-        <div className="flex items-center gap-3">
-          <SiteControls />
-          <span className="text-sm text-[var(--text-2)]">{sessionName}</span>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/auth/signout">{t.signOut}</Link>
-          </Button>
+    <div className="dash">
+      <header className="dash-bar">
+        <div className="dash-bar__inner">
+          <Link href="/app" className="brand-lockup" aria-label={t.homeAria}>
+            <Logo variant="horizontal" width={112} alt="" />
+          </Link>
+          <div className="dash-bar__user">
+            <SiteControls />
+            <span className="dash-bar__name" title={sessionName}>
+              {sessionName}
+            </span>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/auth/signout">{t.signOut}</Link>
+            </Button>
+          </div>
         </div>
       </header>
 
-      <section className="masthead mb-6 p-6 md:p-8" data-theme="dark">
-        <Logo variant="icon" width={272} className="masthead__mark" alt="" />
-        <div className="relative max-w-2xl">
-          <h1 className="panel-title text-3xl md:text-[2.6rem]">
-            {t.mastheadTitle}
-          </h1>
-          <p className="mt-3 max-w-xl text-[var(--text-2)]">
-            {t.mastheadBody(fee)}
-          </p>
-          <ol className="relative mt-5 grid gap-2 md:grid-cols-3">
-            <li className="step">
-              <b>{t.stepCreateTitle}</b>
-              {t.stepCreateBody}
-            </li>
-            <li className="step">
-              <b>{t.stepShareTitle}</b>
-              {t.stepShareBody}
-            </li>
-            <li className="step">
-              <b>{t.stepPaidTitle}</b>
-              {t.stepPaidBody}
-            </li>
-          </ol>
+      <main className="dash-main">
+        <div className="dash-intro">
+          <div>
+            <h1 className="panel-title">{t.mastheadTitle(firstName)}</h1>
+            <p>{t.mastheadBody(fee)}</p>
+          </div>
+          <div className="meta-chips" aria-label={t.panelMetaAria}>
+            <span className="meta-chip">
+              <span className="meta-chip__dot" aria-hidden="true" />
+              {network}
+            </span>
+            <span className="meta-chip meta-chip--accent">
+              <span className="meta-chip__dot" aria-hidden="true" />
+              ViaPay {fee}
+            </span>
+          </div>
         </div>
-      </section>
 
-      <ReceiveNotice readiness={readiness} />
+        <ReceiveNotice readiness={readiness} />
 
-      {!apiKey && (
-        <p className="tone tone--warning mb-6 px-4 py-3 text-sm">
-          {t.missingKey}
-        </p>
-      )}
+        {!apiKey && (
+          <p className="tone tone--warning notice" role="status">
+            {t.missingKey}
+          </p>
+        )}
 
-      <CreatePaymentLink apiKey={apiKey} initial={payments} feeBps={feeBps} />
+        <PaymentStatsStrip payments={payments} />
 
-      <div className="mt-6">
+        <div className="workspace workspace--composer">
+          <CreatePaymentLink
+            apiKey={apiKey}
+            feeBps={feeBps}
+            onPaymentCreated={(p) => setPayments((prev) => [p, ...prev])}
+          />
+        </div>
+
+        <PaymentHistory payments={payments} network={network} />
+
         <WebhookPanel apiKey={apiKey} initial={webhooks} />
-      </div>
 
-      <footer className="mt-10 border-t border-[var(--border)] pt-5 text-xs text-[var(--text-2)]">
-        <p>
-          {t.footerNetwork(readiness?.network ?? "testnet", fee)}
-          <code className="perf">
-            {readiness?.treasury_wallet
-              ? `${readiness.treasury_wallet.slice(0, 6)}…${readiness.treasury_wallet.slice(-4)}`
-              : t.footerUnconfigured}
-          </code>
-        </p>
-      </footer>
+        <footer className="dash-foot">
+          <p>
+            {t.footerNetwork(network, fee)}
+            <code className="perf">
+              {readiness?.treasury_wallet
+                ? `${readiness.treasury_wallet.slice(0, 6)}…${readiness.treasury_wallet.slice(-4)}`
+                : t.footerUnconfigured}
+            </code>
+          </p>
+        </footer>
+      </main>
     </div>
   );
 }
