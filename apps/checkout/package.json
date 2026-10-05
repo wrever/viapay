@@ -1,0 +1,36 @@
+{
+  "name": "@viapay/checkout",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3004",
+    "build": "next build",
+    "start": "next start --port 3004"
+  },
+  "dependencies": {
+    "@creit.tech/stellar-wallets-kit": "^2.6.0",
+    "@pollar/core": "^0.11.3",
+    "@pollar/react": "^0.11.3",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@viapay/brand": "workspace:*",
+    "@viapay/prefs": "workspace:*",
+    "@viapay/shared": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
+    "next": "^15.3.2",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwind-merge": "^3.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.7",
+    "@types/node": "^22.15.21",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5.8.3"
+  }
+}
