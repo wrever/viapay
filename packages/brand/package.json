@@ -1,0 +1,17 @@
+{
+  "name": "@viapay/brand",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./logos/*": "./logos/*"
+  },
+  "files": [
+    "tokens.css",
+    "logos"
+  ],
+  "scripts": {
+    "sync": "node scripts/sync-public.mjs"
+  }
+}
