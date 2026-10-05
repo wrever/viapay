@@ -51,7 +51,8 @@ export function CreatePaymentLink({
   const { t, locale } = useLocale();
   const localeTag = LOCALE_TAG[locale];
   const [amount, setAmount] = useState("20");
-  const [asset, setAsset] = useState<"USDC" | "XLM">("USDC");
+  // Demo default: XLM — treasury/merchant often lack USDC trustline on testnet.
+  const [asset, setAsset] = useState<"USDC" | "XLM">("XLM");
   const [description, setDescription] = useState("");
   const [resellerOpen, setResellerOpen] = useState(false);
   const [resellerPct, setResellerPct] = useState("");
@@ -211,8 +212,8 @@ export function CreatePaymentLink({
                 value={asset}
                 onChange={(e) => setAsset(e.target.value as "USDC" | "XLM")}
               >
-                <option value="USDC">USDC</option>
                 <option value="XLM">XLM</option>
+                <option value="USDC">USDC</option>
               </select>
             </div>
           </div>

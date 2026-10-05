@@ -1205,6 +1205,7 @@ code {
   position: absolute;
   inset: 0;
   border: 0;
+  pointer-events: auto;
   background: color-mix(in srgb, var(--text) 42%, transparent);
 }
 
@@ -1240,6 +1241,19 @@ code {
   color: var(--text-2);
   font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.wallet-gate-modal__form {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+}
+
+.wallet-gate-modal__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-2);
+  line-height: 1.35;
 }
 
 .notices-bell {

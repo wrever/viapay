@@ -285,7 +285,7 @@ const es: Messages = {
     "Sin billetera de destino el dinero no puede llegar. Guardá tu cuenta Stellar (G…) para desbloquear el panel.",
   walletGateTitle: "Billetera de destino obligatoria",
   walletGateBody:
-    "Sin una cuenta Stellar (G…) los fondos no tienen destino. Configurala ahora: el resto del panel queda bloqueado hasta entonces.",
+    "Sin una cuenta Stellar (G…) los fondos no tienen destino. Guardá tu billetera abajo para desbloquear el panel. Este aviso no se puede cerrar hasta entonces.",
   walletGateCta: "Configurar billetera",
   walletGateBlocked: "Configurá la billetera de destino para crear links.",
   walletGateLockedHint: "Guardá tu billetera de destino para usar esta sección.",
@@ -442,7 +442,7 @@ const en: Messages = {
     "Without a destination wallet, funds cannot arrive. Save your Stellar account (G…) to unlock the panel.",
   walletGateTitle: "Destination wallet required",
   walletGateBody:
-    "Without a Stellar account (G…) there is nowhere for funds to land. Set it now — the rest of the panel stays locked until then.",
+    "Without a Stellar account (G…) there is nowhere for funds to land. Save your wallet below to unlock the panel. This dialog cannot be dismissed until then.",
   walletGateCta: "Set destination wallet",
   walletGateBlocked: "Set a destination wallet to create payment links.",
   walletGateLockedHint: "Save your destination wallet to use this section.",
@@ -602,7 +602,7 @@ const pt: Messages = {
     "Sem carteira de destino o dinheiro não pode chegar. Salve sua conta Stellar (G…) para desbloquear o painel.",
   walletGateTitle: "Carteira de destino obrigatória",
   walletGateBody:
-    "Sem uma conta Stellar (G…) os fundos não têm destino. Configure agora: o restante do painel fica bloqueado até então.",
+    "Sem uma conta Stellar (G…) os fundos não têm destino. Salve sua carteira abaixo para desbloquear o painel. Este aviso não pode ser fechado até então.",
   walletGateCta: "Configurar carteira",
   walletGateBlocked: "Configure a carteira de destino para criar links.",
   walletGateLockedHint: "Salve sua carteira de destino para usar esta seção.",

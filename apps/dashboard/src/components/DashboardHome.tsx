@@ -17,6 +17,7 @@ import { IntegrationPanel } from "@/components/IntegrationPanel";
 import { OverviewPanel } from "@/components/OverviewPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
+import { WalletGateModal } from "@/components/WalletGateModal";
 import { Button } from "@/components/ui/button";
 import type { DashboardPayment } from "@/lib/payment-types";
 import type { Readiness } from "@/lib/readiness";
@@ -86,7 +87,6 @@ export function DashboardHome({
   const [merchantWallet, setMerchantWallet] = useState<string | null>(
     readiness?.merchant_wallet ?? null,
   );
-  const [walletGateOpen, setWalletGateOpen] = useState(false);
   const [noticesOpen, setNoticesOpen] = useState(false);
 
   const hasWallet = Boolean(merchantWallet);
@@ -107,7 +107,6 @@ export function DashboardHome({
         if (fromUrl !== WALLET_REQUIRED_SECTION) {
           setSection(WALLET_REQUIRED_SECTION);
           writeSectionToLocation(WALLET_REQUIRED_SECTION);
-          setWalletGateOpen(true);
           return;
         }
         setSection(WALLET_REQUIRED_SECTION);
@@ -134,7 +133,6 @@ export function DashboardHome({
   const go = useCallback(
     (next: DashSection) => {
       if (walletLocked && next !== WALLET_REQUIRED_SECTION) {
-        setWalletGateOpen(true);
         setSection(WALLET_REQUIRED_SECTION);
         writeSectionToLocation(WALLET_REQUIRED_SECTION);
         setNoticesOpen(false);
@@ -143,28 +141,17 @@ export function DashboardHome({
       setSection(next);
       writeSectionToLocation(next);
       setNoticesOpen(false);
-      if (next === WALLET_REQUIRED_SECTION) setWalletGateOpen(false);
     },
     [walletLocked],
   );
 
-  const openWalletGate = useCallback(() => {
-    setWalletGateOpen(true);
-  }, []);
-
-  const goIntegracion = useCallback(() => {
-    setWalletGateOpen(false);
-    go(WALLET_REQUIRED_SECTION);
-  }, [go]);
-
   const tryGoCobros = useCallback(() => {
     if (!hasWallet) {
-      openWalletGate();
       go(WALLET_REQUIRED_SECTION);
       return;
     }
     go("cobros");
-  }, [go, hasWallet, openWalletGate]);
+  }, [go, hasWallet]);
 
   const received = useMemo(
     () => payments.filter((p) => p.status === "succeeded"),
@@ -204,10 +191,7 @@ export function DashboardHome({
                 aria-expanded={noticesOpen}
                 aria-haspopup="menu"
                 onClick={() => {
-                  if (walletLocked) {
-                    openWalletGate();
-                    return;
-                  }
+                  if (walletLocked) return;
                   setNoticesOpen((v) => !v);
                 }}
               >
@@ -261,10 +245,7 @@ export function DashboardHome({
                     aria-disabled={locked || undefined}
                     title={locked ? t.walletGateLockedHint : undefined}
                     onClick={() => {
-                      if (locked) {
-                        openWalletGate();
-                        return;
-                      }
+                      if (locked) return;
                       go(id);
                     }}
                   >
@@ -304,9 +285,6 @@ export function DashboardHome({
                 <p className="wallet-gate-banner__title">{t.walletGateTitle}</p>
                 <p className="wallet-gate-banner__body">{t.walletGateBanner}</p>
               </div>
-              <Button type="button" size="sm" onClick={goIntegracion}>
-                {t.walletGateCta}
-              </Button>
             </div>
           )}
 
@@ -315,7 +293,7 @@ export function DashboardHome({
               <OverviewPanel
                 payments={payments}
                 hasWallet={hasWallet}
-                onNeedWallet={openWalletGate}
+                onNeedWallet={() => go(WALLET_REQUIRED_SECTION)}
                 onGoCobros={tryGoCobros}
                 onGoHistory={() => go("historial")}
               />
@@ -327,7 +305,7 @@ export function DashboardHome({
                   apiKey={apiKey}
                   feeBps={feeBps}
                   hasWallet={hasWallet}
-                  onNeedWallet={openWalletGate}
+                  onNeedWallet={() => go(WALLET_REQUIRED_SECTION)}
                   onPaymentCreated={(p) => setPayments((prev) => [p, ...prev])}
                 />
                 <aside className="cobros-guide" aria-label={t.cobrosGuideTitle}>
@@ -358,7 +336,6 @@ export function DashboardHome({
                   merchantWallet={merchantWallet}
                   onWalletSaved={(address) => {
                     setMerchantWallet(address);
-                    setWalletGateOpen(false);
                   }}
                 />
               ) : (
@@ -401,25 +378,13 @@ export function DashboardHome({
         </main>
       </div>
 
-      {walletGateOpen && walletLocked && (
-        <div
-          className="wallet-gate-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="wallet-gate-title"
-        >
-          <div className="wallet-gate-modal__backdrop" aria-hidden="true" />
-          <div className="wallet-gate-modal__card">
-            <Wallet className="wallet-gate-modal__icon" aria-hidden />
-            <h2 id="wallet-gate-title" className="wallet-gate-modal__title">
-              {t.walletGateTitle}
-            </h2>
-            <p className="wallet-gate-modal__body">{t.walletGateBody}</p>
-            <Button type="button" size="lg" className="w-full" onClick={goIntegracion}>
-              {t.walletGateCta}
-            </Button>
-          </div>
-        </div>
+      {walletLocked && apiKey && (
+        <WalletGateModal
+          apiKey={apiKey}
+          onWalletSaved={(address) => {
+            setMerchantWallet(address);
+          }}
+        />
       )}
     </div>
   );
