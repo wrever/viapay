@@ -8,7 +8,12 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 
 Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: header sticky, saludo corto + chips red/fee, stats merchant (cobros/recibido/pendientes; fee ViaPay acumulado queda para admin), composer, historial, Integración (API key + billetera), webhooks. Sin copy de marketing en el intro.
 
-**API en Vercel (listo):** proyecto `viapay-api` · Ready · `GET /v1/health` → 200. URLs: https://viapay-api.vercel.app y https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. En prod: `NEXT_PUBLIC_VIAPAY_API_URL` / `VIAPAY_API_PUBLIC_URL` = `https://viapay-api.vercel.app`. Checkout: https://viapay-checkout-bruno-mirandas-projects-b5bdc738.vercel.app. Con Supabase service role en el entorno de la API (Postgres compartido).
+**Prod Vercel (vivo, 2026-10-05):**
+- Sitio/panel: https://viapay.vercel.app (`apps/dashboard`). Envs cliente en `web` + `viapay-dashboard`: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app`. Redeploy production Ready (env bake-in).
+- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** JSON público (`{"ok":true,…}`). Alias team: https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. `VIAPAY_API_PUBLIC_URL` = misma canónica. Supabase service role en el entorno (Postgres compartido).
+- Checkout: proyecto `viapay-checkout` · Ready · canónico https://viapay-checkout-nine.vercel.app (público, sin SSO). Alias team: https://viapay-checkout-bruno-mirandas-projects-b5bdc738.vercel.app.
+- **Deployment Protection:** `ssoProtection` / `passwordProtection` = **null** en `viapay-api` y `viapay-checkout` (backends públicos; sin redirect 302 a Vercel SSO). Previews de `web` pueden seguir con SSO; el dominio `viapay.vercel.app` es alcanzable.
+- Gap restante: comercio sin wallet de destino no crea cobros (Integración en `/app` + `POST /v1/wallets`).
 
 **Docs (`/docs`):** en el mismo deploy del panel (`apps/dashboard`). Capítulos ES/EN/PT en `apps/dashboard/src/lib/marketing/docs-chapters.ts`.
 
