@@ -21,7 +21,7 @@ function formatTotals(
 
 function localizedSum(
   stats: ReturnType<typeof computePaymentStats>,
-  field: "net" | "fees" | "pendingGross",
+  field: "net" | "pendingGross",
   localeTag: string,
 ): string {
   const rows = stats.byAsset.filter((a) => a[field] > 0n);
@@ -58,22 +58,12 @@ export function PaymentStatsStrip({ payments }: { payments: DashboardPayment[] }
           : String(stats.pending),
       hint: t.statPendingHint,
     },
-    {
-      key: "fees",
-      label: t.statViaPayFees,
-      value: localizedSum(stats, "fees", localeTag),
-      hint: t.statFeesHint,
-      accent: true,
-    },
   ];
 
   return (
     <section className="stats-strip" aria-label={t.statsAria}>
       {cards.map((card) => (
-        <article
-          key={card.key}
-          className={`stat-card${card.accent ? " stat-card--accent" : ""}`}
-        >
+        <article key={card.key} className="stat-card">
           <p className="stat-card__label">{card.label}</p>
           <p className="stat-card__value perf">{card.value}</p>
           <p className="stat-card__hint">{card.hint}</p>

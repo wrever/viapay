@@ -204,13 +204,6 @@ code {
   box-shadow: var(--shadow-sm);
 }
 
-.stat-card--accent {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
-  background:
-    linear-gradient(145deg, rgba(var(--accent-rgb), 0.07), transparent 55%),
-    var(--bg);
-}
-
 .stat-card__label {
   margin: 0;
   font-size: 0.6875rem;

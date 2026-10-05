@@ -87,8 +87,6 @@ export type Messages = {
   statReceivedHint: (paid: number) => string;
   statPending: string;
   statPendingHint: string;
-  statViaPayFees: string;
-  statFeesHint: string;
   historyTitle: string;
   historyDesc: string;
   historyEmpty: string;
@@ -206,8 +204,6 @@ const es: Messages = {
     paid === 0 ? "Neto acreditado cuando pagan" : `${paid} pago${paid === 1 ? "" : "s"} confirmado${paid === 1 ? "" : "s"}`,
   statPending: "Pendientes",
   statPendingHint: "Esperando pago del cliente",
-  statViaPayFees: "Fee ViaPay",
-  statFeesHint: "Comisión acumulada en cobros pagados",
   historyTitle: "Historial de cobros",
   historyDesc: "Todos tus links, con estado, neto y enlace al checkout.",
   historyEmpty: "Todavía no hay cobros. Creá el primero arriba.",
@@ -323,8 +319,6 @@ const en: Messages = {
     paid === 0 ? "Net credited when customers pay" : `${paid} confirmed payment${paid === 1 ? "" : "s"}`,
   statPending: "Pending",
   statPendingHint: "Waiting for customer payment",
-  statViaPayFees: "ViaPay fees",
-  statFeesHint: "Fees collected on paid charges",
   historyTitle: "Charge history",
   historyDesc: "All your links with status, net amount, and checkout link.",
   historyEmpty: "No charges yet. Create the first one above.",
@@ -443,8 +437,6 @@ const pt: Messages = {
       : `${paid} pagamento${paid === 1 ? "" : "s"} confirmado${paid === 1 ? "" : "s"}`,
   statPending: "Pendentes",
   statPendingHint: "Aguardando pagamento do cliente",
-  statViaPayFees: "Taxa ViaPay",
-  statFeesHint: "Taxa acumulada em cobranças pagas",
   historyTitle: "Histórico de cobranças",
   historyDesc: "Todos os seus links, com status, líquido e checkout.",
   historyEmpty: "Ainda não há cobranças. Crie a primeira acima.",
