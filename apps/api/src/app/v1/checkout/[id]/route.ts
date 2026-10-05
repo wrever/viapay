@@ -25,7 +25,7 @@ export async function GET(
         Object.assign(new Error("client_secret required"), { status: 400 }),
       );
     }
-    const loaded = getPaymentIntentPublic(id, cs);
+    const loaded = await getPaymentIntentPublic(id, cs);
     if (!loaded) {
       return jsonError(Object.assign(new Error("Not found"), { status: 404 }));
     }

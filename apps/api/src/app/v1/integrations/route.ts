@@ -4,7 +4,7 @@ import { discoverAnchor, integrationStatus } from "@/lib/integrations";
 
 export async function GET(req: Request) {
   try {
-    requireAuth(req);
+    await requireAuth(req);
     const domain = process.env.ANCHOR_HOME_DOMAIN;
     let anchor = null;
     if (domain) {
@@ -28,7 +28,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    requireAuth(req);
+    await requireAuth(req);
     const body = z.object({ domain: z.string().min(3) }).parse(await req.json());
     return jsonOk(await discoverAnchor(body.domain));
   } catch (e) {

@@ -12,7 +12,6 @@ import { networkConfig } from "@viapay/stellar";
 
 const UNFUNDED = { exists: false, canReceive: false } as const;
 
-/** A reseller only gets paid if its wallet exists and holds the asset's trustline. */
 async function resellerStatus(address: string) {
   const [xlm, usdc] = await Promise.all([
     receiveStatusFor(address, "XLM"),
@@ -23,16 +22,15 @@ async function resellerStatus(address: string) {
 
 export async function GET(req: Request) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     const network = stellarNetwork();
     const cfg = networkConfig(network);
     const merchant = auth.merchantWallet;
     const treasury = getTreasuryAddress();
 
-    // Resellers waiting on a pending cobro, plus the one the dashboard is about
-    // to use (`?reseller=G…`) so the warning shows before the link is created.
     const asked = new URL(req.url).searchParams.get("reseller")?.trim();
-    const pendingResellers = listPayableIntents(auth.accountId)
+    const pending = await listPayableIntents(auth.accountId);
+    const pendingResellers = pending
       .map((row) => row.reseller_address)
       .filter((address): address is string => Boolean(address));
     const resellerAddresses = [

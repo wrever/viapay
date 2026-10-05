@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { AuthError, authenticateRequest } from "@/lib/auth";
 import { getDb, migrate } from "@/lib/db";
+import { usesSupabase } from "@/lib/supabase-admin";
 
 let migrated = false;
 
 export function ensureDb() {
+  if (usesSupabase()) {
+    migrated = true;
+    return;
+  }
   if (!migrated) {
     migrate(getDb());
     migrated = true;
@@ -37,7 +42,7 @@ export function jsonError(error: unknown) {
   return NextResponse.json({ error: message }, { status });
 }
 
-export function requireAuth(req: Request) {
+export async function requireAuth(req: Request) {
   ensureDb();
   return authenticateRequest(req.headers.get("authorization"));
 }

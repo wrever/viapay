@@ -18,7 +18,7 @@ export async function POST(
     ensureDb();
     const { id } = await ctx.params;
     const body = bodySchema.parse(await req.json());
-    const updated = confirmCheckoutPayment(id, body.client_secret, body.payer);
+    const updated = await confirmCheckoutPayment(id, body.client_secret, body.payer);
     return jsonOk(serializePaymentIntent(updated));
   } catch (e) {
     return jsonError(e);

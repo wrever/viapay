@@ -8,8 +8,8 @@ const createSchema = z.object({
 
 export async function GET(req: Request) {
   try {
-    const auth = requireAuth(req);
-    return jsonOk({ data: listWebhookEndpoints(auth.accountId) });
+    const auth = await requireAuth(req);
+    return jsonOk({ data: await listWebhookEndpoints(auth.accountId) });
   } catch (e) {
     return jsonError(e);
   }
@@ -17,9 +17,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     const body = createSchema.parse(await req.json());
-    const created = createWebhookEndpoint(auth.accountId, body.url);
+    const created = await createWebhookEndpoint(auth.accountId, body.url);
     return jsonOk(created, { status: 201 });
   } catch (e) {
     return jsonError(e);

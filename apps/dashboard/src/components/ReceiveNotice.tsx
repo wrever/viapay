@@ -38,8 +38,12 @@ export function ReceiveNotice({ readiness }: { readiness: Readiness | null }) {
   const [copied, setCopied] = useState(false);
   if (!readiness) return null;
 
-  const merchantMissing = !readiness.merchant.xlm.exists;
-  const merchantNeedsUsdc = !readiness.merchant.usdc.canReceive;
+  const merchantMissing = !readiness.merchant_wallet
+    ? true
+    : !readiness.merchant.xlm.exists;
+  const noWalletConfigured = !readiness.merchant_wallet;
+  const merchantNeedsUsdc =
+    Boolean(readiness.merchant_wallet) && !readiness.merchant.usdc.canReceive;
   const treasuryBlocked =
     !readiness.treasury.xlm.exists || !readiness.treasury.usdc.canReceive;
   const resellersBlocked = blockedResellers(readiness);
@@ -63,18 +67,22 @@ export function ReceiveNotice({ readiness }: { readiness: Readiness | null }) {
     <section className="tone tone--warning notice" role="status">
       <p className="notice__title">{t.receiveTitle(readiness.network)}</p>
       <ul className="notice__list">
-        {merchantMissing && (
-          <li>
-            {t.receiveMerchantMissing}
-            {readiness.friendbot_url ? (
-              <a className="underline" href={readiness.friendbot_url}>
-                Friendbot
-              </a>
-            ) : (
-              "Friendbot"
-            )}
-            .
-          </li>
+        {noWalletConfigured ? (
+          <li>{t.receiveNoWallet}</li>
+        ) : (
+          merchantMissing && (
+            <li>
+              {t.receiveMerchantMissing}
+              {readiness.friendbot_url ? (
+                <a className="underline" href={readiness.friendbot_url}>
+                  Friendbot
+                </a>
+              ) : (
+                "Friendbot"
+              )}
+              .
+            </li>
+          )
         )}
         {merchantNeedsUsdc && (
           <li>

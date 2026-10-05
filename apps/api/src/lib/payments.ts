@@ -11,6 +11,7 @@ import {
 import type { AuthContext } from "./auth";
 import { getTreasuryAddress } from "./auth";
 import { getDb } from "./db";
+import { getSupabaseAdmin, throwSb, usesSupabase } from "./supabase-admin";
 import { enqueuePaymentSucceeded } from "./webhooks";
 
 export interface PaymentIntentRow {
@@ -35,6 +36,32 @@ export interface PaymentIntentRow {
   succeeded_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+function normalizeRow(raw: Record<string, unknown>): PaymentIntentRow {
+  return {
+    id: String(raw.id),
+    account_id: String(raw.account_id),
+    status: raw.status as PaymentIntentStatus,
+    amount: String(raw.amount),
+    fee_amount: String(raw.fee_amount),
+    net_amount: String(raw.net_amount),
+    fee_bps: Number(raw.fee_bps),
+    reseller_fee_bps: Number(raw.reseller_fee_bps ?? 0),
+    reseller_amount: String(raw.reseller_amount ?? "0.0000000"),
+    reseller_address: (raw.reseller_address as string | null) ?? null,
+    asset_code: raw.asset_code as AssetCode,
+    merchant_wallet: String(raw.merchant_wallet),
+    description: (raw.description as string | null) ?? null,
+    client_secret: String(raw.client_secret),
+    success_url: (raw.success_url as string | null) ?? null,
+    cancel_url: (raw.cancel_url as string | null) ?? null,
+    stellar_tx_hash: (raw.stellar_tx_hash as string | null) ?? null,
+    expires_at: String(raw.expires_at),
+    succeeded_at: (raw.succeeded_at as string | null) ?? null,
+    created_at: String(raw.created_at),
+    updated_at: String(raw.updated_at),
+  };
 }
 
 export function getCheckoutBaseUrl(): string {
@@ -77,7 +104,7 @@ export function serializePaymentIntent(row: PaymentIntentRow) {
   };
 }
 
-export function createPaymentIntent(
+export async function createPaymentIntent(
   auth: AuthContext,
   input: {
     amount: string;
@@ -88,7 +115,7 @@ export function createPaymentIntent(
     reseller_fee_bps?: number;
     reseller_address?: string;
   },
-): PaymentIntentRow {
+): Promise<PaymentIntentRow> {
   if (!auth.merchantWallet) {
     throw Object.assign(
       new Error("Configura una wallet Stellar antes de crear links de pago"),
@@ -101,8 +128,6 @@ export function createPaymentIntent(
     throw Object.assign(new Error("amount must be > 0"), { status: 400 });
   }
 
-  // `auth.feeBps` comes from the server environment. The request body can only
-  // ever add a reseller cut on top of it, never change ViaPay's own fee.
   const resellerBps = input.reseller_fee_bps ?? 0;
   const resellerAddress = input.reseller_address?.trim() || null;
   try {
@@ -156,6 +181,32 @@ export function createPaymentIntent(
     updated_at: now,
   };
 
+  if (usesSupabase()) {
+    const ins = await getSupabaseAdmin().from("payment_intents").insert({
+      id: row.id,
+      account_id: row.account_id,
+      status: row.status,
+      amount: row.amount,
+      fee_amount: row.fee_amount,
+      net_amount: row.net_amount,
+      fee_bps: row.fee_bps,
+      reseller_fee_bps: row.reseller_fee_bps,
+      reseller_amount: row.reseller_amount,
+      reseller_address: row.reseller_address,
+      asset_code: row.asset_code,
+      merchant_wallet: row.merchant_wallet,
+      description: row.description,
+      client_secret: row.client_secret,
+      success_url: row.success_url,
+      cancel_url: row.cancel_url,
+      expires_at: row.expires_at,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    });
+    throwSb(ins.error, "payment_intent insert failed");
+    return row;
+  }
+
   getDb()
     .prepare(
       `insert into payment_intents (
@@ -175,18 +226,42 @@ export function createPaymentIntent(
   return row;
 }
 
-export function listPayableIntents(accountId: string) {
+export async function listPayableIntents(accountId: string) {
   const now = new Date().toISOString();
-  return getDb()
-    .prepare(
-      `select * from payment_intents
-       where account_id = ? and status = 'requires_payment' and expires_at > ?
-       order by created_at desc limit 40`,
-    )
-    .all(accountId, now) as PaymentIntentRow[];
+  if (usesSupabase()) {
+    const res = await getSupabaseAdmin()
+      .from("payment_intents")
+      .select("*")
+      .eq("account_id", accountId)
+      .eq("status", "requires_payment")
+      .gt("expires_at", now)
+      .order("created_at", { ascending: false })
+      .limit(40);
+    throwSb(res.error, "list payable failed");
+    return (res.data ?? []).map((row) => normalizeRow(row as Record<string, unknown>));
+  }
+  return (
+    getDb()
+      .prepare(
+        `select * from payment_intents
+         where account_id = ? and status = 'requires_payment' and expires_at > ?
+         order by created_at desc limit 40`,
+      )
+      .all(accountId, now) as PaymentIntentRow[]
+  );
 }
 
-export function listPaymentIntents(accountId: string) {
+export async function listPaymentIntents(accountId: string) {
+  if (usesSupabase()) {
+    const res = await getSupabaseAdmin()
+      .from("payment_intents")
+      .select("*")
+      .eq("account_id", accountId)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    throwSb(res.error, "list payment_intents failed");
+    return (res.data ?? []).map((row) => normalizeRow(row as Record<string, unknown>));
+  }
   return getDb()
     .prepare(
       `select * from payment_intents where account_id = ? order by created_at desc limit 100`,
@@ -194,7 +269,19 @@ export function listPaymentIntents(accountId: string) {
     .all(accountId) as PaymentIntentRow[];
 }
 
-export function getPaymentIntentPublic(id: string, clientSecret: string) {
+export async function getPaymentIntentPublic(id: string, clientSecret: string) {
+  if (usesSupabase()) {
+    const res = await getSupabaseAdmin()
+      .from("payment_intents")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    throwSb(res.error, "payment_intent lookup failed");
+    if (!res.data) return null;
+    const row = normalizeRow(res.data as Record<string, unknown>);
+    if (row.client_secret !== clientSecret) return null;
+    return row;
+  }
   const row = getDb()
     .prepare(`select * from payment_intents where id = ?`)
     .get(id) as PaymentIntentRow | undefined;
@@ -202,35 +289,64 @@ export function getPaymentIntentPublic(id: string, clientSecret: string) {
   return row;
 }
 
-export function markCheckoutSucceeded(id: string, txHash: string) {
+export async function getPaymentIntentById(id: string) {
+  if (usesSupabase()) {
+    const res = await getSupabaseAdmin()
+      .from("payment_intents")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    throwSb(res.error, "payment_intent lookup failed");
+    if (!res.data) return null;
+    return normalizeRow(res.data as Record<string, unknown>);
+  }
+  return (
+    (getDb().prepare(`select * from payment_intents where id = ?`).get(id) as
+      | PaymentIntentRow
+      | undefined) ?? null
+  );
+}
+
+export async function markCheckoutSucceeded(id: string, txHash: string) {
   const now = new Date().toISOString();
-  const current = getDb()
-    .prepare(`select * from payment_intents where id = ?`)
-    .get(id) as PaymentIntentRow | undefined;
+  const current = await getPaymentIntentById(id);
   if (!current) {
     throw Object.assign(new Error("Not found"), { status: 404 });
   }
   if (current.status === "succeeded") return current;
-  getDb()
-    .prepare(
-      `update payment_intents
-       set status = 'succeeded', stellar_tx_hash = ?, succeeded_at = ?, updated_at = ?
-       where id = ?`,
-    )
-    .run(txHash, now, now, id);
-  const updated = getDb()
-    .prepare(`select * from payment_intents where id = ?`)
-    .get(id) as PaymentIntentRow;
-  enqueuePaymentSucceeded(updated);
+
+  if (usesSupabase()) {
+    const upd = await getSupabaseAdmin()
+      .from("payment_intents")
+      .update({
+        status: "succeeded",
+        stellar_tx_hash: txHash,
+        succeeded_at: now,
+        updated_at: now,
+      })
+      .eq("id", id);
+    throwSb(upd.error, "payment_intent update failed");
+  } else {
+    getDb()
+      .prepare(
+        `update payment_intents
+         set status = 'succeeded', stellar_tx_hash = ?, succeeded_at = ?, updated_at = ?
+         where id = ?`,
+      )
+      .run(txHash, now, now, id);
+  }
+
+  const updated = (await getPaymentIntentById(id))!;
+  await enqueuePaymentSucceeded(updated);
   return updated;
 }
 
-export function confirmCheckoutPayment(
+export async function confirmCheckoutPayment(
   id: string,
   clientSecret: string,
   payer?: string,
 ) {
-  const row = getPaymentIntentPublic(id, clientSecret);
+  const row = await getPaymentIntentPublic(id, clientSecret);
   if (!row) {
     throw Object.assign(new Error("Not found"), { status: 404 });
   }
@@ -241,11 +357,18 @@ export function confirmCheckoutPayment(
     });
   }
   if (new Date(row.expires_at).getTime() < Date.now()) {
-    getDb()
-      .prepare(
-        `update payment_intents set status = 'expired', updated_at = ? where id = ?`,
-      )
-      .run(new Date().toISOString(), id);
+    if (usesSupabase()) {
+      await getSupabaseAdmin()
+        .from("payment_intents")
+        .update({ status: "expired", updated_at: new Date().toISOString() })
+        .eq("id", id);
+    } else {
+      getDb()
+        .prepare(
+          `update payment_intents set status = 'expired', updated_at = ? where id = ?`,
+        )
+        .run(new Date().toISOString(), id);
+    }
     throw Object.assign(new Error("Payment link expired"), { status: 400 });
   }
 

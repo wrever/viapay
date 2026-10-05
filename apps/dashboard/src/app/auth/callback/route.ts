@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { linkAccountFromEmail } from "@/lib/link-account";
 import { publicOrigin } from "@/lib/origin";
 import { API_KEY_COOKIE, SESSION_COOKIE } from "@/lib/session";
@@ -27,7 +28,23 @@ export async function GET(req: Request) {
     email;
 
   try {
-    const linked = await linkAccountFromEmail(email, name);
+    const jar = await cookies();
+    const existingKey = jar.get(API_KEY_COOKIE)?.value ?? null;
+    let linked = await linkAccountFromEmail(email, name);
+
+    // Reused key has no recoverable secret: keep cookie, or rotate if missing.
+    if (!linked.api_key) {
+      if (existingKey) {
+        linked = { ...linked, api_key: existingKey };
+      } else {
+        linked = await linkAccountFromEmail(email, name, { forceRotate: true });
+      }
+    }
+
+    if (!linked.api_key) {
+      return NextResponse.redirect(`${origin}/login?error=link`);
+    }
+
     const res = NextResponse.redirect(`${origin}/app`);
     res.cookies.set(
       SESSION_COOKIE,

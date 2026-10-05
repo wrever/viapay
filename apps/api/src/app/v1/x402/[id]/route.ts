@@ -38,8 +38,8 @@ function clientSecretFrom(req: Request, bodySecret?: string): string {
   return secret;
 }
 
-function loadIntent(id: string, clientSecret: string): PaymentIntentRow {
-  const row = getPaymentIntentPublic(id, clientSecret);
+async function loadIntent(id: string, clientSecret: string): Promise<PaymentIntentRow> {
+  const row = await getPaymentIntentPublic(id, clientSecret);
   if (!row) throw Object.assign(new Error("Not found"), { status: 404 });
   return row;
 }
@@ -73,7 +73,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   try {
     ensureDb();
     const { id } = await ctx.params;
-    const loaded = loadIntent(id, clientSecretFrom(req));
+    const loaded = await loadIntent(id, clientSecretFrom(req));
     let row = loaded;
     try {
       row = await reconcileCheckoutPayment(loaded);
@@ -99,7 +99,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const body = bodySchema.parse(raw ? JSON.parse(raw) : {});
     const header = parsePaymentHeader(req.headers.get("x-payment"));
     const clientSecret = clientSecretFrom(req, body.client_secret);
-    const row = loadIntent(id, clientSecret);
+    const row = await loadIntent(id, clientSecret);
     if (row.status === "succeeded") return paidResponse(row);
 
     const signedXdr = header?.signedXdr ?? body.signed_xdr;

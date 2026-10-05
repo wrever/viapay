@@ -29,8 +29,23 @@ function adminClient() {
   });
 }
 
-/** Upsert comercio + API key en Postgres (Supabase). Sin mock / sin SQLite local. */
-export async function linkAccountFromEmail(email: string, name: string) {
+export type LinkedAccount = {
+  email: string;
+  name: string;
+  api_key: string | null;
+  account_id: string;
+  reused: boolean;
+};
+
+/**
+ * Upsert comercio en Postgres. Si ya hay API key activa, no inserta otra
+ * (el secreto no se puede recuperar del hash). Si no hay cookie usable, rota.
+ */
+export async function linkAccountFromEmail(
+  email: string,
+  name: string,
+  opts?: { forceRotate?: boolean },
+): Promise<LinkedAccount> {
   const db = adminClient();
   const now = new Date().toISOString();
 
@@ -61,6 +76,47 @@ export async function linkAccountFromEmail(email: string, name: string) {
       .eq("id", accountId);
   }
 
+  const active = await db
+    .from("api_keys")
+    .select("id, created_at")
+    .eq("account_id", accountId)
+    .is("revoked_at", null)
+    .order("created_at", { ascending: false });
+
+  if (active.error) throw new Error(active.error.message);
+
+  const keys = active.data ?? [];
+  const hasActive = keys.length > 0;
+
+  // Keep only the newest active key; revoke duplicates from prior logins.
+  if (keys.length > 1) {
+    const keepId = keys[0]!.id;
+    const revokeIds = keys.slice(1).map((k) => k.id);
+    await db
+      .from("api_keys")
+      .update({ revoked_at: now })
+      .in("id", revokeIds)
+      .neq("id", keepId);
+  }
+
+  if (hasActive && !opts?.forceRotate) {
+    return {
+      email,
+      name,
+      api_key: null,
+      account_id: accountId,
+      reused: true,
+    };
+  }
+
+  if (hasActive && opts?.forceRotate) {
+    await db
+      .from("api_keys")
+      .update({ revoked_at: now })
+      .eq("account_id", accountId)
+      .is("revoked_at", null);
+  }
+
   const key = generateApiKey("live");
   const keyIns = await db.from("api_keys").insert({
     id: key.id,
@@ -75,5 +131,11 @@ export async function linkAccountFromEmail(email: string, name: string) {
     throw new Error(keyIns.error.message);
   }
 
-  return { email, name, api_key: key.secret, account_id: accountId };
+  return {
+    email,
+    name,
+    api_key: key.secret,
+    account_id: accountId,
+    reused: false,
+  };
 }

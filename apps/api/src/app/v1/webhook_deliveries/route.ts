@@ -3,9 +3,9 @@ import { deliverDue, listWebhookDeliveries } from "@/lib/webhooks";
 
 export async function GET(req: Request) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     await deliverDue().catch(() => undefined);
-    return jsonOk({ data: listWebhookDeliveries(auth.accountId) });
+    return jsonOk({ data: await listWebhookDeliveries(auth.accountId) });
   } catch (e) {
     return jsonError(e);
   }

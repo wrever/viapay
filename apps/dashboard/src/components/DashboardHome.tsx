@@ -5,6 +5,7 @@ import { useState } from "react";
 import { formatBps } from "@viapay/shared";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
 import { Logo } from "@/components/Logo";
+import { IntegrationPanel } from "@/components/IntegrationPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsStrip } from "@/components/PaymentStatsStrip";
 import { ReceiveNotice, type Readiness } from "@/components/ReceiveNotice";
@@ -87,6 +88,11 @@ export function DashboardHome({
         </div>
 
         <PaymentHistory payments={payments} network={network} />
+
+        <IntegrationPanel
+          apiKey={apiKey}
+          merchantWallet={readiness?.merchant_wallet ?? null}
+        />
 
         <WebhookPanel apiKey={apiKey} initial={webhooks} />
 

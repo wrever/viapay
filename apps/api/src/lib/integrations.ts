@@ -20,8 +20,16 @@ export function integrationStatus(): IntegrationStatus[] {
     },
     {
       id: "supabase",
-      ready: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_PUBLISHABLE_KEY),
-      detail: "OAuth Google/GitHub en el dashboard cuando SUPABASE_URL está definido. Si no, login local.",
+      ready: Boolean(
+        (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+          (process.env.SUPABASE_SERVICE_ROLE_KEY ||
+            process.env.SUPABASE_SECRET_KEY ||
+            process.env.SUPABASE_PUBLISHABLE_KEY),
+      ),
+      detail:
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
+          ? "API + OAuth sobre Postgres (service role)."
+          : "OAuth Google/GitHub en el dashboard cuando SUPABASE_URL está definido. Service role activa el path Postgres de la API.",
     },
     {
       id: "anchor",

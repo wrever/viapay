@@ -8,7 +8,23 @@
 - OAuth: ya conectado en el dashboard de Supabase.
 - MCP Cursor: `user-supabase-viapay`.
 
-**Importante:** la API en local sigue usando **SQLite** por defecto. Las tablas en Postgres están listas para cuando cableemos la API a Supabase (service role). OAuth del dashboard sí usa las keys `NEXT_PUBLIC_SUPABASE_*`.
+### API → mismo Postgres
+
+Si la API tiene:
+
+```
+SUPABASE_URL=https://fcbdahduqesuotujqbez.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<service_role>
+```
+
+entonces Bearer keys de OAuth autentican y `payment_intents` / wallets / webhooks viven en **el mismo** Postgres. Sin service role, la API cae a SQLite (`VIAPAY_DATABASE_PATH`).
+
+Local end-to-end con Supabase:
+
+1. Copiá keys desde `.env.supabase.local` (gitignored) a `apps/api/.env.local` y al root / dashboard.
+2. `pnpm --filter @viapay/api dev` (puerto 3001).
+3. Dashboard con `NEXT_PUBLIC_VIAPAY_API_URL=http://localhost:3001`.
+4. Login OAuth → cookie con API key → crear billetera en Integración → crear cobro.
 
 Redirect OAuth en Supabase Auth → URL configuration (obligatorio):
 
@@ -18,25 +34,27 @@ Redirect OAuth en Supabase Auth → URL configuration (obligatorio):
 
 Todo el producto (landing, docs, login, panel) vive en **https://viapay.vercel.app** (`apps/dashboard`).
 
-## Vercel — env públicas (web / dashboard / checkout)
+## Vercel — env públicas (sitio / dashboard)
 
 ```
 NEXT_PUBLIC_VIAPAY_WEB_URL=https://viapay.vercel.app
 NEXT_PUBLIC_VIAPAY_DASHBOARD_URL=https://viapay.vercel.app
 NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=<url del checkout desplegado>
-NEXT_PUBLIC_VIAPAY_API_URL=<url de la API desplegada>
+NEXT_PUBLIC_VIAPAY_API_URL=<url de la API desplegada — no localhost en prod>
 NEXT_PUBLIC_SUPABASE_URL=https://fcbdahduqesuotujqbez.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<sb_publishable_… o anon jwt>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon jwt>
-SUPABASE_SERVICE_ROLE_KEY=<solo server, panel>
+SUPABASE_SERVICE_ROLE_KEY=<solo server, panel OAuth link-account>
 ```
 
-## Vercel — env servidor (solo API)
+Sin `NEXT_PUBLIC_VIAPAY_API_URL` apuntando a una API real, el panel `/app` no llama a la API (evita Application error en Vercel).
+
+## Vercel — env servidor (API, proyecto aparte Root = `apps/api`)
 
 ```
 SUPABASE_URL=https://fcbdahduqesuotujqbez.supabase.co
-SUPABASE_PUBLISHABLE_KEY=<igual que publishable>
 SUPABASE_SERVICE_ROLE_KEY=<service_role — nunca al browser>
+SUPABASE_PUBLISHABLE_KEY=<igual que publishable, para /v1/auth/link>
 VIAPAY_API_PUBLIC_URL=<misma que NEXT_PUBLIC_VIAPAY_API_URL>
 VIAPAY_CHECKOUT_URL=<checkout público>
 FEE_BPS=100
@@ -57,3 +75,5 @@ Local helper (gitignored): `.env.supabase.local` — cópialo a tus `.env` de ap
 | API | `apps/api` | `NEXT_PUBLIC_VIAPAY_API_URL` |
 
 Build tip monorepo: Root Directory = `apps/dashboard`, Install = `cd ../.. && corepack pnpm install`, Build = `cd ../.. && corepack pnpm --filter @viapay/dashboard build`.
+
+Si la API aún no está desplegada en Vercel, el path Postgres ya está en código: corré la API local con service role y apuntá `NEXT_PUBLIC_VIAPAY_API_URL` del dashboard (local o preview) a esa API.

@@ -70,21 +70,22 @@ export function buildCheckoutSep7(row: PaymentIntentRow): string {
   });
 }
 
-function requirePayable(id: string, clientSecret: string): PaymentIntentRow {
-  const row = getPaymentIntentPublic(id, clientSecret);
-  if (!row) {
-    throw Object.assign(new Error("Not found"), { status: 404 });
-  }
-  if (row.status === "succeeded") return row;
-  if (row.status !== "requires_payment") {
-    throw Object.assign(new Error(`Cannot pay status=${row.status}`), {
-      status: 400,
-    });
-  }
-  if (new Date(row.expires_at).getTime() < Date.now()) {
-    throw Object.assign(new Error("Payment link expired"), { status: 400 });
-  }
-  return row;
+function requirePayable(id: string, clientSecret: string): Promise<PaymentIntentRow> {
+  return getPaymentIntentPublic(id, clientSecret).then((row) => {
+    if (!row) {
+      throw Object.assign(new Error("Not found"), { status: 404 });
+    }
+    if (row.status === "succeeded") return row;
+    if (row.status !== "requires_payment") {
+      throw Object.assign(new Error(`Cannot pay status=${row.status}`), {
+        status: 400,
+      });
+    }
+    if (new Date(row.expires_at).getTime() < Date.now()) {
+      throw Object.assign(new Error("Payment link expired"), { status: 400 });
+    }
+    return row;
+  });
 }
 
 export async function prepareCheckoutXdr(
@@ -92,7 +93,7 @@ export async function prepareCheckoutXdr(
   clientSecret: string,
   source: string,
 ) {
-  const row = requirePayable(id, clientSecret);
+  const row = await requirePayable(id, clientSecret);
   if (row.status === "succeeded") {
     throw Object.assign(new Error("Este cobro ya está pagado"), { status: 400 });
   }
@@ -132,7 +133,7 @@ export async function reconcileCheckoutPayment(row: PaymentIntentRow) {
 }
 
 export async function reconcileAccountPayments(accountId: string, merchant: string) {
-  const pending = listPayableIntents(accountId);
+  const pending = await listPayableIntents(accountId);
   if (pending.length === 0 || !merchant) return;
   const found = await findConfirmedSplits(
     stellarNetwork(),
@@ -140,7 +141,7 @@ export async function reconcileAccountPayments(accountId: string, merchant: stri
     pending.map((row) => splitLegFor(row, "")),
   );
   for (const hit of found) {
-    markCheckoutSucceeded(hit.memo, hit.hash);
+    await markCheckoutSucceeded(hit.memo, hit.hash);
   }
 }
 
@@ -149,7 +150,7 @@ export async function submitCheckoutXdr(
   clientSecret: string,
   signedXdr: string,
 ) {
-  const row = requirePayable(id, clientSecret);
+  const row = await requirePayable(id, clientSecret);
   if (row.status === "succeeded") return row;
   const submitted = await submitVerifiedSplit(signedXdr, splitLegFor(row, ""));
   return markCheckoutSucceeded(id, submitted.hash);

@@ -6,9 +6,9 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     const { id } = await ctx.params;
-    deleteWebhookEndpoint(auth.accountId, id);
+    await deleteWebhookEndpoint(auth.accountId, id);
     return jsonOk({ deleted: true });
   } catch (e) {
     return jsonError(e);

@@ -12,7 +12,7 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   try {
-    requireAuth(req);
+    await requireAuth(req);
     const body = schema.parse(await req.json());
     const deployed = await deployEscrow({
       signer: body.signer,

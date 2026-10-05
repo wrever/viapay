@@ -6,15 +6,17 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: header sticky, franja de stats merchant (cobros/recibido/pendientes; fee ViaPay acumulado queda para admin), composer de cobro, tabla de historial paginada, webhooks y `ReceiveNotice` (sin masthead de marketing).
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: header sticky, saludo corto + chips red/fee, stats merchant (cobros/recibido/pendientes; fee ViaPay acumulado queda para admin), composer, historial, Integración (API key + billetera), webhooks. Sin copy de marketing en el intro.
 
 **Docs (`/docs`):** en el mismo deploy del panel (`apps/dashboard`). Capítulos ES/EN/PT en `apps/dashboard/src/lib/marketing/docs-chapters.ts`.
 
 ## Supabase (ViaPay)
 
 - Proyecto `fcbdahduqesuotujqbez` · MCP `user-supabase-viapay`.
-- Tablas en Postgres (RLS on, 0 rows): `accounts`, `api_keys`, `wallets`, `payment_intents`, `webhook_endpoints`, `webhook_events`, `webhook_deliveries`. SQL en `supabase/migrations/`.
-- OAuth listo en el proyecto. La **API local sigue en SQLite** hasta cablear service role → Postgres.
+- Tablas en Postgres (RLS on): `accounts`, `api_keys`, `wallets`, `payment_intents`, `webhook_endpoints`, `webhook_events`, `webhook_deliveries`. SQL en `supabase/migrations/`.
+- **API → Postgres:** si `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (o `SUPABASE_SECRET_KEY`) están en el entorno de `@viapay/api`, auth Bearer, payment_intents, wallets y webhooks usan Supabase (mismo Postgres que OAuth). Sin esas env, la API sigue en SQLite local (`VIAPAY_DATABASE_PATH`).
+- OAuth del panel (`link-account.ts`) ya escribe en Postgres. Al login: reutiliza API key activa (no inserta duplicados); si no hay cookie con la clave, rota (revoke + mint). Revoca keys activas extras.
+- Sin wallet de destino el comercio no puede crear cobros: sección **Integración** en `/app` + `POST /v1/wallets`.
 - Panel `/app` en Vercel: si no hay `NEXT_PUBLIC_VIAPAY_API_URL` (o apunta a localhost), no hace fetch a la API; el panel carga vacío en lugar de tirar Application error.
 - Keys: solo en Vercel / `.env.supabase.local` (gitignored). Nunca en git.
 
@@ -153,10 +155,10 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Patas, SEP-7, Horizon, issuers USDC (`payoutLegs`, `assertSplitXdr`, `findConfirmedSplits`): `packages/stellar/src/index.ts`
 - Orquestación del checkout: `apps/api/src/lib/chain.ts`
 - Challenge y header x402: `apps/api/src/lib/x402.ts` + ruta `apps/api/src/app/v1/x402/[id]/route.ts`
-- Fee y persistencia: `apps/api/src/lib/payments.ts`, SQLite `apps/api/src/lib/db.ts`
-- Webhooks: `apps/api/src/lib/webhooks.ts` (firma) + rutas `webhook_endpoints` / `webhook_deliveries`
-- Integraciones (estado, toml, escrow): `apps/api/src/lib/integrations.ts`
-- Auth OAuth → API key: `apps/api/src/app/v1/auth/link/route.ts`
+- Fee y persistencia: `apps/api/src/lib/payments.ts`, SQLite `apps/api/src/lib/db.ts`, Postgres via `apps/api/src/lib/supabase-admin.ts` cuando hay service role
+- Auth OAuth → API key (dashboard): `apps/dashboard/src/lib/link-account.ts` + callback
+- Auth OAuth → API key (API link): `apps/api/src/app/v1/auth/link/route.ts`
+- Wallets destino: `POST/GET /v1/wallets` (`apps/api/src/app/v1/wallets/route.ts`) + `IntegrationPanel`
 - Checkout UI: `apps/checkout/src/components/PayPanel.tsx`
 - Wallets Kit: `apps/checkout/src/lib/wallet.ts` (`@creit.tech/stellar-wallets-kit`)
 - Pollar: `apps/checkout/src/components/PollarShell.tsx` (`@pollar/react`)

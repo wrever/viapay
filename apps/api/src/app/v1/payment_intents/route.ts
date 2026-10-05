@@ -8,8 +8,6 @@ import {
 import { jsonError, jsonOk, requireAuth } from "@/lib/http";
 import { reconcileAccountPayments } from "@/lib/chain";
 
-// No `fee_bps` here on purpose: ViaPay's own 1% lives in the server environment
-// and a client must not be able to lower it. A reseller cut is additive.
 const createSchema = z.object({
   amount: z.string().min(1),
   asset: z.enum(["XLM", "USDC"]),
@@ -22,7 +20,7 @@ const createSchema = z.object({
 
 export async function GET(req: Request) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     if (auth.merchantWallet) {
       try {
         await reconcileAccountPayments(auth.accountId, auth.merchantWallet);
@@ -30,8 +28,9 @@ export async function GET(req: Request) {
         // Horizon down should not hide the dashboard list.
       }
     }
+    const rows = await listPaymentIntents(auth.accountId);
     return jsonOk({
-      data: listPaymentIntents(auth.accountId).map(serializePaymentIntent),
+      data: rows.map(serializePaymentIntent),
     });
   } catch (e) {
     return jsonError(e);
@@ -40,9 +39,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     const body = createSchema.parse(await req.json());
-    const row = createPaymentIntent(auth, body);
+    const row = await createPaymentIntent(auth, body);
     return jsonOk(serializePaymentIntent(row), { status: 201 });
   } catch (e) {
     return jsonError(e);
