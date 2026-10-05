@@ -1,0 +1,272 @@
+openapi: 3.0.3
+info:
+  title: ViaPay API
+  version: 0.2.0
+  description: |
+    Payment Intents non-custodial en Stellar. Un cobro lo paga una persona
+    (checkout hosted) o un agente (HTTP 402 / x402). Fee ViaPay 1% fijo en
+    servidor; revendedor opcional en el body.
+servers:
+  - url: http://localhost:3001
+paths:
+  /v1/health:
+    get:
+      summary: Health
+      responses:
+        "200":
+          description: OK
+  /v1/payment_intents:
+    get:
+      summary: Listar payment intents (reconcilia pendientes en Horizon)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Lista
+    post:
+      summary: Crear payment intent (devuelve checkout_url)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, asset]
+              properties:
+                amount: { type: string, example: "20.0000000" }
+                asset: { type: string, enum: [USDC, XLM] }
+                description: { type: string }
+                success_url: { type: string, format: uri }
+                cancel_url: { type: string, format: uri }
+                reseller_fee_bps:
+                  type: integer
+                  minimum: 0
+                  maximum: 9900
+                  description: Comisión del revendedor en bps (700 = 7%). No baja el 1% de ViaPay.
+                reseller_address:
+                  type: string
+                  description: Cuenta Stellar G… del revendedor (obligatoria si reseller_fee_bps > 0)
+      responses:
+        "201":
+          description: Created
+  /v1/checkout/{id}:
+    get:
+      summary: Estado público del checkout
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: client_secret
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Intent + sep7_tx + receive
+  /v1/checkout/{id}/prepare:
+    post:
+      summary: XDR sin firmar (split 2 o 3 patas)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_secret, source]
+              properties:
+                client_secret: { type: string }
+                source: { type: string, description: Cuenta G… del pagador }
+      responses:
+        "200":
+          description: xdr + network_passphrase
+  /v1/checkout/{id}/submit:
+    post:
+      summary: Enviar XDR firmado a Horizon
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_secret, signed_xdr]
+              properties:
+                client_secret: { type: string }
+                signed_xdr: { type: string }
+      responses:
+        "200":
+          description: Succeeded
+  /v1/checkout/{id}/sep7:
+    post:
+      summary: Callback SEP-7 de wallet móvil
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                xdr: { type: string }
+      responses:
+        "200":
+          description: OK
+  /v1/checkout/{id}/confirm:
+    post:
+      summary: Solo si STELLAR_MODE=simulated
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Succeeded (simulated)
+        "400":
+          description: Bloqueado en onchain
+  /v1/x402/{id}:
+    get:
+      summary: Reto x402 (402 Payment Required)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: client_secret
+          required: true
+          schema: { type: string }
+      responses:
+        "402":
+          description: Challenge con accepts[] y breakdown
+    post:
+      summary: Liquidar pago de agente (X-PAYMENT o signed_xdr)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: client_secret
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signed_xdr: { type: string }
+                reconcile: { type: boolean }
+      responses:
+        "200":
+          description: Succeeded + X-PAYMENT-RESPONSE
+  /v1/readiness:
+    get:
+      summary: Friendbot, trustlines, fee_bps, resellers
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: reseller
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+  /v1/webhook_endpoints:
+    get:
+      summary: Listar endpoints
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Lista
+    post:
+      summary: Alta (el secret whsec_… se muestra una sola vez)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, format: uri }
+      responses:
+        "201":
+          description: Created
+  /v1/webhook_endpoints/{id}:
+    delete:
+      summary: Baja lógica
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+  /v1/webhook_deliveries:
+    get:
+      summary: Reintentar vencidas y listar
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Lista
+  /v1/integrations:
+    get:
+      summary: Estado Soroban / Supabase / anchor / escrow / Pollar
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Descubrir stellar.toml de un dominio
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+  /v1/escrow:
+    post:
+      summary: Deploy escrow Trustless Work (requiere API key)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Falta TRUSTLESSWORK_API_KEY
+  /v1/auth/link:
+    post:
+      summary: Access token Supabase → API key ViaPay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [access_token]
+              properties:
+                access_token: { type: string }
+      responses:
+        "200":
+          description: API key creada
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: sk_test_
