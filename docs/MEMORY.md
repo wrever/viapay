@@ -15,6 +15,7 @@ Actualizado: 2026-10-04. Lee esto antes de explorar el repo. Si cambias una capa
 - Proyecto `fcbdahduqesuotujqbez` · MCP `user-supabase-viapay`.
 - Tablas en Postgres (RLS on, 0 rows): `accounts`, `api_keys`, `wallets`, `payment_intents`, `webhook_endpoints`, `webhook_events`, `webhook_deliveries`. SQL en `supabase/migrations/`.
 - OAuth listo en el proyecto. La **API local sigue en SQLite** hasta cablear service role → Postgres.
+- Panel `/app` en Vercel: si no hay `NEXT_PUBLIC_VIAPAY_API_URL` (o apunta a localhost), no hace fetch a la API; el panel carga vacío en lugar de tirar Application error.
 - Keys: solo en Vercel / `.env.supabase.local` (gitignored). Nunca en git.
 
 Typecheck del 2026-10-04, sin errores: `@viapay/shared`, `@viapay/stellar`, `@viapay/sdk`, `@viapay/api`, `@viapay/checkout`, `@viapay/dashboard`, `@viapay/web`. `next build` pasa en web, dashboard y checkout. El contrato Soroban compila (`stellar contract build`, CLI 23.2.1) y está desplegado en testnet. Node local v24; pnpm es `corepack pnpm` 10.33.3.
