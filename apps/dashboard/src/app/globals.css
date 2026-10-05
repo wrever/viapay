@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+/* The merchant panel: cards on a tinted field, the same material the payer sees
+   in the checkout, so a cobro looks like the same object in both places.
+   Tokens come from @viapay/brand/tokens.css, imported in the layout — this file
+   never redeclares a colour, it only arranges them. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--text);
+  background:
+    radial-gradient(56rem 28rem at 100% -12%, rgba(var(--primary-rgb), 0.12), transparent 58%),
+    radial-gradient(40rem 26rem at -8% 88%, rgba(var(--accent-rgb), 0.07), transparent 56%),
+    var(--surface);
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+code {
+  font-family: var(--font-mono);
+}
+
+.panel-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: var(--leading-title);
+  text-wrap: balance;
+}
+
+/* Amounts, hashes and G… addresses. Tabular so columns of money line up. */
+.perf {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--step-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+}
+
+/* Clear space around the lockup equals the coin's radius. */
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--logo-air);
+}
+
+/* The masthead pins itself dark in both schemes: one band where the brand sits
+   at full strength, with the coin riding the corner. */
+.masthead {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(44rem 22rem at 88% -20%, rgba(var(--primary-rgb), 0.38), transparent 62%),
+    var(--bg);
+  color: var(--text);
+}
+
+.masthead__mark {
+  position: absolute;
+  right: -2.5rem;
+  bottom: -2.5rem;
+  width: 17rem;
+  opacity: 0.16;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 720px) {
+  .masthead__mark {
+    display: none;
+  }
+}
+
+.step {
+  border-radius: var(--r-md);
+  background: rgba(var(--primary-rgb), 0.1);
+  border: 1px solid var(--border);
+  padding: 0.7rem 0.9rem;
+  font-size: var(--step--1);
+  color: var(--text-2);
+}
+
+.step b {
+  display: block;
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* State tones. One wash per signal, mixed from the token so both schemes keep
+   the same meaning without a second palette. The label pulls a quarter of the
+   way toward the page ink, which is what gets 12px bold text over the AA line. */
+.tone {
+  border: 1px solid;
+  border-radius: var(--r-md);
+}
+
+.tone--warning {
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 38%, transparent);
+  color: color-mix(in srgb, var(--warning) 74%, var(--text));
+}
+
+.tone--success {
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  border-color: color-mix(in srgb, var(--success) 38%, transparent);
+  color: color-mix(in srgb, var(--success) 70%, var(--text));
+}
+
+.tone--error {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  border-color: color-mix(in srgb, var(--error) 38%, transparent);
+  color: color-mix(in srgb, var(--error) 78%, var(--text));
+}
+
+.tone--neutral {
+  background: var(--tint);
+  border-color: var(--border);
+  color: var(--text-2);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: var(--step-label);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Login: one card on the field, the stacked lockup as the only ornament. */
+.gate {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 2rem 1rem;
+}
+
+.gate__logo {
+  margin: 0 auto 1.5rem;
+  animation: via-float 7s var(--ease) infinite alternate;
+}
