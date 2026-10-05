@@ -1,0 +1,307 @@
+/* ViaPay brand tokens — single source of truth for web, dashboard and checkout.
+   Each app imports this from its layout as "@viapay/brand/tokens.css".
+
+   Two schemes, one set of names. Light is the default; dark arrives either from
+   the OS (prefers-color-scheme) or from an explicit data-theme on any element,
+   which is how a surface can pin itself (a dark masthead on a light page).
+
+   Fonts: Bricolage Grotesque 800 (display), Figtree 400/500/700 (UI),
+   IBM Plex Mono 500 (amounts, hashes, addresses). The --font-* vars below point
+   at the next/font variables each app declares in its layout. */
+
+:root {
+  --font-display: var(--font-bricolage), "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: var(--font-figtree), "Figtree", system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Light */
+  --bg: #ffffff;
+  --surface: #f5f7fd;
+  --tint: #eaf0ff;
+  --border: #d5dbee;
+  --text: #0b1020;
+  --text-2: #4b5468;
+  --primary: #2b59ff;
+  --primary-hover: #1f44d6;
+  --on-primary: #ffffff;
+  --accent: #ff5a1f;
+  --on-accent: #0b1020;
+  --success: #0e9f6e;
+  --warning: #b45309;
+  --error: #d92d20;
+
+  /* Translucent washes of the two brand colours, for glows and hover fills.
+     Kept as raw channels so each scheme can re-point them. */
+  --primary-rgb: 43, 89, 255;
+  --accent-rgb: 255, 90, 31;
+  --shadow-rgb: 11, 16, 32;
+
+  /* Type scale, from the kit's landing spec:
+     h1 72/1 · h2 44/1.05 · h3 28/1.15 · body 18/1.5 · small 14/1.4 · label 12 */
+  --step-label: 0.75rem;
+  --step--1: 0.875rem;
+  --step-0: 1.125rem;
+  --step-1: 1.25rem;
+  --step-2: clamp(1.375rem, 1.17rem + 0.9vw, 1.75rem);
+  --step-3: clamp(1.875rem, 1.3rem + 2.5vw, 2.75rem);
+  --step-4: clamp(2.5rem, 1.3rem + 5.2vw, 4.5rem);
+  --step-5: clamp(3rem, 1.2rem + 7.6vw, 6rem);
+
+  --leading-display: 1;
+  --leading-title: 1.05;
+  --leading-sub: 1.15;
+  --leading-body: 1.5;
+
+  /* Radii: tighter inside, softer outside */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+
+  /* Shadows tinted to the ink of the scheme, never flat black */
+  --shadow-sm: 0 1px 2px rgba(var(--shadow-rgb), 0.06);
+  --shadow-md: 0 12px 28px -14px rgba(var(--shadow-rgb), 0.22);
+  --shadow-lg: 0 28px 64px -26px rgba(var(--shadow-rgb), 0.3);
+  --shadow-primary: 0 16px 36px -16px rgba(var(--primary-rgb), 0.45);
+
+  --ease: cubic-bezier(0.22, 0.8, 0.26, 1);
+
+  /* Clear space around the logo equals the radius of the coin. At the minimum
+     horizontal size (96px) the coin is 18px across, so its radius is 9px. */
+  --logo-min-horizontal: 96px;
+  --logo-min-icon: 16px;
+  --logo-air: 0.1875em;
+
+  /* z-index scale — no arbitrary 9999 */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-overlay: 30;
+
+  color-scheme: light;
+}
+
+/* Dark, pinned explicitly. Works on :root for a whole app or on a single
+   section that wants dark tokens inside a light page. */
+[data-theme="dark"] {
+  --bg: #0a0e1a;
+  --surface: #121829;
+  --tint: #1a2238;
+  --border: #263050;
+  --text: #f3f6ff;
+  --text-2: #aab4cc;
+  --primary: #5b82ff;
+  --primary-hover: #7c99ff;
+  --on-primary: #0a0e1a;
+  --accent: #ff7a45;
+  --on-accent: #0a0e1a;
+  --success: #3ddc97;
+  --warning: #f5b73b;
+  --error: #ff6b5e;
+
+  --primary-rgb: 91, 130, 255;
+  --accent-rgb: 255, 122, 69;
+  --shadow-rgb: 2, 4, 10;
+
+  --shadow-md: 0 14px 32px -14px rgba(var(--shadow-rgb), 0.7);
+  --shadow-lg: 0 30px 70px -26px rgba(var(--shadow-rgb), 0.85);
+
+  color-scheme: dark;
+}
+
+/* Light, pinned explicitly — needed so a light card inside a dark app keeps
+   light tokens even when the OS is dark. */
+[data-theme="light"] {
+  --bg: #ffffff;
+  --surface: #f5f7fd;
+  --tint: #eaf0ff;
+  --border: #d5dbee;
+  --text: #0b1020;
+  --text-2: #4b5468;
+  --primary: #2b59ff;
+  --primary-hover: #1f44d6;
+  --on-primary: #ffffff;
+  --accent: #ff5a1f;
+  --on-accent: #0b1020;
+  --success: #0e9f6e;
+  --warning: #b45309;
+  --error: #d92d20;
+
+  --primary-rgb: 43, 89, 255;
+  --accent-rgb: 255, 90, 31;
+  --shadow-rgb: 11, 16, 32;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a0e1a;
+    --surface: #121829;
+    --tint: #1a2238;
+    --border: #263050;
+    --text: #f3f6ff;
+    --text-2: #aab4cc;
+    --primary: #5b82ff;
+    --primary-hover: #7c99ff;
+    --on-primary: #0a0e1a;
+    --accent: #ff7a45;
+    --on-accent: #0a0e1a;
+    --success: #3ddc97;
+    --warning: #f5b73b;
+    --error: #ff6b5e;
+
+    --primary-rgb: 91, 130, 255;
+    --accent-rgb: 255, 122, 69;
+    --shadow-rgb: 2, 4, 10;
+
+    --shadow-md: 0 14px 32px -14px rgba(var(--shadow-rgb), 0.7);
+    --shadow-lg: 0 30px 70px -26px rgba(var(--shadow-rgb), 0.85);
+
+    color-scheme: dark;
+  }
+}
+
+/* ───────────────────────────── type helpers ───────────────────────────── */
+
+.via-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: var(--leading-title);
+  text-wrap: balance;
+}
+
+/* Amounts, hashes and Stellar addresses. Tabular so columns of money line up. */
+.via-money {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.via-mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+/* The kit's eyebrow: mono 12, uppercase, generous tracking. */
+.via-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--step-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ───────────────────────────── logo ───────────────────────────── */
+
+/* Two files, one lockup. The light file carries a blue coin; the dark file a
+   white coin with a blue chevron. CSS picks the file so there is no flash and
+   no JS. Pair them: <img class="via-logo via-logo--on-light"> plus the
+   --on-dark twin. Keep the width at or above --logo-min-horizontal for the
+   wordmark lockups, --logo-min-icon for the bare coin. */
+.via-logo {
+  display: block;
+  height: auto;
+}
+
+.via-logo--on-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .via-logo--on-light {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .via-logo--on-dark {
+    display: block;
+  }
+}
+
+[data-theme="dark"] .via-logo--on-light {
+  display: none;
+}
+
+[data-theme="dark"] .via-logo--on-dark {
+  display: block;
+}
+
+[data-theme="light"] .via-logo--on-light {
+  display: block;
+}
+
+[data-theme="light"] .via-logo--on-dark {
+  display: none;
+}
+
+/* ───────────────────────────── focus ───────────────────────────── */
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+/* ───────────────────────────── motion ─────────────────────────────
+   Shared vocabulary. Each app opts in; nothing animates by default. */
+
+@keyframes via-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes via-enter-right {
+  from {
+    opacity: 0;
+    transform: translate3d(7%, 3%, 0) scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes via-float {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -14px, 0);
+  }
+}
+
+@keyframes via-travel {
+  from {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  to {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
