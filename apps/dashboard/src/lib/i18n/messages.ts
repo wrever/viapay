@@ -17,12 +17,14 @@ export type Messages = {
   footerNetwork: (network: string, fee: string) => string;
   footerTreasury: string;
   footerUnconfigured: string;
+  loginBack: string;
   loginTagline: string;
   loginTitle: string;
   loginDescOauth: string;
   loginDescLocal: string;
   continueGoogle: string;
   continueGithub: string;
+  loginAccountHint: string;
   loginOauthHint: string;
   loginError: (code: string) => string;
   createTitle: string;
@@ -118,6 +120,7 @@ const es: Messages = {
   footerNetwork: (network, fee) => `Red ${network} · fee ViaPay ${fee} · tesorería `,
   footerTreasury: "tesorería",
   footerUnconfigured: "sin configurar",
+  loginBack: "Volver",
   loginTagline: "Cobra en Stellar con un link. Sin código.",
   loginTitle: "Entrar al panel",
   loginDescOauth: "Entrá con tu cuenta de Google o GitHub para gestionar cobros.",
@@ -125,6 +128,8 @@ const es: Messages = {
     "El acceso con Google/GitHub no está configurado en este entorno.",
   continueGoogle: "Continuar con Google",
   continueGithub: "Continuar con GitHub",
+  loginAccountHint:
+    "Primera vez: se crea tu cuenta de comercio. Después, el mismo acceso.",
   loginOauthHint:
     "Configurá Supabase Auth (NEXT_PUBLIC_SUPABASE_URL y publishable key) para habilitar el login.",
   loginError: (code) => {
@@ -234,12 +239,15 @@ const en: Messages = {
   footerNetwork: (network, fee) => `Network ${network} · ViaPay fee ${fee} · treasury `,
   footerTreasury: "treasury",
   footerUnconfigured: "not configured",
+  loginBack: "Back",
   loginTagline: "Get paid on Stellar with a link. No code.",
   loginTitle: "Open the dashboard",
   loginDescOauth: "Sign in with Google or GitHub to manage your charges.",
   loginDescLocal: "Google/GitHub sign-in is not configured in this environment.",
   continueGoogle: "Continue with Google",
   continueGithub: "Continue with GitHub",
+  loginAccountHint:
+    "First time creates your merchant account. Next times, same sign-in.",
   loginOauthHint:
     "Configure Supabase Auth (NEXT_PUBLIC_SUPABASE_URL and publishable key) to enable login.",
   loginError: (code) => {
@@ -348,12 +356,15 @@ const pt: Messages = {
   footerNetwork: (network, fee) => `Rede ${network} · taxa ViaPay ${fee} · tesouraria `,
   footerTreasury: "tesouraria",
   footerUnconfigured: "sem configurar",
+  loginBack: "Voltar",
   loginTagline: "Cobre na Stellar com um link. Sem código.",
   loginTitle: "Entrar no painel",
   loginDescOauth: "Entre com Google ou GitHub para gerenciar suas cobranças.",
   loginDescLocal: "O acesso com Google/GitHub não está configurado neste ambiente.",
   continueGoogle: "Continuar com Google",
   continueGithub: "Continuar com GitHub",
+  loginAccountHint:
+    "Na primeira vez cria a conta do comércio. Depois, o mesmo acesso.",
   loginOauthHint:
     "Configure o Supabase Auth (NEXT_PUBLIC_SUPABASE_URL e publishable key) para habilitar o login.",
   loginError: (code) => {

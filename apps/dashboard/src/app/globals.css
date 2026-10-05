@@ -771,26 +771,75 @@ code {
   display: grid;
   place-items: center;
   min-height: 100dvh;
-  padding: 2rem 1rem;
+  padding: 4.5rem 1.15rem 2.5rem;
   position: relative;
   overflow: hidden;
+  background:
+    radial-gradient(48rem 28rem at 88% -12%, rgba(var(--primary-rgb), 0.14), transparent 58%),
+    radial-gradient(36rem 24rem at -8% 108%, rgba(var(--accent-rgb), 0.08), transparent 52%),
+    var(--bg);
 }
 
 .gate::before {
   content: "";
   position: absolute;
-  inset: auto -20% -30% -20%;
-  height: 55%;
+  inset: auto -18% -28% -18%;
+  height: 52%;
   background:
-    radial-gradient(40% 60% at 30% 40%, rgba(var(--primary-rgb), 0.18), transparent 70%),
-    radial-gradient(35% 50% at 70% 60%, rgba(var(--accent-rgb), 0.12), transparent 70%);
+    radial-gradient(42% 58% at 32% 42%, rgba(var(--primary-rgb), 0.2), transparent 72%),
+    radial-gradient(36% 48% at 72% 62%, rgba(var(--accent-rgb), 0.12), transparent 72%);
   pointer-events: none;
+}
+
+.gate__top {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: var(--z-raised);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem clamp(1rem, 3vw, 1.5rem);
+  pointer-events: none;
+}
+
+.gate__top > * {
+  pointer-events: auto;
+}
+
+.gate__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.4rem;
+  padding: 0.4rem 0.85rem 0.4rem 0.65rem;
+  border-radius: var(--r-sm);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  transition:
+    color 180ms var(--ease),
+    border-color 180ms var(--ease),
+    background-color 180ms var(--ease);
+}
+
+.gate__back:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--tint) 55%, var(--bg));
+}
+
+.gate__prefs {
+  margin: 0;
 }
 
 .gate__card {
   position: relative;
   width: 100%;
-  max-width: 24rem;
+  max-width: 24.5rem;
   animation: dash-in 480ms var(--ease) both;
 }
 
@@ -800,35 +849,62 @@ code {
 }
 
 .gate__tagline {
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.65rem;
   text-align: center;
   color: var(--text-2);
   font-size: 0.95rem;
+  line-height: 1.45;
+  text-wrap: balance;
 }
 
 .gate__panel {
   border-radius: var(--r-xl);
-  border: 1px solid var(--border);
-  background: var(--bg);
-  box-shadow: var(--shadow-lg);
-  padding: 1.35rem 1.35rem 1.45rem;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 88%, var(--bg)) 0%,
+      var(--bg) 100%
+    );
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 color-mix(in srgb, var(--text) 6%, transparent);
+  padding: 1.6rem 1.5rem 1.55rem;
 }
 
 .gate__panel h1 {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
 }
 
-.gate__panel p {
-  margin: 0.4rem 0 0;
+.gate__panel > p {
+  margin: 0.45rem 0 0;
   font-size: 0.875rem;
   color: var(--text-2);
+  line-height: 1.45;
 }
 
 .gate__actions {
-  margin-top: 1.15rem;
+  margin-top: 1.25rem;
   display: grid;
-  gap: 0.55rem;
+  gap: 0.65rem;
+}
+
+.gate__oauth {
+  justify-content: center;
+}
+
+.gate__oauth-icon {
+  flex-shrink: 0;
+}
+
+.gate__hint {
+  margin: 0.15rem 0 0;
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-2);
+  text-wrap: balance;
 }
 
 @keyframes dash-in {

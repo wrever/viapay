@@ -104,7 +104,8 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 
 ## Login
 
-- Solo OAuth (Google / GitHub). Sin “Continuar en local” en producto.
+- Solo OAuth (Google / GitHub). Registro y login son el **mismo** lugar: primera vez `linkAccountFromEmail` crea la cuenta comercio; siguientes = login. Sin “Continuar en local” en producto.
+- `/login`: volver a `/`, card con tokens brand, iconos Google/GitHub, hint i18n de “misma cuenta”.
 - Flujo: `/auth/oauth` → Supabase → `/auth/callback` → upsert `accounts` + `api_keys` en Postgres (service role) → cookies de sesión.
 - Site URL de Supabase Auth debe ser `https://viapay.vercel.app` (nunca localhost ni subdomain).
 - `VIAPAY_ALLOW_LOCAL_LOGIN=1` solo para emergencia en máquina local; en Vercel está apagado.
