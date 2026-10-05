@@ -39,8 +39,8 @@ Todo el producto (landing, docs, login, panel) vive en **https://viapay.vercel.a
 ```
 NEXT_PUBLIC_VIAPAY_WEB_URL=https://viapay.vercel.app
 NEXT_PUBLIC_VIAPAY_DASHBOARD_URL=https://viapay.vercel.app
-NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=<url del checkout desplegado>
-NEXT_PUBLIC_VIAPAY_API_URL=<url de la API desplegada — no localhost en prod>
+NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app
+NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app
 NEXT_PUBLIC_SUPABASE_URL=https://fcbdahduqesuotujqbez.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<sb_publishable_… o anon jwt>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon jwt>
@@ -55,8 +55,8 @@ Sin `NEXT_PUBLIC_VIAPAY_API_URL` apuntando a una API real, el panel `/app` no ll
 SUPABASE_URL=https://fcbdahduqesuotujqbez.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<service_role — nunca al browser>
 SUPABASE_PUBLISHABLE_KEY=<igual que publishable, para /v1/auth/link>
-VIAPAY_API_PUBLIC_URL=<misma que NEXT_PUBLIC_VIAPAY_API_URL>
-VIAPAY_CHECKOUT_URL=<checkout público>
+VIAPAY_API_PUBLIC_URL=https://viapay-api.vercel.app
+VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app
 FEE_BPS=100
 STELLAR_MODE=onchain
 STELLAR_NETWORK=testnet
