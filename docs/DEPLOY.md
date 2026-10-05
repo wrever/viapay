@@ -71,9 +71,9 @@ Local helper (gitignored): `.env.supabase.local` — cópialo a tus `.env` de ap
 | App | Root Directory | URL |
 |---|---|---|
 | Sitio (landing `/`, docs `/docs`, login `/login`, panel `/app`) | `apps/dashboard` | `https://viapay.vercel.app` |
-| Checkout | `apps/checkout` | `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL` |
-| API | `apps/api` | `NEXT_PUBLIC_VIAPAY_API_URL` |
+| Checkout | `apps/checkout` | `https://viapay-checkout-bruno-mirandas-projects-b5bdc738.vercel.app` |
+| API | `apps/api` | `https://viapay-api.vercel.app` (alias: `…-bruno-mirandas-projects-b5bdc738.vercel.app`) |
 
 Build tip monorepo: Root Directory = `apps/dashboard`, Install = `cd ../.. && corepack pnpm install`, Build = `cd ../.. && corepack pnpm --filter @viapay/dashboard build`.
 
-Si la API aún no está desplegada en Vercel, el path Postgres ya está en código: corré la API local con service role y apuntá `NEXT_PUBLIC_VIAPAY_API_URL` del dashboard (local o preview) a esa API.
+**API prod:** Ready · `GET /v1/health` → 200. `NEXT_PUBLIC_VIAPAY_API_URL` / `VIAPAY_API_PUBLIC_URL` = `https://viapay-api.vercel.app`.

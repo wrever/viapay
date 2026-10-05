@@ -8,6 +8,8 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 
 Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: header sticky, saludo corto + chips red/fee, stats merchant (cobros/recibido/pendientes; fee ViaPay acumulado queda para admin), composer, historial, Integración (API key + billetera), webhooks. Sin copy de marketing en el intro.
 
+**API en Vercel (listo):** proyecto `viapay-api` · Ready · `GET /v1/health` → 200. URLs: https://viapay-api.vercel.app y https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. En prod: `NEXT_PUBLIC_VIAPAY_API_URL` / `VIAPAY_API_PUBLIC_URL` = `https://viapay-api.vercel.app`. Checkout: https://viapay-checkout-bruno-mirandas-projects-b5bdc738.vercel.app. Con Supabase service role en el entorno de la API (Postgres compartido).
+
 **Docs (`/docs`):** en el mismo deploy del panel (`apps/dashboard`). Capítulos ES/EN/PT en `apps/dashboard/src/lib/marketing/docs-chapters.ts`.
 
 ## Supabase (ViaPay)
@@ -17,7 +19,7 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 - **API → Postgres:** si `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (o `SUPABASE_SECRET_KEY`) están en el entorno de `@viapay/api`, auth Bearer, payment_intents, wallets y webhooks usan Supabase (mismo Postgres que OAuth). Sin esas env, la API sigue en SQLite local (`VIAPAY_DATABASE_PATH`).
 - OAuth del panel (`link-account.ts`) ya escribe en Postgres. Al login: reutiliza API key activa (no inserta duplicados); si no hay cookie con la clave, rota (revoke + mint). Revoca keys activas extras.
 - Sin wallet de destino el comercio no puede crear cobros: sección **Integración** en `/app` + `POST /v1/wallets`.
-- Panel `/app` en Vercel: si no hay `NEXT_PUBLIC_VIAPAY_API_URL` (o apunta a localhost), no hace fetch a la API; el panel carga vacío en lugar de tirar Application error.
+- Panel `/app` en Vercel: si no hay `NEXT_PUBLIC_VIAPAY_API_URL` (o apunta a localhost), no hace fetch a la API; el panel carga vacío en lugar de tirar Application error. En prod ya apunta a `https://viapay-api.vercel.app`.
 - Keys: solo en Vercel / `.env.supabase.local` (gitignored). Nunca en git.
 
 Typecheck del 2026-10-04, sin errores: `@viapay/shared`, `@viapay/stellar`, `@viapay/sdk`, `@viapay/api`, `@viapay/checkout`, `@viapay/dashboard`, `@viapay/web`. `next build` pasa en web, dashboard y checkout. El contrato Soroban compila (`stellar contract build`, CLI 23.2.1) y está desplegado en testnet. Node local v24; pnpm es `corepack pnpm` 10.33.3.
