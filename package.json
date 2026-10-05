@@ -1,0 +1,22 @@
+{
+  "name": "viapay",
+  "private": true,
+  "packageManager": "pnpm@10.33.3",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @viapay/api --filter @viapay/dashboard --filter @viapay/checkout --filter @viapay/web --filter @viapay/shop dev",
+    "dev:api": "pnpm --filter @viapay/api dev",
+    "dev:dashboard": "pnpm --filter @viapay/dashboard dev",
+    "dev:checkout": "pnpm --filter @viapay/checkout dev",
+    "dev:web": "pnpm --filter @viapay/web dev",
+    "dev:shop": "pnpm --filter @viapay/shop dev",
+    "build": "pnpm -r build",
+    "brand:sync": "pnpm --filter @viapay/brand sync",
+    "db:seed": "pnpm --filter @viapay/api db:seed"
+  },
+  "devDependencies": {
+    "@stellar/stellar-sdk": "^17.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

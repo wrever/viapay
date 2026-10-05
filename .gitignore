@@ -1,0 +1,38 @@
+# Env
+.env
+.env.*
+!.env.example
+
+# deps / build
+node_modules
+target
+.agents/skills
+skills-lock.json
+.pnpm-store
+.next
+dist
+out
+coverage
+*.tsbuildinfo
+
+# data / secrets
+data/*.db
+data/*.db-*
+data/seed.local.json
+*.pem
+*.key
+*.p12
+id_rsa*
+id_ed25519*
+
+# OS / IDE / Cursor (local agent rules — not product code)
+.DS_Store
+.idea
+.vscode
+.cursor
+.cursor-demo
+
+# logs
+*.log
+npm-debug.log*
+.vercel
