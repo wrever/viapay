@@ -6,7 +6,7 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: app shell — top bar (logo, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile. Secciones con estado cliente + hash (`#cobros` `#historial` `#integracion` `#avisos`): Cobros (composer), Historial, Integración (wallet-first + API key), Avisos (webhooks). Stats strip solo en Cobros/Historial. Saludo corto + chips red/fee. Sin fee ViaPay acumulado (admin). Sin copy de marketing en el intro.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: app shell — top bar (logo, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile. Secciones con estado cliente + hash (`#cobros` `#historial` `#integracion`): Cobros (composer), Historial, Integración (wallet + API key + nota de poll `GET /v1/payment_intents`). Sin sección Avisos/webhooks en el panel (API webhooks sigue viva; el comercio puede consultar estado por API). Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Stats strip solo en Cobros/Historial. Saludo corto + chips red/fee. Pie: red + fee (sin dirección de tesorería). Sin fee ViaPay acumulado (admin). Sin copy de marketing en el intro.
 
 **Prod Vercel (vivo, 2026-10-05):**
 - Sitio/panel: https://viapay.vercel.app (`apps/dashboard`). Envs cliente en `web` + `viapay-dashboard`: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app`. Redeploy production Ready (env bake-in).
@@ -106,7 +106,7 @@ Auth del comercio: `Authorization: Bearer sk_test_…`. CORS abierto en `/v1/*`.
 
 ## Webhooks
 
-Header `ViaPay-Signature: t=<unix>,v1=<hex hmac-sha256>`.  
+API viva (`POST/GET /v1/webhook_endpoints`, entregas, firma HMAC). El panel de comercio **no** pide configurar webhooks: el camino recomendado es consultar estado con `GET /v1/payment_intents` (o el intent individual). Header `ViaPay-Signature: t=<unix>,v1=<hex hmac-sha256>`.  
 Mensaje firmado: `` `${t}.${rawBody}` ``. Ventana de 5 minutos.  
 El SDK verifica con `ViaPay.verifyWebhook(rawBody, header, secret)`.  
 Hasta 5 intentos. Localhost http está permitido. El resto exige https.
@@ -143,7 +143,7 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 - Horizon no indexa memos. La reconciliación mira 40 txs recientes del comercio.
 - El QR del teléfono no llega a `localhost`. Usa `VIAPAY_API_PUBLIC_URL`.
 - El `replace` de SEP-7 depende de que la wallet refresque la secuencia. Si no, `tx_bad_seq`. El camino de navegador (prepare con la cuenta real) es el sólido.
-- Comercio, tesorería y revendedor tienen que existir en la red. USDC exige trustline en los tres: si al revendedor le falta, **el cobro entero falla**, no solo su pata. El dashboard avisa (`ReceiveNotice` y, al teclear la wallet, el propio formulario) y copia un SEP-7 de trustline.
+- Comercio, tesorería y revendedor tienen que existir en la red. USDC exige trustline en los tres: si al revendedor le falta, **el cobro entero falla**, no solo su pata. En el panel, al teclear la wallet del revendedor el formulario avisa si no puede recibir; no hay bloque de readiness/Friendbot/faucet.
 - `STELLAR_MODE=simulated` sigue en el endpoint viejo `/confirm`. La UI no lo usa. `.env.example` está en `onchain`.
 
 ## SQLite
@@ -170,9 +170,9 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Wallets Kit: `apps/checkout/src/lib/wallet.ts` (`@creit.tech/stellar-wallets-kit`)
 - Pollar: `apps/checkout/src/components/PollarShell.tsx` (`@pollar/react`)
 - Dashboard login OAuth: `apps/dashboard/src/lib/supabase.ts`, `auth/oauth`, `auth/callback` (`@supabase/ssr`)
-- Webhooks en dashboard: `apps/dashboard/src/components/WebhookPanel.tsx`
-- Aviso de trustline (comercio, tesorería, revendedores): `apps/dashboard/src/components/ReceiveNotice.tsx`
 - Alta de cobro con revendedor y preview del desglose: `apps/dashboard/src/components/CreatePaymentLink.tsx`
+- Integración (wallet + API key + poll hint): `apps/dashboard/src/components/IntegrationPanel.tsx`
+- Tipo readiness del panel: `apps/dashboard/src/lib/readiness.ts`
 - SDK: `packages/sdk/src/index.ts` — `createCheckout` (acepta `reseller_fee_bps` + `reseller_address`), `parseX402Challenge`, `encodePaymentHeader`, `verifyWebhook` con `crypto.subtle`
 - Demo de agente x402: `examples/agent-pay.mjs`
 - Contrato: `contracts/payment-router/src/lib.rs` — desplegado en testnet, no invocado por el checkout

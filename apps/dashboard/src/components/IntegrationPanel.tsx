@@ -133,6 +133,14 @@ export function IntegrationPanel({
           </div>
           <p className="text-xs text-[var(--text-2)]">{t.integrationKeyHint}</p>
         </div>
+
+        <p className="text-sm text-[var(--text-2)]">
+          {t.integrationPollHint}{" "}
+          <a className="underline underline-offset-2" href="/docs">
+            {t.integrationDocs}
+          </a>
+          .
+        </p>
       </div>
     </section>
   );

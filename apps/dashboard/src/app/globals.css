@@ -773,110 +773,12 @@ code {
   animation: dash-in 360ms var(--ease) both;
 }
 
-.notice__title {
-  margin: 0;
-  font-weight: 700;
-}
-
-.notice__list {
-  margin: 0.55rem 0 0;
-  padding-left: 1.1rem;
-  display: grid;
-  gap: 0.3rem;
-}
-
-.notice__actions {
-  margin-top: 0.85rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  align-items: center;
-}
-
-/* Webhooks — secondary */
-.hooks {
-  border-radius: var(--r-xl);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  background: color-mix(in srgb, var(--bg) 70%, transparent);
-  padding: 1.1rem 1.2rem 1.25rem;
-  animation: dash-in 520ms var(--ease) 100ms both;
-}
-
-.hooks__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.35rem 1rem;
-}
-
-.hooks__head h2 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.hooks__head p {
-  margin: 0.2rem 0 0;
-  font-size: 0.8125rem;
-  color: var(--text-2);
-  max-width: 36rem;
-}
-
-.hooks__form {
-  margin-top: 0.9rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.hooks__secret {
-  margin: 0.75rem 0 0;
-  padding: 0.65rem 0.8rem;
-  border-radius: var(--r-md);
-  background: var(--tint);
-  font-size: 0.7rem;
-  word-break: break-all;
-}
-
-.hooks__list {
-  list-style: none;
-  margin: 0.75rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.35rem;
-}
-
-.hooks__item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.6rem;
-  border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--surface) 50%, transparent);
-  font-size: 0.8125rem;
-  color: var(--text-2);
-  word-break: break-all;
-}
-
-.hooks__item::before {
-  content: "";
-  width: 0.35rem;
-  height: 0.35rem;
-  border-radius: 50%;
-  background: var(--success);
-  flex-shrink: 0;
-}
-
 .dash-foot {
   margin-top: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
   font-size: 0.75rem;
   color: var(--text-2);
-}
-
-.dash-foot code {
-  margin-left: 0.15rem;
 }
 
 /* Login gate */

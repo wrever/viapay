@@ -8,8 +8,6 @@ export type Messages = {
   mastheadTitle: (name: string) => string;
   missingKey: string;
   footerNetwork: (network: string, fee: string) => string;
-  footerTreasury: string;
-  footerUnconfigured: string;
   loginBack: string;
   loginTagline: string;
   loginTitle: string;
@@ -55,20 +53,6 @@ export type Messages = {
   errGeneric: string;
   warnResellerMissing: string;
   warnResellerUsdc: string;
-  receiveTitle: (network: string) => string;
-  receiveMerchantMissing: string;
-  receiveMerchantUsdc: string;
-  receiveTreasury: (short: string) => string;
-  receiveResellerMissing: string;
-  receiveResellerUsdc: string;
-  receiveResellerTail: string;
-  copyTrustline: string;
-  faucetUsdc: string;
-  webhooksTitle: string;
-  webhooksSave: string;
-  webhooksDeliveries: string;
-  webhooksAttempts: (n: number) => string;
-  webhooksCreateFail: string;
   panelMetaAria: string;
   statsAria: string;
   statTotalCharges: string;
@@ -90,7 +74,7 @@ export type Messages = {
   integrationWalletSaved: string;
   integrationWalletFail: string;
   integrationNoWallet: string;
-  receiveNoWallet: string;
+  integrationPollHint: string;
   historyColWhen: string;
   historyColConcept: string;
   historyColAmount: string;
@@ -103,7 +87,6 @@ export type Messages = {
   navCobros: string;
   navHistorial: string;
   navIntegracion: string;
-  navAvisos: string;
 };
 
 const es: Messages = {
@@ -113,9 +96,7 @@ const es: Messages = {
   signOut: "Cerrar sesión",
   mastheadTitle: (name) => `Hola, ${name}`,
   missingKey: "Tu sesión no tiene clave de API. Cerrá sesión y volvé a entrar con Google o GitHub.",
-  footerNetwork: (network, fee) => `Red ${network} · fee ViaPay ${fee} · tesorería `,
-  footerTreasury: "tesorería",
-  footerUnconfigured: "sin configurar",
+  footerNetwork: (network, fee) => `Red ${network} · fee ViaPay ${fee}`,
   loginBack: "Volver",
   loginTagline: "Cobra en Stellar con un link. Sin código.",
   loginTitle: "Entrar al panel",
@@ -172,23 +153,6 @@ const es: Messages = {
   errGeneric: "Error",
   warnResellerMissing: "Esa billetera no existe en esta red todavía.",
   warnResellerUsdc: "Esa billetera no puede recibir USDC. El cobro fallará.",
-  receiveTitle: (network) => `Antes de cobrar en ${network}`,
-  receiveMerchantMissing: "Tu billetera no existe todavía. En testnet fóndeala con ",
-  receiveMerchantUsdc:
-    "USDC pide una línea de confianza. Ábrela desde tu billetera (Lobstr o Freighter) con el enlace SEP-7.",
-  receiveTreasury: (short) =>
-    `La tesorería (${short}…) no puede recibir el fee. Hay que fondearla y darle USDC antes de cobrar.`,
-  receiveResellerMissing: "no existe en esta red",
-  receiveResellerUsdc: "no puede recibir USDC",
-  receiveResellerTail:
-    ". Su comisión va en la misma transacción, así que el cobro falla hasta que pueda recibir.",
-  copyTrustline: "Copiar trustline USDC",
-  faucetUsdc: "Faucet USDC",
-  webhooksTitle: "Webhooks",
-  webhooksSave: "Guardar",
-  webhooksDeliveries: "Entregas",
-  webhooksAttempts: (n) => `${n} intentos`,
-  webhooksCreateFail: "No se pudo crear el webhook",
   panelMetaAria: "Estado de la cuenta",
   statsAria: "Resumen de cobros",
   statTotalCharges: "Cobros",
@@ -211,7 +175,8 @@ const es: Messages = {
   integrationWalletSaved: "Billetera guardada",
   integrationWalletFail: "No se pudo guardar la billetera",
   integrationNoWallet: "Configurá una billetera antes de crear cobros.",
-  receiveNoWallet: "Falta tu billetera de destino (G…). Configurala en Integración.",
+  integrationPollHint:
+    "Consultá el estado del cobro con GET /v1/payment_intents.",
   historyColWhen: "Fecha",
   historyColConcept: "Concepto",
   historyColAmount: "Total",
@@ -224,7 +189,6 @@ const es: Messages = {
   navCobros: "Cobros",
   navHistorial: "Historial",
   navIntegracion: "Integración",
-  navAvisos: "Avisos",
 };
 
 const en: Messages = {
@@ -234,9 +198,7 @@ const en: Messages = {
   signOut: "Sign out",
   mastheadTitle: (name) => `Hi, ${name}`,
   missingKey: "Your session has no API key. Sign out and sign in again with Google or GitHub.",
-  footerNetwork: (network, fee) => `Network ${network} · ViaPay fee ${fee} · treasury `,
-  footerTreasury: "treasury",
-  footerUnconfigured: "not configured",
+  footerNetwork: (network, fee) => `Network ${network} · ViaPay fee ${fee}`,
   loginBack: "Back",
   loginTagline: "Get paid on Stellar with a link. No code.",
   loginTitle: "Open the dashboard",
@@ -291,23 +253,6 @@ const en: Messages = {
   errGeneric: "Error",
   warnResellerMissing: "That wallet doesn’t exist on this network yet.",
   warnResellerUsdc: "That wallet can’t receive USDC. The charge will fail.",
-  receiveTitle: (network) => `Before charging on ${network}`,
-  receiveMerchantMissing: "Your wallet doesn’t exist yet. On testnet fund it with ",
-  receiveMerchantUsdc:
-    "USDC needs a trustline. Open it from your wallet (Lobstr or Freighter) with the SEP-7 link.",
-  receiveTreasury: (short) =>
-    `Treasury (${short}…) can’t receive the fee. Fund it and add USDC before charging on-chain.`,
-  receiveResellerMissing: "doesn’t exist on this network",
-  receiveResellerUsdc: "can’t receive USDC",
-  receiveResellerTail:
-    ". Their cut is in the same transaction, so the charge fails until they can receive.",
-  copyTrustline: "Copy USDC trustline",
-  faucetUsdc: "USDC faucet",
-  webhooksTitle: "Webhooks",
-  webhooksSave: "Save",
-  webhooksDeliveries: "Deliveries",
-  webhooksAttempts: (n) => `${n} attempts`,
-  webhooksCreateFail: "Could not create the webhook",
   panelMetaAria: "Account status",
   statsAria: "Charge summary",
   statTotalCharges: "Charges",
@@ -330,7 +275,8 @@ const en: Messages = {
   integrationWalletSaved: "Wallet saved",
   integrationWalletFail: "Could not save the wallet",
   integrationNoWallet: "Set a destination wallet before creating charges.",
-  receiveNoWallet: "Missing destination wallet (G…). Set it under Integration.",
+  integrationPollHint:
+    "Check charge status with GET /v1/payment_intents.",
   historyColWhen: "Date",
   historyColConcept: "Memo",
   historyColAmount: "Total",
@@ -343,7 +289,6 @@ const en: Messages = {
   navCobros: "Charges",
   navHistorial: "History",
   navIntegracion: "Integration",
-  navAvisos: "Webhooks",
 };
 
 const pt: Messages = {
@@ -353,9 +298,7 @@ const pt: Messages = {
   signOut: "Sair",
   mastheadTitle: (name) => `Olá, ${name}`,
   missingKey: "Sua sessão não tem API key. Saia e entre de novo com Google ou GitHub.",
-  footerNetwork: (network, fee) => `Rede ${network} · taxa ViaPay ${fee} · tesouraria `,
-  footerTreasury: "tesouraria",
-  footerUnconfigured: "sem configurar",
+  footerNetwork: (network, fee) => `Rede ${network} · taxa ViaPay ${fee}`,
   loginBack: "Voltar",
   loginTagline: "Cobre na Stellar com um link. Sem código.",
   loginTitle: "Entrar no painel",
@@ -411,23 +354,6 @@ const pt: Messages = {
   errGeneric: "Erro",
   warnResellerMissing: "Essa carteira ainda não existe nesta rede.",
   warnResellerUsdc: "Essa carteira não pode receber USDC. A cobrança vai falhar.",
-  receiveTitle: (network) => `Antes de cobrar em ${network}`,
-  receiveMerchantMissing: "Sua carteira ainda não existe. Na testnet fondeie com ",
-  receiveMerchantUsdc:
-    "USDC precisa de trustline. Abra na sua carteira (Lobstr ou Freighter) com o link SEP-7.",
-  receiveTreasury: (short) =>
-    `A tesouraria (${short}…) não pode receber a taxa. Fondeie e adicione USDC antes de cobrar.`,
-  receiveResellerMissing: "não existe nesta rede",
-  receiveResellerUsdc: "não pode receber USDC",
-  receiveResellerTail:
-    ". A comissão vai na mesma transação, então a cobrança falha até poder receber.",
-  copyTrustline: "Copiar trustline USDC",
-  faucetUsdc: "Faucet USDC",
-  webhooksTitle: "Webhooks",
-  webhooksSave: "Salvar",
-  webhooksDeliveries: "Entregas",
-  webhooksAttempts: (n) => `${n} tentativas`,
-  webhooksCreateFail: "Não foi possível criar o webhook",
   panelMetaAria: "Estado da conta",
   statsAria: "Resumo de cobranças",
   statTotalCharges: "Cobranças",
@@ -452,7 +378,8 @@ const pt: Messages = {
   integrationWalletSaved: "Carteira salva",
   integrationWalletFail: "Não foi possível salvar a carteira",
   integrationNoWallet: "Configure uma carteira antes de criar cobranças.",
-  receiveNoWallet: "Falta a carteira de destino (G…). Configure em Integração.",
+  integrationPollHint:
+    "Consulte o status da cobrança com GET /v1/payment_intents.",
   historyColWhen: "Data",
   historyColConcept: "Conceito",
   historyColAmount: "Total",
@@ -465,7 +392,6 @@ const pt: Messages = {
   navCobros: "Cobranças",
   navHistorial: "Histórico",
   navIntegracion: "Integração",
-  navAvisos: "Avisos",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

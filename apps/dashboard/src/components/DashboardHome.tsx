@@ -3,19 +3,18 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { formatBps } from "@viapay/shared";
-import { Bell, History, PlusCircle, Wallet } from "lucide-react";
+import { History, PlusCircle, Wallet } from "lucide-react";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
 import { Logo } from "@/components/Logo";
 import { IntegrationPanel } from "@/components/IntegrationPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsStrip } from "@/components/PaymentStatsStrip";
-import { ReceiveNotice, type Readiness } from "@/components/ReceiveNotice";
-import { WebhookPanel } from "@/components/WebhookPanel";
 import { Button } from "@/components/ui/button";
 import type { DashboardPayment } from "@/lib/payment-types";
+import type { Readiness } from "@/lib/readiness";
 import { SiteControls, useLocale } from "@/lib/i18n";
 
-const SECTIONS = ["cobros", "historial", "integracion", "avisos"] as const;
+const SECTIONS = ["cobros", "historial", "integracion"] as const;
 type DashSection = (typeof SECTIONS)[number];
 
 function parseSection(raw: string | null | undefined): DashSection {
@@ -30,14 +29,12 @@ export function DashboardHome({
   apiKey,
   payments: initialPayments,
   readiness,
-  webhooks,
   feeBps,
 }: {
   sessionName: string;
   apiKey: string | null;
   payments: DashboardPayment[];
   readiness: Readiness | null;
-  webhooks: { id: string; url: string; status: string }[];
   feeBps: number;
 }) {
   const { t } = useLocale();
@@ -63,7 +60,6 @@ export function DashboardHome({
   }, []);
 
   const showStats = section === "cobros" || section === "historial";
-  const showReceive = section === "cobros" || section === "integracion";
 
   const navItems: {
     id: DashSection;
@@ -73,7 +69,6 @@ export function DashboardHome({
     { id: "cobros", label: t.navCobros, icon: PlusCircle },
     { id: "historial", label: t.navHistorial, icon: History },
     { id: "integracion", label: t.navIntegracion, icon: Wallet },
-    { id: "avisos", label: t.navAvisos, icon: Bell },
   ];
 
   return (
@@ -132,8 +127,6 @@ export function DashboardHome({
             </div>
           </div>
 
-          {showReceive && <ReceiveNotice readiness={readiness} />}
-
           {!apiKey && (
             <p className="tone tone--warning notice" role="status">
               {t.missingKey}
@@ -163,21 +156,10 @@ export function DashboardHome({
                 merchantWallet={readiness?.merchant_wallet ?? null}
               />
             )}
-
-            {section === "avisos" && (
-              <WebhookPanel apiKey={apiKey} initial={webhooks} />
-            )}
           </div>
 
           <footer className="dash-foot">
-            <p>
-              {t.footerNetwork(network, fee)}
-              <code className="perf">
-                {readiness?.treasury_wallet
-                  ? `${readiness.treasury_wallet.slice(0, 6)}…${readiness.treasury_wallet.slice(-4)}`
-                  : t.footerUnconfigured}
-              </code>
-            </p>
+            <p>{t.footerNetwork(network, fee)}</p>
           </footer>
         </main>
       </div>
