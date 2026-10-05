@@ -1,0 +1,24 @@
+# ViaPay — ahora (lo que hay que mostrar)
+
+Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUTURO.md`](./FUTURO.md).
+
+## Ya vivo (demostrar bien)
+
+1. **Link de cobro** — crear en dashboard, copiar URL, pagar en checkout hosted.
+2. **Split 2 o 3 patas** — ViaPay 1% fijo + revendedor opcional (Hubby) + neto al comercio, misma tx.
+3. **Redirect ecommerce (MVP)** — el sitio manda al cliente al checkout ViaPay; `success_url` / `cancel_url` en la API. App de prueba: `apps/shop` (`:3005`).
+4. **Pagos agénticos** — mismo `payment_intent` por HTTP 402 (`/v1/x402/:id`); demo `examples/agent-pay.mjs`.
+5. **Webhooks firmados** — `payment_intent.succeeded` + `ViaPay-Signature`.
+6. **Landing** — un solo bloque con modos de uso (link simple, split marketplace, agente).
+
+## Mejoras de esta fase (sin tocar FUTURO)
+
+- Landing: modos gráficos en un solo lugar (tabs).
+- Dashboard: crear + copiar link claro; preview de split al crear (solo comercio).
+- Checkout pagador: **solo total** (sin fees en pantalla).
+- Evidencia on-chain y docs de jurado al día (`HACKATHON.md`, `MEMORY.md`).
+- Pulir copy y CTAs hacia demo en testnet.
+
+## No hacer ahora
+
+Email desde el producto · embed sin redirect · plugins Shopify/Woo · mainnet ops · path Soroban en checkout.
