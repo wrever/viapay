@@ -71,7 +71,7 @@ Local helper (gitignored): `.env.supabase.local` — cópialo a tus `.env` de ap
 | App | Root Directory | URL |
 |---|---|---|
 | Sitio (landing `/`, docs `/docs`, login `/login`, panel `/app`) | `apps/dashboard` | `https://viapay.vercel.app` |
-| Checkout | `apps/checkout` | `https://viapay-checkout-bruno-mirandas-projects-b5bdc738.vercel.app` |
+| Checkout | `apps/checkout` | `https://viapay-checkout-nine.vercel.app` (alias team: `…-bruno-mirandas-projects-b5bdc738.vercel.app`) |
 | API | `apps/api` | `https://viapay-api.vercel.app` (alias: `…-bruno-mirandas-projects-b5bdc738.vercel.app`) |
 
 Build tip monorepo: Root Directory = `apps/dashboard`, Install = `cd ../.. && corepack pnpm install`, Build = `cd ../.. && corepack pnpm --filter @viapay/dashboard build`.
