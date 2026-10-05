@@ -6,14 +6,13 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. **No mandar comercios a otro frontend** (`apps/web` es legado local; prod es el dashboard). API y checkout siguen como backends aparte; `checkout_url` apunta al host de checkout (prod `viapay-checkout-nine.vercel.app`) pero la UI del pagador es marca ViaPay; links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | Integración | Notificaciones. Resumen = cards (hoy/mes/todo) cobros/recibido/pendientes/pagados. Estadísticas = desglose por estado + por activo. Cobros = form + instructivo. Historial = solo pagos `succeeded`. Integración = wallet + API key + poll. Notificaciones = poll API, sin UX de webhooks. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin copy de marketing en el intro.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`, **checkout pagador `/pay/[id]`**). Supabase Site URL debe ser exactamente esa. Local panel+landing+checkout: `:3000`. **No mandar comercios ni pagadores a otro frontend** (`apps/web` es legado local; `apps/checkout` es legado/local — prod es el dashboard). `checkout_url` de la API apunta a `https://viapay.vercel.app/pay/…` (`VIAPAY_CHECKOUT_URL` / `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL`). API JSON sigue en `viapay-api.vercel.app`. Links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, campana notificaciones, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | Integración | Notificaciones. **Wallet de destino obligatoria** antes de crear cobros: banner persistente + modal + CTA crear deshabilitado → fuerza Integración (`POST /v1/wallets`). Resumen = cards (hoy/mes/todo) + conversión + últimos pagos. Estadísticas = desglose por estado + por activo. Cobros = form + instructivo. Historial = solo pagos `succeeded`. Integración = wallet + API key + poll. Notificaciones = poll API, sin UX de webhooks. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin tour/onboarding multi-paso (videos después). Sin copy de marketing en el intro.
 
 **Prod Vercel (vivo, 2026-10-05):**
-- Sitio/panel: https://viapay.vercel.app (`apps/dashboard`). Envs cliente en `web` + `viapay-dashboard`: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app`. Redeploy production Ready (env bake-in).
-- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** JSON público (`ok`, `mode`, `payment_router`). Alias team: https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. `VIAPAY_API_PUBLIC_URL` = misma canónica. Supabase service role en el entorno (Postgres compartido). `PAYMENT_ROUTER_CONTRACT_ID=CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` en prod → prepare/submit invoca Soroban; health expone ese id en `payment_router` (null = path clásico).
-- Checkout: proyecto `viapay-checkout` · Ready · canónico https://viapay-checkout-nine.vercel.app (público, sin SSO). Alias team: https://viapay-checkout-bruno-mirandas-projects-b5bdc738.vercel.app.
-- **Deployment Protection:** `ssoProtection` / `passwordProtection` = **null** en `viapay-api` y `viapay-checkout` (backends públicos; sin redirect 302 a Vercel SSO). Previews de `web` pueden seguir con SSO; el dominio `viapay.vercel.app` es alcanzable.
-- Gap restante: comercio sin wallet de destino no crea cobros (Integración en `/app` + `POST /v1/wallets`).
+- Sitio/panel/checkout: https://viapay.vercel.app (proyecto Vercel `web`, Root = `apps/dashboard`). Envs: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`.
+- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** JSON público (`ok`, `mode`, `payment_router`). Alias team: https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. `VIAPAY_API_PUBLIC_URL` = misma canónica. `VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`. Supabase service role en el entorno (Postgres compartido). `PAYMENT_ROUTER_CONTRACT_ID=CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` en prod → prepare/submit invoca Soroban; health expone ese id en `payment_router` (null = path clásico).
+- Checkout legado `viapay-checkout` puede seguir desplegado pero **no es la URL de producto**; no crear más apps Vercel de UI.
+- **Deployment Protection:** `ssoProtection` / `passwordProtection` = **null** en `viapay-api` (backend público; sin redirect 302 a Vercel SSO). Previews de `web` pueden seguir con SSO; el dominio `viapay.vercel.app` es alcanzable.
 
 **Docs (`/docs`):** en el mismo deploy del panel (`apps/dashboard`). Capítulos ES/EN/PT en `apps/dashboard/src/lib/marketing/docs-chapters.ts`.
 
@@ -23,7 +22,7 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 - Tablas en Postgres (RLS on): `accounts`, `api_keys`, `wallets`, `payment_intents`, `webhook_endpoints`, `webhook_events`, `webhook_deliveries`. SQL en `supabase/migrations/`.
 - **API → Postgres:** si `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (o `SUPABASE_SECRET_KEY`) están en el entorno de `@viapay/api`, auth Bearer, payment_intents, wallets y webhooks usan Supabase (mismo Postgres que OAuth). Sin esas env, la API sigue en SQLite local (`VIAPAY_DATABASE_PATH`).
 - OAuth del panel (`link-account.ts`) ya escribe en Postgres. Al login: reutiliza API key activa (no inserta duplicados); si no hay cookie con la clave, rota (revoke + mint). Revoca keys activas extras.
-- Sin wallet de destino el comercio no puede crear cobros: sección **Integración** en `/app` + `POST /v1/wallets`.
+- Sin wallet de destino el comercio **no puede** crear cobros: gate UX (banner + modal + CTA bloqueado) → sección **Integración** + `POST /v1/wallets`. La API también rechaza `POST /v1/payment_intents` sin wallet.
 - Panel `/app` en Vercel: si no hay `NEXT_PUBLIC_VIAPAY_API_URL` (o apunta a localhost), no hace fetch a la API; el panel carga vacío en lugar de tirar Application error. En prod ya apunta a `https://viapay-api.vercel.app`.
 - Keys: solo en Vercel / `.env.supabase.local` (gitignored). Nunca en git.
 
@@ -51,7 +50,7 @@ Caso Hubby (marketplace que revende cursos): curso de $20 → `0.20` a tesorerí
 
 La matemática vive en `calcFeeSplit` (`packages/shared`): bigint, ViaPay y revendedor redondean hacia abajo y el comercio absorbe el resto, así que las tres patas siempre suman el total. `assertFeeBps` rechaza que ViaPay + revendedor lleguen al 100%.
 
-Monorepo pnpm. Puertos: dashboard `:3000`, API `:3001`, web `:3003`, checkout `:3004`, shop (tienda de prueba redirect) `:3005`.
+Monorepo pnpm. Puertos: dashboard (:3000, incluye checkout `/pay/[id]`), API `:3001`, web `:3003` (legado), checkout app `:3004` (legado local), shop (tienda de prueba redirect) `:3005`.
 
 **MVP integración (redirect):** una plataforma crea `POST /v1/payment_intents` con `success_url` + `cancel_url`, redirige a `checkout_url`, y recibe `payment_intent` / `tx_hash` al volver. Referencia: `apps/shop` (`VIAPAY_API_KEY` desde `data/seed.local.json`). `pnpm dev` ya incluye shop; o `pnpm dev:shop`.
 
@@ -169,9 +168,10 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Auth OAuth → API key (dashboard): `apps/dashboard/src/lib/link-account.ts` + callback
 - Auth OAuth → API key (API link): `apps/api/src/app/v1/auth/link/route.ts`
 - Wallets destino: `POST/GET /v1/wallets` (`apps/api/src/app/v1/wallets/route.ts`) + `IntegrationPanel`
-- Checkout UI: `apps/checkout/src/components/PayPanel.tsx`
-- Wallets Kit: `apps/checkout/src/lib/wallet.ts` (`@creit.tech/stellar-wallets-kit`)
-- Pollar: `apps/checkout/src/components/PollarShell.tsx` (`@pollar/react`)
+- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + ruta `/pay/[id]`
+- Checkout legado (local): `apps/checkout/src/components/PayPanel.tsx`
+- Wallets Kit: `apps/dashboard/src/lib/checkout/wallet.ts` (y espejo en `apps/checkout`)
+- Pollar: `apps/dashboard/src/components/checkout/PollarShell.tsx`
 - Dashboard login OAuth: `apps/dashboard/src/lib/supabase.ts`, `auth/oauth`, `auth/callback` (`@supabase/ssr`)
 - Alta de cobro con revendedor y preview del desglose: `apps/dashboard/src/components/CreatePaymentLink.tsx`
 - Integración (wallet + API key + poll hint): `apps/dashboard/src/components/IntegrationPanel.tsx`
@@ -211,7 +211,7 @@ i18n en **web, checkout y dashboard**: ES (default) → EN → PT. Detección po
 | Landing `#modos` | tabs Link / Split / Agente — los tres con `FlowSplit` + badges `%` |
 | Dashboard header | horizontal 120px; top bar + sidebar/tabs en `/app` (default Resumen) |
 | Dashboard login | stacked 176px |
-| Checkout | horizontal 104px + watermark isotipo (host backend aparte; marca ViaPay) |
+| Checkout | horizontal 104px + watermark isotipo (misma host `/pay/[id]`) |
 | Favicon / apple-icon | `icon.svg` del kit + `apple-icon.png` 180px (Next ignora SVG para apple-icon) |
 
 Checkout (pagador): solo el **total a pagar**. Sin fees, sin desglose, sin wallets de ViaPay/revendedor. El split on-chain sigue siendo 3 patas; solo se oculta en UI al pagador. El dashboard sí muestra preview al crear el cobro (el comercio configura el % Hubby).

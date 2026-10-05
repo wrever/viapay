@@ -32,14 +32,14 @@ Redirect OAuth en Supabase Auth → URL configuration (obligatorio):
 - Redirect URLs: `https://viapay.vercel.app/auth/callback`
 - Si Site URL queda en `http://localhost:3000`, Google/GitHub te tiran al localhost con `?code=`
 
-Todo el producto (landing, docs, login, panel) vive en **https://viapay.vercel.app** (`apps/dashboard`).
+Todo el producto (landing, docs, login, panel, **checkout pagador**) vive en **https://viapay.vercel.app** (`apps/dashboard`). Checkout: `/pay/[id]?cs=…`.
 
-## Vercel — env públicas (sitio / dashboard)
+## Vercel — env públicas (sitio / dashboard = proyecto `web`)
 
 ```
 NEXT_PUBLIC_VIAPAY_WEB_URL=https://viapay.vercel.app
 NEXT_PUBLIC_VIAPAY_DASHBOARD_URL=https://viapay.vercel.app
-NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app
+NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay.vercel.app
 NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app
 NEXT_PUBLIC_SUPABASE_URL=https://fcbdahduqesuotujqbez.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<sb_publishable_… o anon jwt>
@@ -49,14 +49,15 @@ SUPABASE_SERVICE_ROLE_KEY=<solo server, panel OAuth link-account>
 
 Sin `NEXT_PUBLIC_VIAPAY_API_URL` apuntando a una API real, el panel `/app` no llama a la API (evita Application error en Vercel).
 
-## Vercel — env servidor (API, proyecto aparte Root = `apps/api`)
+## Vercel — env servidor (API, proyecto `viapay-api`, Root = `apps/api`)
 
 ```
 SUPABASE_URL=https://fcbdahduqesuotujqbez.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<service_role — nunca al browser>
 SUPABASE_PUBLISHABLE_KEY=<igual que publishable, para /v1/auth/link>
 VIAPAY_API_PUBLIC_URL=https://viapay-api.vercel.app
-VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app
+VIAPAY_CHECKOUT_URL=https://viapay.vercel.app
+NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay.vercel.app
 FEE_BPS=100
 STELLAR_MODE=onchain
 STELLAR_NETWORK=testnet
@@ -70,9 +71,10 @@ Local helper (gitignored): `.env.supabase.local` — cópialo a tus `.env` de ap
 
 | App | Root Directory | URL |
 |---|---|---|
-| Sitio (landing `/`, docs `/docs`, login `/login`, panel `/app`) | `apps/dashboard` | `https://viapay.vercel.app` |
-| Checkout | `apps/checkout` | `https://viapay-checkout-nine.vercel.app` (alias team: `…-bruno-mirandas-projects-b5bdc738.vercel.app`) |
-| API | `apps/api` | `https://viapay-api.vercel.app` (alias: `…-bruno-mirandas-projects-b5bdc738.vercel.app`) |
+| Sitio (landing `/`, docs `/docs`, login `/login`, panel `/app`, checkout `/pay/[id]`) | `apps/dashboard` (proyecto Vercel `web`) | `https://viapay.vercel.app` |
+| API | `apps/api` | `https://viapay-api.vercel.app` |
+
+`apps/checkout` sigue en el monorepo para local/legado; **prod ya no usa** `viapay-checkout-*.vercel.app` como URL de producto. No crear más proyectos Vercel de UI.
 
 Build tip monorepo: Root Directory = `apps/dashboard`, Install = `cd ../.. && corepack pnpm install`, Build = `cd ../.. && corepack pnpm --filter @viapay/dashboard build`.
 

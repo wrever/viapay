@@ -68,7 +68,7 @@ export function getCheckoutBaseUrl(): string {
   return (
     process.env.VIAPAY_CHECKOUT_URL ??
     process.env.NEXT_PUBLIC_VIAPAY_CHECKOUT_URL ??
-    "http://localhost:3004"
+    "http://localhost:3000"
   ).replace(/\/$/, "");
 }
 

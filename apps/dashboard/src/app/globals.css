@@ -1155,6 +1155,235 @@ code {
   }
 }
 
+.wallet-gate-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--r-lg);
+  border: 1px solid color-mix(in srgb, var(--warning) 42%, var(--border));
+  background: color-mix(in srgb, var(--warning) 10%, var(--surface));
+}
+
+.wallet-gate-banner__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.wallet-gate-banner__body {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+  line-height: 1.4;
+  max-width: 42rem;
+}
+
+.wallet-gate-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.wallet-gate-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: color-mix(in srgb, var(--text) 42%, transparent);
+  cursor: pointer;
+}
+
+.wallet-gate-modal__card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 26rem);
+  padding: 1.5rem 1.35rem 1.35rem;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.wallet-gate-modal__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.wallet-gate-modal__icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--primary);
+}
+
+.wallet-gate-modal__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.wallet-gate-modal__body {
+  margin: 0 0 0.35rem;
+  color: var(--text-2);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.notices-bell {
+  position: relative;
+}
+
+.notices-bell__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.notices-bell__dot {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.4rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.notices-bell__menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  z-index: 40;
+  width: min(18.5rem, calc(100vw - 2rem));
+  padding: 0.85rem;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  box-shadow: var(--shadow-md);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.notices-bell__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.notices-bell__body {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+
+.notices-bell__cta {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  padding: 0.15rem 0 0;
+}
+
+.overview-conversion {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.overview-recent {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.overview-recent__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.overview-recent__link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.overview-recent__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.overview-recent__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.overview-recent__memo {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.overview-recent__when {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+.overview-recent__right {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dash-intro,
   .dash-view,

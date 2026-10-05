@@ -1,0 +1,194 @@
+/* Payer checkout on the same host as the panel. Scoped under .checkout-page
+   so marketing .receipt styles never leak in. */
+
+.checkout-page {
+  color: var(--text);
+  background:
+    radial-gradient(70rem 36rem at 82% -8%, rgba(var(--primary-rgb), 0.18), transparent 58%),
+    radial-gradient(44rem 30rem at -6% 96%, rgba(var(--accent-rgb), 0.12), transparent 60%),
+    var(--surface);
+  min-height: 100dvh;
+}
+
+.checkout-page .pay-card {
+  position: relative;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.checkout-page .pay-card__mark {
+  position: absolute;
+  right: -3rem;
+  top: -1.75rem;
+  width: 13rem;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+}
+
+.checkout-page .pay-card__body {
+  position: relative;
+  padding: clamp(1.4rem, 5vw, 2rem);
+}
+
+.checkout-page .pay-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: var(--leading-sub);
+  text-wrap: balance;
+}
+
+.checkout-page .pay-amount,
+.checkout-page .perf {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout-page .pay-amount {
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.checkout-page .pay-amount--hero {
+  font-size: clamp(2.75rem, 11vw, 3.5rem);
+}
+
+.checkout-page .pay-amount__asset {
+  margin-left: 0.4rem;
+  font-size: 0.42em;
+  color: var(--primary);
+}
+
+.checkout-page .act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 3.25rem;
+  border: 0;
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: var(--step--1);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms var(--ease), background-color 160ms var(--ease),
+    border-color 160ms var(--ease), color 160ms var(--ease);
+}
+
+.checkout-page .act--primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+.checkout-page .act--primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.checkout-page .act--ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.checkout-page .act--ghost:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.08);
+}
+
+.checkout-page .act:active:not(:disabled) {
+  transform: translateY(1px) scale(0.995);
+}
+
+.checkout-page .act:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkout-page .pay-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--surface);
+  border-radius: var(--r-md);
+}
+
+.checkout-page .pay-tabs__tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-body);
+  font-size: var(--step--1);
+  font-weight: 700;
+  height: 2.6rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background-color 180ms var(--ease), color 180ms var(--ease);
+}
+
+.checkout-page .pay-tabs__tab[aria-selected="true"] {
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.checkout-page .pay-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--step-label);
+}
+
+.checkout-page .pay-notice {
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--warning) 38%, transparent);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: color-mix(in srgb, var(--warning) 74%, var(--text));
+  padding: 0.85rem 1rem;
+  font-size: var(--step--1);
+}
+
+.checkout-page .mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+@keyframes pay-seal {
+  from {
+    transform: scale(0.78);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.checkout-page .seal {
+  animation: pay-seal 520ms var(--ease);
+}

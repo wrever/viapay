@@ -121,6 +121,18 @@ export type Messages = {
   noticesPoll: string;
   noticesPollList: string;
   noticesNoWebhook: string;
+  walletGateBanner: string;
+  walletGateTitle: string;
+  walletGateBody: string;
+  walletGateCta: string;
+  walletGateBlocked: string;
+  overviewRecentTitle: string;
+  overviewRecentEmpty: string;
+  overviewConversion: (paid: number, total: number) => string;
+  overviewGoHistory: string;
+  noticesBellAria: string;
+  noticesBellPending: (n: number) => string;
+  noticesBellHint: string;
 };
 
 const es: Messages = {
@@ -204,11 +216,18 @@ const es: Messages = {
   periodMonth: "Este mes",
   periodAll: "Todo",
   overviewTitle: "Resumen",
-  overviewDesc: "Vista rápida de cobros, recibido y pendientes.",
+  overviewDesc: "Snapshot del período: ventas netas, cobros abiertos y conversión.",
   overviewEmptyTitle: "Todavía no hay actividad",
   overviewEmptyBody: "Creá tu primer link de cobro para ver números acá.",
   overviewEmptyCta: "Crear cobro",
   overviewPeriodEmpty: "Sin cobros en este período.",
+  overviewRecentTitle: "Últimos pagos",
+  overviewRecentEmpty: "Aún no hay pagos confirmados en este período.",
+  overviewConversion: (paid, total) =>
+    total === 0
+      ? "Sin cobros"
+      : `${paid} de ${total} cobros pagados (${Math.round((paid / total) * 100)}%)`,
+  overviewGoHistory: "Ver historial",
   statsTitle: "Estadísticas",
   statsDesc: "Desglose por estado y activo en el período elegido.",
   statsEmptyTitle: "Sin datos todavía",
@@ -260,6 +279,17 @@ const es: Messages = {
   noticesPollList: "Para varios cobros, listá con auth Bearer:",
   noticesNoWebhook:
     "La API de webhooks sigue disponible si la necesitás, pero el panel no la requiere.",
+  walletGateBanner:
+    "Configurá tu billetera de destino (G…) en Integración antes de crear cobros.",
+  walletGateTitle: "Falta tu billetera de destino",
+  walletGateBody:
+    "Sin una cuenta Stellar (G…) no podemos crear cobros: el neto no tendría dónde llegar.",
+  walletGateCta: "Ir a Integración",
+  walletGateBlocked: "Configurá la billetera de destino para crear links.",
+  noticesBellAria: "Notificaciones",
+  noticesBellPending: (n) =>
+    n === 1 ? "1 cobro pendiente" : `${n} cobros pendientes`,
+  noticesBellHint: "Abrí Notificaciones para ver cómo consultar el estado por API.",
 };
 
 const en: Messages = {
@@ -341,11 +371,18 @@ const en: Messages = {
   periodMonth: "This month",
   periodAll: "All time",
   overviewTitle: "Overview",
-  overviewDesc: "Quick view of charges, received, and pending.",
+  overviewDesc: "Period snapshot: net sales, open charges, and conversion.",
   overviewEmptyTitle: "No activity yet",
   overviewEmptyBody: "Create your first payment link to see numbers here.",
   overviewEmptyCta: "Create charge",
   overviewPeriodEmpty: "No charges in this period.",
+  overviewRecentTitle: "Latest payments",
+  overviewRecentEmpty: "No confirmed payments in this period yet.",
+  overviewConversion: (paid, total) =>
+    total === 0
+      ? "No charges"
+      : `${paid} of ${total} charges paid (${Math.round((paid / total) * 100)}%)`,
+  overviewGoHistory: "View history",
   statsTitle: "Statistics",
   statsDesc: "Breakdown by status and asset for the selected period.",
   statsEmptyTitle: "No data yet",
@@ -397,6 +434,17 @@ const en: Messages = {
   noticesPollList: "For several charges, list with Bearer auth:",
   noticesNoWebhook:
     "Webhook APIs still exist if you need them, but the dashboard does not require them.",
+  walletGateBanner:
+    "Set your destination wallet (G…) in Integration before creating charges.",
+  walletGateTitle: "Destination wallet required",
+  walletGateBody:
+    "Without a Stellar account (G…) we can’t create charges: there would be nowhere for the net to land.",
+  walletGateCta: "Go to Integration",
+  walletGateBlocked: "Set a destination wallet to create payment links.",
+  noticesBellAria: "Notifications",
+  noticesBellPending: (n) =>
+    n === 1 ? "1 pending charge" : `${n} pending charges`,
+  noticesBellHint: "Open Notifications to see how to poll status via the API.",
 };
 
 const pt: Messages = {
@@ -481,11 +529,18 @@ const pt: Messages = {
   periodMonth: "Este mês",
   periodAll: "Tudo",
   overviewTitle: "Resumo",
-  overviewDesc: "Visão rápida de cobranças, recebido e pendentes.",
+  overviewDesc: "Snapshot do período: vendas líquidas, cobranças abertas e conversão.",
   overviewEmptyTitle: "Ainda sem atividade",
   overviewEmptyBody: "Crie seu primeiro link de cobrança para ver números aqui.",
   overviewEmptyCta: "Criar cobrança",
   overviewPeriodEmpty: "Sem cobranças neste período.",
+  overviewRecentTitle: "Últimos pagamentos",
+  overviewRecentEmpty: "Ainda não há pagamentos confirmados neste período.",
+  overviewConversion: (paid, total) =>
+    total === 0
+      ? "Sem cobranças"
+      : `${paid} de ${total} cobranças pagas (${Math.round((paid / total) * 100)}%)`,
+  overviewGoHistory: "Ver histórico",
   statsTitle: "Estatísticas",
   statsDesc: "Detalhamento por status e ativo no período escolhido.",
   statsEmptyTitle: "Sem dados ainda",
@@ -537,6 +592,17 @@ const pt: Messages = {
   noticesPollList: "Para várias cobranças, liste com Bearer auth:",
   noticesNoWebhook:
     "A API de webhooks ainda existe se precisar, mas o painel não exige.",
+  walletGateBanner:
+    "Configure sua carteira de destino (G…) em Integração antes de criar cobranças.",
+  walletGateTitle: "Falta a carteira de destino",
+  walletGateBody:
+    "Sem uma conta Stellar (G…) não podemos criar cobranças: o líquido não teria para onde chegar.",
+  walletGateCta: "Ir para Integração",
+  walletGateBlocked: "Configure a carteira de destino para criar links.",
+  noticesBellAria: "Notificações",
+  noticesBellPending: (n) =>
+    n === 1 ? "1 cobrança pendente" : `${n} cobranças pendentes`,
+  noticesBellHint: "Abra Notificações para ver como consultar o status pela API.",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

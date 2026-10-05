@@ -38,10 +38,14 @@ function money(units: bigint, asset: string, localeTag: string): string {
 export function CreatePaymentLink({
   apiKey,
   feeBps = DEFAULT_FEE_BPS,
+  hasWallet,
+  onNeedWallet,
   onPaymentCreated,
 }: {
   apiKey: string | null;
   feeBps?: number;
+  hasWallet: boolean;
+  onNeedWallet: () => void;
   onPaymentCreated: (payment: DashboardPayment) => void;
 }) {
   const { t, locale } = useLocale();
@@ -130,6 +134,10 @@ export function CreatePaymentLink({
 
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
+    if (!hasWallet) {
+      onNeedWallet();
+      return;
+    }
     if (!apiKey) {
       setError(t.errNoKey);
       return;
@@ -302,7 +310,24 @@ export function CreatePaymentLink({
             <p className="text-sm font-medium text-[var(--error)]">{error}</p>
           )}
 
-          <Button type="submit" size="lg" disabled={busy} className="w-full">
+          {!hasWallet && (
+            <p className="tone tone--warning text-sm" role="status">
+              {t.walletGateBlocked}
+            </p>
+          )}
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={busy || !hasWallet}
+            className="w-full"
+            onClick={(e) => {
+              if (!hasWallet) {
+                e.preventDefault();
+                onNeedWallet();
+              }
+            }}
+          >
             {busy ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" /> {t.creating}

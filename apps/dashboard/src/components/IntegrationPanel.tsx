@@ -17,9 +17,11 @@ function maskKey(key: string): string {
 export function IntegrationPanel({
   apiKey,
   merchantWallet,
+  onWalletSaved,
 }: {
   apiKey: string | null;
   merchantWallet: string | null;
+  onWalletSaved?: (address: string) => void;
 }) {
   const { t } = useLocale();
   const [wallet, setWallet] = useState(merchantWallet ?? "");
@@ -58,8 +60,10 @@ export function IntegrationPanel({
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? t.integrationWalletFail);
-      setCurrentWallet(body.address ?? address);
+      const savedAddress = (body.address as string) ?? address;
+      setCurrentWallet(savedAddress);
       setSaved(true);
+      onWalletSaved?.(savedAddress);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.errGeneric);
     } finally {
