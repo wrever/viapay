@@ -1,4 +1,5 @@
 import {
+  buildRouterPayXdr,
   buildSep7SplitUri,
   buildSplitPaymentXdr,
   buildTrustlineSep7,
@@ -6,6 +7,7 @@ import {
   findConfirmedSplits,
   inspectReceive,
   networkConfig,
+  submitVerifiedRouter,
   submitVerifiedSplit,
   type Network,
   type SplitLeg,
@@ -17,6 +19,12 @@ import {
   markCheckoutSucceeded,
   type PaymentIntentRow,
 } from "./payments";
+
+/** Prefer Soroban payment-router when configured; else classic multi-op. */
+export function paymentRouterContractId(): string | null {
+  const id = process.env.PAYMENT_ROUTER_CONTRACT_ID?.trim();
+  return id || null;
+}
 
 export function stellarNetwork(): Network {
   const raw = process.env.STELLAR_NETWORK ?? "testnet";
@@ -97,11 +105,25 @@ export async function prepareCheckoutXdr(
   if (row.status === "succeeded") {
     throw Object.assign(new Error("Este cobro ya está pagado"), { status: 400 });
   }
-  const prepared = await buildSplitPaymentXdr(splitLegFor(row, source));
+  const leg = splitLegFor(row, source);
+  const routerId = paymentRouterContractId();
+  if (routerId) {
+    const prepared = await buildRouterPayXdr(leg, routerId);
+    return {
+      xdr: prepared.xdr,
+      network_passphrase: prepared.networkPassphrase,
+      included_trustline: prepared.includedTrustline,
+      settlement: prepared.settlement,
+      contract_id: prepared.contractId,
+    };
+  }
+  const prepared = await buildSplitPaymentXdr(leg);
   return {
     xdr: prepared.xdr,
     network_passphrase: prepared.networkPassphrase,
     included_trustline: prepared.includedTrustline,
+    settlement: "classic" as const,
+    contract_id: null,
   };
 }
 
@@ -152,6 +174,10 @@ export async function submitCheckoutXdr(
 ) {
   const row = await requirePayable(id, clientSecret);
   if (row.status === "succeeded") return row;
-  const submitted = await submitVerifiedSplit(signedXdr, splitLegFor(row, ""));
+  const leg = splitLegFor(row, "");
+  const routerId = paymentRouterContractId();
+  const submitted = routerId
+    ? await submitVerifiedRouter(signedXdr, leg, routerId)
+    : await submitVerifiedSplit(signedXdr, leg);
   return markCheckoutSucceeded(id, submitted.hash);
 }

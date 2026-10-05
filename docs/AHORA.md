@@ -18,7 +18,8 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 - Checkout pagador: **solo total** (sin fees en pantalla).
 - Evidencia on-chain y docs de jurado al día (`HACKATHON.md`, `MEMORY.md`).
 - Pulir copy y CTAs hacia demo en testnet.
+- Path Soroban en checkout cuando `PAYMENT_ROUTER_CONTRACT_ID` está configurado.
 
 ## No hacer ahora
 
-Email desde el producto · embed sin redirect · plugins Shopify/Woo · mainnet ops · path Soroban en checkout.
+Email desde el producto · embed sin redirect · plugins Shopify/Woo · mainnet ops.

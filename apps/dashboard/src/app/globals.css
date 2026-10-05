@@ -360,6 +360,35 @@ code {
   max-width: 36rem;
 }
 
+.workspace--history {
+  display: grid;
+  gap: 1rem;
+}
+
+.cobros-guide {
+  margin-top: 0.5rem;
+  padding: 1rem 1.15rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.cobros-guide__title {
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin: 0 0 0.55rem;
+  color: var(--text);
+}
+
+.cobros-guide__list {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.4rem;
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
 .panel--history {
   animation: dash-in 500ms var(--ease) 80ms both;
 }

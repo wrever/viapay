@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatBps } from "@viapay/shared";
-import { History, PlusCircle, Wallet } from "lucide-react";
+import { Bell, History, PlusCircle, Wallet } from "lucide-react";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
 import { Logo } from "@/components/Logo";
 import { IntegrationPanel } from "@/components/IntegrationPanel";
@@ -14,7 +14,7 @@ import type { DashboardPayment } from "@/lib/payment-types";
 import type { Readiness } from "@/lib/readiness";
 import { SiteControls, useLocale } from "@/lib/i18n";
 
-const SECTIONS = ["cobros", "historial", "integracion"] as const;
+const SECTIONS = ["cobros", "historial", "integracion", "notificaciones"] as const;
 type DashSection = (typeof SECTIONS)[number];
 
 function parseSection(raw: string | null | undefined): DashSection {
@@ -59,7 +59,10 @@ export function DashboardHome({
     }
   }, []);
 
-  const showStats = section === "cobros" || section === "historial";
+  const received = useMemo(
+    () => payments.filter((p) => p.status === "succeeded"),
+    [payments],
+  );
 
   const navItems: {
     id: DashSection;
@@ -69,6 +72,7 @@ export function DashboardHome({
     { id: "cobros", label: t.navCobros, icon: PlusCircle },
     { id: "historial", label: t.navHistorial, icon: History },
     { id: "integracion", label: t.navIntegracion, icon: Wallet },
+    { id: "notificaciones", label: t.navNotificaciones, icon: Bell },
   ];
 
   return (
@@ -133,8 +137,6 @@ export function DashboardHome({
             </p>
           )}
 
-          {showStats && <PaymentStatsStrip payments={payments} />}
-
           <div className="dash-view" key={section}>
             {section === "cobros" && (
               <div className="workspace workspace--composer">
@@ -143,11 +145,22 @@ export function DashboardHome({
                   feeBps={feeBps}
                   onPaymentCreated={(p) => setPayments((prev) => [p, ...prev])}
                 />
+                <aside className="cobros-guide" aria-label={t.cobrosGuideTitle}>
+                  <h2 className="cobros-guide__title">{t.cobrosGuideTitle}</h2>
+                  <ol className="cobros-guide__list">
+                    <li>{t.cobrosGuide1}</li>
+                    <li>{t.cobrosGuide2}</li>
+                    <li>{t.cobrosGuide3}</li>
+                  </ol>
+                </aside>
               </div>
             )}
 
             {section === "historial" && (
-              <PaymentHistory payments={payments} network={network} />
+              <div className="workspace workspace--history">
+                <PaymentStatsStrip payments={payments} />
+                <PaymentHistory payments={received} network={network} />
+              </div>
             )}
 
             {section === "integracion" && (
@@ -155,6 +168,26 @@ export function DashboardHome({
                 apiKey={apiKey}
                 merchantWallet={readiness?.merchant_wallet ?? null}
               />
+            )}
+
+            {section === "notificaciones" && (
+              <section className="panel panel--notices">
+                <div className="panel__head">
+                  <h2 className="panel-title">{t.noticesTitle}</h2>
+                  <p>{t.noticesDesc}</p>
+                </div>
+                <div className="panel__body grid gap-3">
+                  <p className="text-sm text-[var(--text-2)]">{t.noticesPoll}</p>
+                  <code className="perf text-xs block break-all">
+                    GET /v1/payment_intents/:id
+                  </code>
+                  <p className="text-sm text-[var(--text-2)]">{t.noticesPollList}</p>
+                  <code className="perf text-xs block break-all">
+                    GET /v1/payment_intents
+                  </code>
+                  <p className="text-sm text-[var(--text-2)]">{t.noticesNoWebhook}</p>
+                </div>
+              </section>
             )}
           </div>
 

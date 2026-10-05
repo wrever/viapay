@@ -42,7 +42,7 @@ La matemática está en `calcFeeSplit` (`packages/shared`): unidades atómicas e
 - **SEP-7 `web+stellar:tx`** con `replace=sourceAccount` para el QR, con callback a la API. No usamos `web+stellar:pay`, que mandaría el 100% al comercio y rompería el reparto.
 - **Trustlines SEP-41/SAC.** Con USDC, si al pagador le falta la trustline, el mismo XDR incluye el `changeTrust`. Y como la comisión del revendedor va en la misma transacción, el comercio **y** la tesorería **y** el revendedor tienen que poder recibir: el dashboard lo comprueba y avisa antes de dejar cobrar.
 - **Reconciliación.** Horizon no indexa memos, así que al abrir el checkout o el dashboard se revisan las últimas 40 transacciones del comercio y se marca `succeeded` solo si el memo y las tres patas coinciden.
-- **Soroban.** `contracts/payment-router` hace el mismo reparto de tres patas on-chain sobre un token SEP-41. Desplegado en testnet. **El checkout todavía no lo invoca** — ver más abajo.
+- **Cómo usa Stellar / Soroban.** `contracts/payment-router` hace el mismo reparto de tres patas on-chain sobre un token SEP-41. Desplegado en testnet. Con `PAYMENT_ROUTER_CONTRACT_ID`, `prepare`/`submit` lo invocan; sin esa env, path clásico multi-op. SEP-7 sigue clásico.
 
 ## x402, sin facilitator
 
@@ -127,7 +127,7 @@ stellar contract info interface \
 
 Dicho sin maquillaje, porque un jurado lo va a preguntar:
 
-- **El checkout no es Soroban.** El contrato está desplegado y expone la misma firma de reparto, pero `prepare` sigue armando pagos clásicos. Conectar `invoke` es el siguiente paso, no algo ya hecho.
+- **Soroban payment-router.** Desplegado y, con `PAYMENT_ROUTER_CONTRACT_ID`, el checkout `prepare`/`submit` lo invoca. SEP-7 QR y reconcile Horizon siguen en path clásico.
 - **No hay facilitator x402.** ViaPay liquida por su cuenta.
 - **Anchor SEP-24, escrow de Trustless Work y wallet embebida Pollar**: el código existe y se activa por env, pero sin credenciales no hacen nada. No están vivos.
 - **Es testnet.** No hay fondos reales, ni KYC, ni límites, ni auditoría.

@@ -87,6 +87,16 @@ export type Messages = {
   navCobros: string;
   navHistorial: string;
   navIntegracion: string;
+  navNotificaciones: string;
+  cobrosGuideTitle: string;
+  cobrosGuide1: string;
+  cobrosGuide2: string;
+  cobrosGuide3: string;
+  noticesTitle: string;
+  noticesDesc: string;
+  noticesPoll: string;
+  noticesPollList: string;
+  noticesNoWebhook: string;
 };
 
 const es: Messages = {
@@ -163,7 +173,7 @@ const es: Messages = {
   statPending: "Pendientes",
   statPendingHint: "Esperando pago del cliente",
   historyTitle: "Historial",
-  historyEmpty: "Todavía no hay cobros.",
+  historyEmpty: "Todavía no hay pagos recibidos.",
   integrationTitle: "Integración",
   integrationDesc: "Billetera de destino y API key de tu comercio.",
   integrationKeyLabel: "API key",
@@ -176,7 +186,7 @@ const es: Messages = {
   integrationWalletFail: "No se pudo guardar la billetera",
   integrationNoWallet: "Configurá una billetera antes de crear cobros.",
   integrationPollHint:
-    "Consultá el estado del cobro con GET /v1/payment_intents.",
+    "Consultá el estado con GET /v1/payment_intents/:id (o la lista).",
   historyColWhen: "Fecha",
   historyColConcept: "Concepto",
   historyColAmount: "Total",
@@ -189,6 +199,19 @@ const es: Messages = {
   navCobros: "Cobros",
   navHistorial: "Historial",
   navIntegracion: "Integración",
+  navNotificaciones: "Notificaciones",
+  cobrosGuideTitle: "Cómo cobrar",
+  cobrosGuide1: "Creá el link con el monto y, si aplica, la comisión del revendedor.",
+  cobrosGuide2: "Compartí el checkout. El cliente firma en su wallet (Freighter, Lobstr, …).",
+  cobrosGuide3:
+    "Cuando pague, el cobro pasa a Pagado. Consultá el estado por id con la API.",
+  noticesTitle: "Notificaciones",
+  noticesDesc: "Sin webhooks obligatorios: consultá el estado del cobro por API.",
+  noticesPoll:
+    "Tras el pago, pedí el intent por id. status: succeeded y stellar_tx_hash confirman.",
+  noticesPollList: "Para varios cobros, listá con auth Bearer:",
+  noticesNoWebhook:
+    "La API de webhooks sigue disponible si la necesitás, pero el panel no la requiere.",
 };
 
 const en: Messages = {
@@ -263,7 +286,7 @@ const en: Messages = {
   statPending: "Pending",
   statPendingHint: "Waiting for customer payment",
   historyTitle: "History",
-  historyEmpty: "No charges yet.",
+  historyEmpty: "No payments received yet.",
   integrationTitle: "Integration",
   integrationDesc: "Destination wallet and API key for your merchant.",
   integrationKeyLabel: "API key",
@@ -276,7 +299,7 @@ const en: Messages = {
   integrationWalletFail: "Could not save the wallet",
   integrationNoWallet: "Set a destination wallet before creating charges.",
   integrationPollHint:
-    "Check charge status with GET /v1/payment_intents.",
+    "Check status with GET /v1/payment_intents/:id (or the list).",
   historyColWhen: "Date",
   historyColConcept: "Memo",
   historyColAmount: "Total",
@@ -289,6 +312,19 @@ const en: Messages = {
   navCobros: "Charges",
   navHistorial: "History",
   navIntegracion: "Integration",
+  navNotificaciones: "Notifications",
+  cobrosGuideTitle: "How to get paid",
+  cobrosGuide1: "Create the link with the amount and optional reseller fee.",
+  cobrosGuide2: "Share checkout. The customer signs in their wallet (Freighter, Lobstr, …).",
+  cobrosGuide3:
+    "When paid, status becomes Paid. Poll status by id with the API.",
+  noticesTitle: "Notifications",
+  noticesDesc: "No webhooks required: poll charge status via the API.",
+  noticesPoll:
+    "After payment, GET the intent by id. status: succeeded and stellar_tx_hash confirm.",
+  noticesPollList: "For several charges, list with Bearer auth:",
+  noticesNoWebhook:
+    "Webhook APIs still exist if you need them, but the dashboard does not require them.",
 };
 
 const pt: Messages = {
@@ -366,7 +402,7 @@ const pt: Messages = {
   statPending: "Pendentes",
   statPendingHint: "Aguardando pagamento do cliente",
   historyTitle: "Histórico",
-  historyEmpty: "Ainda não há cobranças.",
+  historyEmpty: "Ainda não há pagamentos recebidos.",
   integrationTitle: "Integração",
   integrationDesc: "Carteira de destino e API key do seu comércio.",
   integrationKeyLabel: "API key",
@@ -379,7 +415,7 @@ const pt: Messages = {
   integrationWalletFail: "Não foi possível salvar a carteira",
   integrationNoWallet: "Configure uma carteira antes de criar cobranças.",
   integrationPollHint:
-    "Consulte o status da cobrança com GET /v1/payment_intents.",
+    "Consulte o status com GET /v1/payment_intents/:id (ou a lista).",
   historyColWhen: "Data",
   historyColConcept: "Conceito",
   historyColAmount: "Total",
@@ -392,6 +428,19 @@ const pt: Messages = {
   navCobros: "Cobranças",
   navHistorial: "Histórico",
   navIntegracion: "Integração",
+  navNotificaciones: "Notificações",
+  cobrosGuideTitle: "Como cobrar",
+  cobrosGuide1: "Crie o link com o valor e, se quiser, a comissão do revendedor.",
+  cobrosGuide2: "Compartilhe o checkout. O cliente assina na wallet (Freighter, Lobstr, …).",
+  cobrosGuide3:
+    "Quando pagar, fica Pago. Consulte o status por id com a API.",
+  noticesTitle: "Notificações",
+  noticesDesc: "Sem webhooks obrigatórios: consulte o status pela API.",
+  noticesPoll:
+    "Após o pagamento, peça o intent por id. status: succeeded e stellar_tx_hash confirmam.",
+  noticesPollList: "Para várias cobranças, liste com Bearer auth:",
+  noticesNoWebhook:
+    "A API de webhooks ainda existe se precisar, mas o painel não exige.",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

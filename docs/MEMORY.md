@@ -6,11 +6,11 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: app shell — top bar (logo, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile. Secciones con estado cliente + hash (`#cobros` `#historial` `#integracion`): Cobros (composer), Historial, Integración (wallet + API key + nota de poll `GET /v1/payment_intents`). Sin sección Avisos/webhooks en el panel (API webhooks sigue viva; el comercio puede consultar estado por API). Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Stats strip solo en Cobros/Historial. Saludo corto + chips red/fee. Pie: red + fee (sin dirección de tesorería). Sin fee ViaPay acumulado (admin). Sin copy de marketing en el intro.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: app shell — top bar (logo, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile. Secciones con estado cliente + hash (`#cobros` `#historial` `#integracion` `#notificaciones`): Cobros (form + instructivo), Historial (solo `succeeded` + stats), Integración (wallet + API key + poll por id), Notificaciones (poll API, sin UX de webhooks). Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Stats strip solo en Historial. Saludo corto + chips red/fee. Pie: red + fee (sin dirección de tesorería). Sin fee ViaPay acumulado (admin). Sin copy de marketing en el intro.
 
 **Prod Vercel (vivo, 2026-10-05):**
 - Sitio/panel: https://viapay.vercel.app (`apps/dashboard`). Envs cliente en `web` + `viapay-dashboard`: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app`. Redeploy production Ready (env bake-in).
-- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** JSON público (`{"ok":true,…}`). Alias team: https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. `VIAPAY_API_PUBLIC_URL` = misma canónica. Supabase service role en el entorno (Postgres compartido).
+- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** JSON público (`{"ok":true,…}`). Alias team: https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. `VIAPAY_API_PUBLIC_URL` = misma canónica. Supabase service role en el entorno (Postgres compartido). `PAYMENT_ROUTER_CONTRACT_ID=CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` en prod → prepare/submit invoca Soroban.
 - Checkout: proyecto `viapay-checkout` · Ready · canónico https://viapay-checkout-nine.vercel.app (público, sin SSO). Alias team: https://viapay-checkout-bruno-mirandas-projects-b5bdc738.vercel.app.
 - **Deployment Protection:** `ssoProtection` / `passwordProtection` = **null** en `viapay-api` y `viapay-checkout` (backends públicos; sin redirect 302 a Vercel SSO). Previews de `web` pueden seguir con SSO; el dominio `viapay.vercel.app` es alcanzable.
 - Gap restante: comercio sin wallet de destino no crea cobros (Integración en `/app` + `POST /v1/wallets`).
@@ -57,15 +57,17 @@ Monorepo pnpm. Puertos: dashboard `:3000`, API `:3001`, web `:3003`, checkout `:
 
 ## Qué está vivo
 
-El camino de cobro por defecto es **clásico, no Soroban**.
+El camino de cobro **preferido** es Soroban `payment-router` cuando `PAYMENT_ROUTER_CONTRACT_ID` está set. Si falta, cae al split clásico multi-op.
 
 1. El dashboard crea un payment intent (`POST /v1/payment_intents`), con o sin revendedor.
-2. El checkout pide un XDR con dos o tres operaciones de pago: neto al merchant, fee a tesorería y, si hay, comisión al revendedor (`POST /v1/checkout/:id/prepare`). Si el asset es USDC y al pagador le falta trustline, esa misma tx incluye `changeTrust`. `payoutLegs` en `packages/stellar` arma las patas y descarta las de monto cero.
+2. El checkout pide un XDR (`POST /v1/checkout/:id/prepare`):
+   - **Con router:** simula `pay(...)` vía RPC (SAC SEP-41) y devuelve `settlement: "router"`.
+   - **Sin router:** XDR clásico con 2–3 `payment` (+ `changeTrust` USDC si falta). `payoutLegs` arma las patas.
 3. Firma con Stellar Wallets Kit (Freighter, Lobstr, xBull, …) o, si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`, con wallet embebida Pollar.
-4. La API verifica destinos, montos y memo, y envía a Horizon (`POST /v1/checkout/:id/submit`).
-5. El QR no es `web+stellar:pay` (eso manda el 100% al comercio). Es `web+stellar:tx` con `replace=sourceAccount` y callback `POST /v1/checkout/:id/sep7`.
-6. Si la wallet no llama al callback, al abrir el checkout o el dashboard se buscan las últimas 40 txs del comercio en Horizon. Si el memo es el id del cobro y **todas** las patas coinciden, pasa a `succeeded`.
-7. Al marcar pagado se dispara `payment_intent.succeeded` a los webhooks del comercio.
+4. La API verifica destinos/montos (clásico: ops; router: args de `pay`) y envía (`POST /v1/checkout/:id/submit`) → `status: succeeded` + `stellar_tx_hash`.
+5. El comercio consulta por id: `GET /v1/payment_intents/:id` (Bearer) o la lista. Polling, no webhooks obligatorios.
+6. SEP-7 QR sigue el path **clásico** (placeholder + callback). La reconciliación Horizon por memo también es clásica; cobros router quedan `succeeded` vía submit (o poll tras submit).
+7. Al marcar pagado se dispara `payment_intent.succeeded` a los webhooks del comercio (si los configuró fuera del panel).
 
 La verificación (`assertSplitXdr`, `findConfirmedSplits`) consume una operación por pata, así que un revendedor que además sea el comercio sigue cobrando las dos veces. Toda la validación es server-side: el XDR firmado que no tenga exactamente las patas esperadas se rechaza antes de Horizon.
 
@@ -87,10 +89,11 @@ Tesorería por defecto: `GBIVA57TB4N4IHXYQSDLWSVKC4M4P66AAJWS5A5SQAOIYEZSBUVNCIW
 | Método | Ruta | Para qué |
 |---|---|---|
 | GET | `/v1/health` | health |
-| POST/GET | `/v1/payment_intents` | crear y listar. Acepta `reseller_fee_bps` + `reseller_address`. El GET reconcilia pendientes en Horizon |
+| POST/GET | `/v1/payment_intents` | crear y listar. Acepta `reseller_fee_bps` + `reseller_address`. El GET reconcilia pendientes en Horizon (path clásico) |
+| GET | `/v1/payment_intents/:id` | un cobro del comercio autenticado (poll por id → `succeeded` + `stellar_tx_hash`) |
 | GET | `/v1/checkout/:id?client_secret=` | estado público + `sep7_tx` + si comercio, tesorería y revendedor pueden recibir |
-| POST | `/v1/checkout/:id/prepare` | XDR sin firmar |
-| POST | `/v1/checkout/:id/submit` | XDR firmado → Horizon → succeeded |
+| POST | `/v1/checkout/:id/prepare` | XDR sin firmar (`settlement: router` si hay contrato; si no `classic`) |
+| POST | `/v1/checkout/:id/submit` | XDR firmado → Horizon o RPC Soroban → succeeded |
 | POST | `/v1/checkout/:id/sep7` | callback de wallet móvil (`application/x-www-form-urlencoded`, campo `xdr`) |
 | POST | `/v1/checkout/:id/confirm` | solo si `STELLAR_MODE=simulated`. En onchain responde 400 |
 | GET/POST | `/v1/x402/:id?client_secret=` | 402 con el desglose; POST con `X-PAYMENT` liquida. Ver arriba |
@@ -106,7 +109,7 @@ Auth del comercio: `Authorization: Bearer sk_test_…`. CORS abierto en `/v1/*`.
 
 ## Webhooks
 
-API viva (`POST/GET /v1/webhook_endpoints`, entregas, firma HMAC). El panel de comercio **no** pide configurar webhooks: el camino recomendado es consultar estado con `GET /v1/payment_intents` (o el intent individual). Header `ViaPay-Signature: t=<unix>,v1=<hex hmac-sha256>`.  
+API viva (`POST/GET /v1/webhook_endpoints`, entregas, firma HMAC). El panel **no** exige webhooks: camino recomendado `GET /v1/payment_intents/:id` (o lista). Header `ViaPay-Signature: t=<unix>,v1=<hex hmac-sha256>`.  
 Mensaje firmado: `` `${t}.${rawBody}` ``. Ventana de 5 minutos.  
 El SDK verifica con `ViaPay.verifyWebhook(rawBody, header, secret)`.  
 Hasta 5 intentos. Localhost http está permitido. El resto exige https.
@@ -119,9 +122,9 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 - Site URL de Supabase Auth debe ser `https://viapay.vercel.app` (nunca localhost ni subdomain).
 - `VIAPAY_ALLOW_LOCAL_LOGIN=1` solo para emergencia en máquina local; en Vercel está apagado.
 
-## Soroban: desplegado, no conectado
+## Soroban: payment-router (preferido si hay env)
 
-`contracts/payment-router` expone `pay(token, payer, merchant, treasury, reseller: Option<Address>, net, fee, reseller_fee, intent_id)` sobre un token SEP-41 y mueve las tres patas con `payer.require_auth()`. Errores: `InvalidAmount = 1`, `MissingReseller = 2` (pasar `reseller_fee > 0` sin dirección).
+`contracts/payment-router` expone `pay(token, payer, merchant, treasury, reseller: Option<Address>, net, fee, reseller_fee, intent_id)` sobre un token SEP-41 y mueve las tres patas con `payer.require_auth()`. Errores: `InvalidAmount = 1`, `MissingReseller = 2` (pasar `reseller_fee > 0` sin dirección). `intent_id` = SHA-256 UTF-8 del id del payment intent.
 
 | | |
 |---|---|
@@ -129,7 +132,7 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 | tx del deploy | `7f0d1f0a4e9090e86f17eecb438544e8e178d632fc0ac5c91fdfc712b4c7f159` |
 | hash del wasm | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
 
-**El checkout no lo invoca.** `prepare` sigue armando pagos clásicos. Está desplegado como prueba de que el mismo reparto corre on-chain, nada más. No digas que el checkout es Soroban. La env `PAYMENT_ROUTER_CONTRACT_ID` hoy solo alimenta el estado de `/v1/integrations` y el pie de la landing.
+Con `PAYMENT_ROUTER_CONTRACT_ID` en la API: `prepare` / `submit` (y x402 vía submit) invoca el contrato. Sin esa env: split clásico. SEP-7 y reconcile Horizon siguen clásicos. Código: `buildRouterPayXdr` / `submitVerifiedRouter` en `packages/stellar`.
 
 ## Lo que no está desplegado
 
@@ -159,7 +162,7 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 ## Dónde está el código
 
 - Matemática del split 3 vías (`calcFeeSplit`, `assertFeeBps`, `formatBps`): `packages/shared/src/index.ts`
-- Patas, SEP-7, Horizon, issuers USDC (`payoutLegs`, `assertSplitXdr`, `findConfirmedSplits`): `packages/stellar/src/index.ts`
+- Patas, SEP-7, Horizon, router Soroban (`payoutLegs`, `assertSplitXdr`, `buildRouterPayXdr`, `findConfirmedSplits`): `packages/stellar/src/index.ts`
 - Orquestación del checkout: `apps/api/src/lib/chain.ts`
 - Challenge y header x402: `apps/api/src/lib/x402.ts` + ruta `apps/api/src/app/v1/x402/[id]/route.ts`
 - Fee y persistencia: `apps/api/src/lib/payments.ts`, SQLite `apps/api/src/lib/db.ts`, Postgres via `apps/api/src/lib/supabase-admin.ts` cuando hay service role
@@ -175,7 +178,7 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Tipo readiness del panel: `apps/dashboard/src/lib/readiness.ts`
 - SDK: `packages/sdk/src/index.ts` — `createCheckout` (acepta `reseller_fee_bps` + `reseller_address`), `parseX402Challenge`, `encodePaymentHeader`, `verifyWebhook` con `crypto.subtle`
 - Demo de agente x402: `examples/agent-pay.mjs`
-- Contrato: `contracts/payment-router/src/lib.rs` — desplegado en testnet, no invocado por el checkout
+- Contrato: `contracts/payment-router/src/lib.rs` — desplegado en testnet; checkout lo invoca si `PAYMENT_ROUTER_CONTRACT_ID` está set
 - Marca: `packages/brand/` (`tokens.css`, `logos/`, `scripts/sync-public.mjs`) + un `Logo.tsx` por app en `apps/*/src/components/`
 - Regla de agente: `.cursor/rules/viapay-memory.mdc` (always apply)
 
@@ -223,6 +226,6 @@ pnpm dev
 
 Login demo: Continuar en local. La API key sale de `data/seed.local.json` (no commitear).
 
-Este trabajo está en `main` de `github.com/wrever/viapay`. No hay PR abierto. No afirmar que Supabase, Pollar, Trustless Work o un anchor están vivos sin las env de arriba, ni que el checkout liquida por Soroban.
+Este trabajo está en `main` de `github.com/wrever/viapay`. No hay PR abierto. No afirmar que Supabase, Pollar, Trustless Work o un anchor están vivos sin las env de arriba. Con `PAYMENT_ROUTER_CONTRACT_ID` el checkout liquida por Soroban; sin ella, clásico.
 
 Para la demo y la evidencia on-chain: `docs/HACKATHON.md`.

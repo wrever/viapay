@@ -4,8 +4,10 @@ import {
 } from "@viapay/shared";
 import {
   Account,
+  Address,
   Asset,
   BASE_FEE,
+  Contract,
   Horizon,
   Memo,
   Networks,
@@ -13,6 +15,10 @@ import {
   Transaction,
   TransactionBuilder,
   TransactionFailedError,
+  nativeToScVal,
+  rpc,
+  scValToNative,
+  xdr,
 } from "@stellar/stellar-sdk";
 
 export type Network = "testnet" | "mainnet" | "local";
@@ -545,5 +551,345 @@ export function simulatePaymentTx(input: {
     ledger: Math.floor(Date.now() / 1000),
     mode: "simulated" as const,
     ...input,
+  };
+}
+
+/** SHA-256 of the payment intent id → BytesN<32> for `pay(... intent_id)`. */
+export async function intentIdBytes(memo: string): Promise<Uint8Array> {
+  const digest = await globalThis.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(memo),
+  );
+  return new Uint8Array(digest);
+}
+
+export function sacContractId(
+  asset: AssetCode,
+  assetIssuer: string | null | undefined,
+  network: Network,
+): string {
+  return assetFor(asset, assetIssuer, network).contractId(
+    NETWORKS[network].networkPassphrase,
+  );
+}
+
+export function rpcServer(network: Network) {
+  const { rpcUrl } = NETWORKS[network];
+  return new rpc.Server(rpcUrl, { allowHttp: rpcUrl.startsWith("http://") });
+}
+
+function scAddressString(val: xdr.ScVal): string {
+  return Address.fromScVal(val).toString();
+}
+
+function scI128(val: xdr.ScVal): bigint {
+  const native = scValToNative(val);
+  if (typeof native === "bigint") return native;
+  if (typeof native === "number") return BigInt(native);
+  throw new Error("Expected i128");
+}
+
+function scBytes(val: xdr.ScVal): Uint8Array {
+  const native = scValToNative(val);
+  if (native instanceof Uint8Array) return native;
+  throw new Error("Expected bytes");
+}
+
+function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+function isScVoid(val: xdr.ScVal): boolean {
+  return "type" in val && (val as { type: string }).type === "scvVoid";
+}
+
+async function routerPayArgs(input: SplitLeg): Promise<xdr.ScVal[]> {
+  const token = sacContractId(input.asset, input.assetIssuer, input.network);
+  const resellerFee = parseAssetAmount(input.resellerAmount ?? "0");
+  const reseller =
+    input.reseller && resellerFee > 0n
+      ? Address.fromString(input.reseller).toScVal()
+      : xdr.ScVal.scvVoid();
+  return [
+    Address.fromString(token).toScVal(),
+    Address.fromString(input.source).toScVal(),
+    Address.fromString(input.merchant).toScVal(),
+    Address.fromString(input.treasury).toScVal(),
+    reseller,
+    nativeToScVal(parseAssetAmount(input.netAmount), { type: "i128" }),
+    nativeToScVal(parseAssetAmount(input.feeAmount), { type: "i128" }),
+    nativeToScVal(resellerFee, { type: "i128" }),
+    xdr.ScVal.scvBytes(await intentIdBytes(input.memo)),
+  ];
+}
+
+/**
+ * Build a simulated Soroban invoke of payment-router `pay` for the wallet to sign.
+ * Destinations still need classic receive readiness (account + USDC trustline).
+ */
+export async function buildRouterPayXdr(
+  input: SplitLeg,
+  contractId: string,
+): Promise<{
+  xdr: string;
+  networkPassphrase: string;
+  includedTrustline: false;
+  settlement: "router";
+  contractId: string;
+}> {
+  const asset = assetFor(input.asset, input.assetIssuer, input.network);
+  for (const leg of payoutLegs(input)) {
+    await assertCanReceive({
+      network: input.network,
+      address: leg.destination,
+      role: leg.role,
+      asset,
+    });
+  }
+
+  const server = rpcServer(input.network);
+  let source: Awaited<ReturnType<rpc.Server["getAccount"]>>;
+  try {
+    source = await server.getAccount(input.source);
+  } catch (error) {
+    const friendbot = NETWORKS[input.network].friendbotUrl;
+    const hint = friendbot
+      ? ` Créala en ${friendbot}?addr=${input.source}`
+      : "";
+    throw Object.assign(
+      new Error(
+        `La cuenta que paga no existe en ${input.network}.${hint}`,
+      ),
+      { status: 400 },
+    );
+  }
+
+  const contract = new Contract(contractId);
+  const built = new TransactionBuilder(source, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORKS[input.network].networkPassphrase,
+  })
+    .addOperation(contract.call("pay", ...(await routerPayArgs(input))))
+    .setTimeout(180)
+    .build();
+
+  let prepared: Transaction;
+  try {
+    prepared = await server.prepareTransaction(built);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Simulación Soroban falló";
+    throw Object.assign(new Error(message), { status: 400 });
+  }
+
+  return {
+    xdr: prepared.toXDR(),
+    networkPassphrase: NETWORKS[input.network].networkPassphrase,
+    includedTrustline: false,
+    settlement: "router",
+    contractId,
+  };
+}
+
+type InvokePay = {
+  contractId: string;
+  token: string;
+  payer: string;
+  merchant: string;
+  treasury: string;
+  reseller: string | null;
+  net: bigint;
+  fee: bigint;
+  resellerFee: bigint;
+  intentId: Uint8Array;
+};
+
+function invokeContractId(raw: unknown): string {
+  if (typeof raw === "string") return raw;
+  if (raw && typeof raw === "object" && "toString" in raw) {
+    try {
+      return Address.fromScAddress(raw as xdr.ScAddress).toString();
+    } catch {
+      const s = String(raw);
+      if (s.startsWith("C") && s.length === 56) return s;
+    }
+  }
+  throw Object.assign(new Error("contractAddress inválida"), { status: 400 });
+}
+
+function readRouterPayInvoke(tx: Transaction): InvokePay {
+  if (tx.operations.length !== 1) {
+    throw Object.assign(
+      new Error("La invocación del router debe ser la única operación"),
+      { status: 400 },
+    );
+  }
+  const op = tx.operations[0];
+  if (op.type !== "invokeHostFunction") {
+    throw Object.assign(new Error("Se esperaba invokeHostFunction"), {
+      status: 400,
+    });
+  }
+  const func = op.func as {
+    type?: string;
+    invokeContract?: {
+      contractAddress: unknown;
+      functionName: string | { toString(): string };
+      args: xdr.ScVal[];
+    };
+  };
+  const invoke = func.invokeContract;
+  if (!invoke || func.type !== "hostFunctionTypeInvokeContract") {
+    throw Object.assign(new Error("Se esperaba invokeContract pay"), {
+      status: 400,
+    });
+  }
+  const fn =
+    typeof invoke.functionName === "string"
+      ? invoke.functionName
+      : invoke.functionName.toString();
+  if (fn !== "pay") {
+    throw Object.assign(new Error(`Función inesperada: ${fn}`), { status: 400 });
+  }
+  const args = invoke.args;
+  if (args.length !== 9) {
+    throw Object.assign(new Error("pay exige 9 argumentos"), { status: 400 });
+  }
+  const resellerVal = args[4];
+  const reseller = isScVoid(resellerVal) ? null : scAddressString(resellerVal);
+
+  return {
+    contractId: invokeContractId(invoke.contractAddress),
+    token: scAddressString(args[0]),
+    payer: scAddressString(args[1]),
+    merchant: scAddressString(args[2]),
+    treasury: scAddressString(args[3]),
+    reseller,
+    net: scI128(args[5]),
+    fee: scI128(args[6]),
+    resellerFee: scI128(args[7]),
+    intentId: scBytes(args[8]),
+  };
+}
+
+export async function assertRouterPayXdr(
+  signedXdr: string,
+  expected: SplitLeg,
+  contractId: string,
+): Promise<Transaction> {
+  const passphrase = NETWORKS[expected.network].networkPassphrase;
+  const parsed = TransactionBuilder.fromXDR(signedXdr, passphrase);
+  if (!(parsed instanceof Transaction)) {
+    throw Object.assign(new Error("Solo se acepta una transacción"), {
+      status: 400,
+    });
+  }
+  const invoke = readRouterPayInvoke(parsed);
+  if (invoke.contractId !== contractId) {
+    throw Object.assign(new Error("Contrato payment-router incorrecto"), {
+      status: 400,
+    });
+  }
+  const token = sacContractId(
+    expected.asset,
+    expected.assetIssuer,
+    expected.network,
+  );
+  if (invoke.token !== token) {
+    throw Object.assign(new Error("Token SAC incorrecto"), { status: 400 });
+  }
+  if (invoke.merchant !== expected.merchant) {
+    throw Object.assign(new Error("Merchant incorrecto"), { status: 400 });
+  }
+  if (invoke.treasury !== expected.treasury) {
+    throw Object.assign(new Error("Tesorería incorrecta"), { status: 400 });
+  }
+  const wantResellerFee = parseAssetAmount(expected.resellerAmount ?? "0");
+  const wantReseller =
+    expected.reseller && wantResellerFee > 0n ? expected.reseller : null;
+  if (invoke.reseller !== wantReseller) {
+    throw Object.assign(new Error("Revendedor incorrecto"), { status: 400 });
+  }
+  if (invoke.net !== parseAssetAmount(expected.netAmount)) {
+    throw Object.assign(new Error("Neto incorrecto"), { status: 400 });
+  }
+  if (invoke.fee !== parseAssetAmount(expected.feeAmount)) {
+    throw Object.assign(new Error("Fee ViaPay incorrecta"), { status: 400 });
+  }
+  if (invoke.resellerFee !== wantResellerFee) {
+    throw Object.assign(new Error("Fee revendedor incorrecta"), { status: 400 });
+  }
+  if (!bytesEqual(invoke.intentId, await intentIdBytes(expected.memo))) {
+    throw Object.assign(new Error("intent_id no coincide con este cobro"), {
+      status: 400,
+    });
+  }
+  if (parsed.source !== invoke.payer) {
+    throw Object.assign(
+      new Error("El pagador debe ser la cuenta fuente de la transacción"),
+      { status: 400 },
+    );
+  }
+  return parsed;
+}
+
+async function pollRpcTransaction(
+  server: rpc.Server,
+  hash: string,
+): Promise<{ hash: string; ledger: number }> {
+  for (let i = 0; i < 40; i++) {
+    const got = await server.getTransaction(hash);
+    if (got.status === rpc.Api.GetTransactionStatus.SUCCESS) {
+      return {
+        hash,
+        ledger: got.ledger ?? 0,
+      };
+    }
+    if (got.status === rpc.Api.GetTransactionStatus.FAILED) {
+      throw Object.assign(
+        new Error("La red rechazó la invocación del router"),
+        { status: 400 },
+      );
+    }
+    await new Promise((r) => setTimeout(r, 750));
+  }
+  throw Object.assign(
+    new Error("Timeout esperando confirmación Soroban"),
+    { status: 504 },
+  );
+}
+
+export async function submitVerifiedRouter(
+  signedXdr: string,
+  expected: SplitLeg,
+  contractId: string,
+): Promise<{ hash: string; ledger: number; source: string }> {
+  const tx = await assertRouterPayXdr(signedXdr, expected, contractId);
+  const server = rpcServer(expected.network);
+  let send: rpc.Api.SendTransactionResponse;
+  try {
+    send = await server.sendTransaction(tx);
+  } catch (error) {
+    throw Object.assign(
+      new Error(error instanceof Error ? error.message : "RPC send falló"),
+      { status: 400 },
+    );
+  }
+  if (send.status === "ERROR") {
+    throw Object.assign(
+      new Error(
+        `RPC rechazó la tx${send.errorResult ? ` (${send.errorResult})` : ""}`,
+      ),
+      { status: 400 },
+    );
+  }
+  const hash = send.hash;
+  const confirmed = await pollRpcTransaction(server, hash);
+  return {
+    hash: confirmed.hash,
+    ledger: confirmed.ledger,
+    source: tx.source,
   };
 }
