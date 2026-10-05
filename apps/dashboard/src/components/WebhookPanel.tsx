@@ -75,7 +75,6 @@ export function WebhookPanel({
       <div className="hooks__head">
         <div>
           <h2 className="panel-title">{t.webhooksTitle}</h2>
-          <p>{t.webhooksDesc}</p>
         </div>
       </div>
       <form className="hooks__form" onSubmit={create}>

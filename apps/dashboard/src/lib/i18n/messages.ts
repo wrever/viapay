@@ -6,13 +6,6 @@ export type Messages = {
   homeAria: string;
   signOut: string;
   mastheadTitle: (name: string) => string;
-  mastheadBody: (fee: string) => string;
-  stepCreateTitle: string;
-  stepCreateBody: string;
-  stepShareTitle: string;
-  stepShareBody: string;
-  stepPaidTitle: string;
-  stepPaidBody: string;
   missingKey: string;
   footerNetwork: (network: string, fee: string) => string;
   footerTreasury: string;
@@ -28,7 +21,6 @@ export type Messages = {
   loginOauthHint: string;
   loginError: (code: string) => string;
   createTitle: string;
-  createDesc: string;
   amount: string;
   asset: string;
   whyOptional: string;
@@ -47,7 +39,6 @@ export type Messages = {
   copyLink: string;
   openCheckout: string;
   recentTitle: string;
-  recentDesc: string;
   recentEmpty: string;
   resellerLine: (bps: string, amount: string, asset: string, short: string) => string;
   copy: string;
@@ -74,7 +65,6 @@ export type Messages = {
   copyTrustline: string;
   faucetUsdc: string;
   webhooksTitle: string;
-  webhooksDesc: string;
   webhooksSave: string;
   webhooksDeliveries: string;
   webhooksAttempts: (n: number) => string;
@@ -88,8 +78,19 @@ export type Messages = {
   statPending: string;
   statPendingHint: string;
   historyTitle: string;
-  historyDesc: string;
   historyEmpty: string;
+  integrationTitle: string;
+  integrationDesc: string;
+  integrationKeyLabel: string;
+  integrationKeyHint: string;
+  integrationDocs: string;
+  integrationWalletLabel: string;
+  integrationWalletHint: string;
+  integrationWalletSave: string;
+  integrationWalletSaved: string;
+  integrationWalletFail: string;
+  integrationNoWallet: string;
+  receiveNoWallet: string;
   historyColWhen: string;
   historyColConcept: string;
   historyColAmount: string;
@@ -106,14 +107,6 @@ const es: Messages = {
   homeAria: "ViaPay, inicio",
   signOut: "Cerrar sesión",
   mastheadTitle: (name) => `Hola, ${name}`,
-  mastheadBody: (fee) =>
-    `Creá un link, compartilo y cobrá. ViaPay se queda ${fee}; el resto va a tu billetera (y al revendedor si lo configurás).`,
-  stepCreateTitle: "Creas el link",
-  stepCreateBody: "Monto, moneda y, si hace falta, el revendedor.",
-  stepShareTitle: "Lo compartes",
-  stepShareBody: "WhatsApp, mail, tu web, o la API para un agente.",
-  stepPaidTitle: "Te pagan",
-  stepPaidBody: "Ves la confirmación en cuanto entra.",
   missingKey: "Tu sesión no tiene clave de API. Cerrá sesión y volvé a entrar con Google o GitHub.",
   footerNetwork: (network, fee) => `Red ${network} · fee ViaPay ${fee} · tesorería `,
   footerTreasury: "tesorería",
@@ -137,7 +130,6 @@ const es: Messages = {
     return "Algo salió mal al entrar. Probá otra vez.";
   },
   createTitle: "Nuevo cobro",
-  createDesc: "Monto, moneda y listo. El link se puede compartir al toque.",
   amount: "Monto",
   asset: "Moneda",
   whyOptional: "Concepto (opcional)",
@@ -157,8 +149,7 @@ const es: Messages = {
   copyLink: "Copiar link",
   openCheckout: "Abrir checkout",
   recentTitle: "Links recientes",
-  recentDesc: "Cuando el cliente paga, el estado pasa a pagado.",
-  recentEmpty: "Todavía no hay cobros. Creá el primero acá al lado.",
+  recentEmpty: "Todavía no hay cobros.",
   resellerLine: (bps, amount, asset, short) =>
     `Revendedor ${bps} · ${amount} ${asset} a ${short}…`,
   copy: "Copiar",
@@ -188,9 +179,7 @@ const es: Messages = {
     ". Su comisión va en la misma transacción, así que el cobro falla hasta que pueda recibir.",
   copyTrustline: "Copiar trustline USDC",
   faucetUsdc: "Faucet USDC",
-  webhooksTitle: "Avisos al pagar",
-  webhooksDesc:
-    "Cuando un cobro pasa a pagado, ViaPay avisa a tu URL. El secreto se muestra una sola vez.",
+  webhooksTitle: "Webhooks",
   webhooksSave: "Guardar",
   webhooksDeliveries: "Entregas",
   webhooksAttempts: (n) => `${n} intentos`,
@@ -204,9 +193,20 @@ const es: Messages = {
     paid === 0 ? "Neto acreditado cuando pagan" : `${paid} pago${paid === 1 ? "" : "s"} confirmado${paid === 1 ? "" : "s"}`,
   statPending: "Pendientes",
   statPendingHint: "Esperando pago del cliente",
-  historyTitle: "Historial de cobros",
-  historyDesc: "Todos tus links, con estado, neto y enlace al checkout.",
-  historyEmpty: "Todavía no hay cobros. Creá el primero arriba.",
+  historyTitle: "Historial",
+  historyEmpty: "Todavía no hay cobros.",
+  integrationTitle: "Integración",
+  integrationDesc: "Bearer con esta clave: cobros de tu comercio.",
+  integrationKeyLabel: "API key",
+  integrationKeyHint: "Usala en Authorization: Bearer …",
+  integrationDocs: "Ver docs",
+  integrationWalletLabel: "Billetera de destino",
+  integrationWalletHint: "Cuenta Stellar (G…) donde llega el neto.",
+  integrationWalletSave: "Guardar billetera",
+  integrationWalletSaved: "Billetera guardada",
+  integrationWalletFail: "No se pudo guardar la billetera",
+  integrationNoWallet: "Configurá una billetera antes de crear cobros.",
+  receiveNoWallet: "Falta tu billetera de destino (G…). Configurala en Integración.",
   historyColWhen: "Fecha",
   historyColConcept: "Concepto",
   historyColAmount: "Total",
@@ -223,14 +223,6 @@ const en: Messages = {
   homeAria: "ViaPay, home",
   signOut: "Sign out",
   mastheadTitle: (name) => `Hi, ${name}`,
-  mastheadBody: (fee) =>
-    `Create a link, share it, get paid. ViaPay keeps ${fee}; the rest goes to your wallet (and the reseller if you set one).`,
-  stepCreateTitle: "Create the link",
-  stepCreateBody: "Amount, currency, and reseller if needed.",
-  stepShareTitle: "Share it",
-  stepShareBody: "WhatsApp, email, your site, or the API for an agent.",
-  stepPaidTitle: "Get paid",
-  stepPaidBody: "You see confirmation as soon as it lands.",
   missingKey: "Your session has no API key. Sign out and sign in again with Google or GitHub.",
   footerNetwork: (network, fee) => `Network ${network} · ViaPay fee ${fee} · treasury `,
   footerTreasury: "treasury",
@@ -253,7 +245,6 @@ const en: Messages = {
     return "Something went wrong signing in. Please try again.";
   },
   createTitle: "New charge",
-  createDesc: "Amount, currency, done. Share the link right away.",
   amount: "Amount",
   asset: "Currency",
   whyOptional: "Memo (optional)",
@@ -273,8 +264,7 @@ const en: Messages = {
   copyLink: "Copy link",
   openCheckout: "Open checkout",
   recentTitle: "Recent links",
-  recentDesc: "When the customer pays, status flips to paid.",
-  recentEmpty: "No charges yet. Create the first one next to this.",
+  recentEmpty: "No charges yet.",
   resellerLine: (bps, amount, asset, short) =>
     `Reseller ${bps} · ${amount} ${asset} to ${short}…`,
   copy: "Copy",
@@ -303,9 +293,7 @@ const en: Messages = {
     ". Their cut is in the same transaction, so the charge fails until they can receive.",
   copyTrustline: "Copy USDC trustline",
   faucetUsdc: "USDC faucet",
-  webhooksTitle: "Paid notifications",
-  webhooksDesc:
-    "When a charge becomes paid, ViaPay POSTs to your URL. The secret is shown once.",
+  webhooksTitle: "Webhooks",
   webhooksSave: "Save",
   webhooksDeliveries: "Deliveries",
   webhooksAttempts: (n) => `${n} attempts`,
@@ -319,9 +307,20 @@ const en: Messages = {
     paid === 0 ? "Net credited when customers pay" : `${paid} confirmed payment${paid === 1 ? "" : "s"}`,
   statPending: "Pending",
   statPendingHint: "Waiting for customer payment",
-  historyTitle: "Charge history",
-  historyDesc: "All your links with status, net amount, and checkout link.",
-  historyEmpty: "No charges yet. Create the first one above.",
+  historyTitle: "History",
+  historyEmpty: "No charges yet.",
+  integrationTitle: "Integration",
+  integrationDesc: "Bearer with this key scopes charges to your merchant.",
+  integrationKeyLabel: "API key",
+  integrationKeyHint: "Use it as Authorization: Bearer …",
+  integrationDocs: "View docs",
+  integrationWalletLabel: "Destination wallet",
+  integrationWalletHint: "Stellar account (G…) that receives the net.",
+  integrationWalletSave: "Save wallet",
+  integrationWalletSaved: "Wallet saved",
+  integrationWalletFail: "Could not save the wallet",
+  integrationNoWallet: "Set a destination wallet before creating charges.",
+  receiveNoWallet: "Missing destination wallet (G…). Set it under Integration.",
   historyColWhen: "Date",
   historyColConcept: "Memo",
   historyColAmount: "Total",
@@ -338,14 +337,6 @@ const pt: Messages = {
   homeAria: "ViaPay, início",
   signOut: "Sair",
   mastheadTitle: (name) => `Olá, ${name}`,
-  mastheadBody: (fee) =>
-    `Crie um link, compartilhe e cobre. A ViaPay fica com ${fee}; o resto vai para sua carteira (e o revendedor se configurar).`,
-  stepCreateTitle: "Crie o link",
-  stepCreateBody: "Valor, moeda e, se precisar, o revendedor.",
-  stepShareTitle: "Compartilhe",
-  stepShareBody: "WhatsApp, e-mail, seu site, ou a API para um agente.",
-  stepPaidTitle: "Receba",
-  stepPaidBody: "Você vê a confirmação assim que entrar.",
   missingKey: "Sua sessão não tem API key. Saia e entre de novo com Google ou GitHub.",
   footerNetwork: (network, fee) => `Rede ${network} · taxa ViaPay ${fee} · tesouraria `,
   footerTreasury: "tesouraria",
@@ -368,7 +359,6 @@ const pt: Messages = {
     return "Algo deu errado ao entrar. Tente novamente.";
   },
   createTitle: "Nova cobrança",
-  createDesc: "Valor, moeda e pronto. Compartilhe o link na hora.",
   amount: "Valor",
   asset: "Moeda",
   whyOptional: "Conceito (opcional)",
@@ -388,8 +378,7 @@ const pt: Messages = {
   copyLink: "Copiar link",
   openCheckout: "Abrir checkout",
   recentTitle: "Links recentes",
-  recentDesc: "Quando o cliente paga, o status muda para pago.",
-  recentEmpty: "Ainda não há cobranças. Crie a primeira ao lado.",
+  recentEmpty: "Ainda não há cobranças.",
   resellerLine: (bps, amount, asset, short) =>
     `Revendedor ${bps} · ${amount} ${asset} para ${short}…`,
   copy: "Copiar",
@@ -419,9 +408,7 @@ const pt: Messages = {
     ". A comissão vai na mesma transação, então a cobrança falha até poder receber.",
   copyTrustline: "Copiar trustline USDC",
   faucetUsdc: "Faucet USDC",
-  webhooksTitle: "Avisos ao pagar",
-  webhooksDesc:
-    "Quando uma cobrança fica paga, a ViaPay avisa sua URL. O segredo aparece uma vez.",
+  webhooksTitle: "Webhooks",
   webhooksSave: "Salvar",
   webhooksDeliveries: "Entregas",
   webhooksAttempts: (n) => `${n} tentativas`,
@@ -437,9 +424,20 @@ const pt: Messages = {
       : `${paid} pagamento${paid === 1 ? "" : "s"} confirmado${paid === 1 ? "" : "s"}`,
   statPending: "Pendentes",
   statPendingHint: "Aguardando pagamento do cliente",
-  historyTitle: "Histórico de cobranças",
-  historyDesc: "Todos os seus links, com status, líquido e checkout.",
-  historyEmpty: "Ainda não há cobranças. Crie a primeira acima.",
+  historyTitle: "Histórico",
+  historyEmpty: "Ainda não há cobranças.",
+  integrationTitle: "Integração",
+  integrationDesc: "Bearer com esta chave: cobranças do seu comércio.",
+  integrationKeyLabel: "API key",
+  integrationKeyHint: "Use em Authorization: Bearer …",
+  integrationDocs: "Ver docs",
+  integrationWalletLabel: "Carteira de destino",
+  integrationWalletHint: "Conta Stellar (G…) que recebe o líquido.",
+  integrationWalletSave: "Salvar carteira",
+  integrationWalletSaved: "Carteira salva",
+  integrationWalletFail: "Não foi possível salvar a carteira",
+  integrationNoWallet: "Configure uma carteira antes de criar cobranças.",
+  receiveNoWallet: "Falta a carteira de destino (G…). Configure em Integração.",
   historyColWhen: "Data",
   historyColConcept: "Conceito",
   historyColAmount: "Total",

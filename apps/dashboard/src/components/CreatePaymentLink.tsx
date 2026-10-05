@@ -182,7 +182,6 @@ export function CreatePaymentLink({
     <section className="panel panel--composer">
       <div className="panel__head">
         <h2 className="panel-title">{t.createTitle}</h2>
-        <p>{t.createDesc}</p>
       </div>
       <div className="panel__body">
         <form className="grid gap-4" onSubmit={onCreate}>

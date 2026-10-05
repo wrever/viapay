@@ -55,10 +55,7 @@ export function DashboardHome({
 
       <main className="dash-main">
         <div className="dash-intro">
-          <div>
-            <h1 className="panel-title">{t.mastheadTitle(firstName)}</h1>
-            <p>{t.mastheadBody(fee)}</p>
-          </div>
+          <h1 className="panel-title">{t.mastheadTitle(firstName)}</h1>
           <div className="meta-chips" aria-label={t.panelMetaAria}>
             <span className="meta-chip">
               <span className="meta-chip__dot" aria-hidden="true" />

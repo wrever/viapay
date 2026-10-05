@@ -58,7 +58,6 @@ export function PaymentHistory({
     <section className="panel panel--history">
       <div className="panel__head">
         <h2 className="panel-title">{t.historyTitle}</h2>
-        <p>{t.historyDesc}</p>
       </div>
       <div className="panel__body panel__body--flush">
         {sorted.length === 0 ? (
