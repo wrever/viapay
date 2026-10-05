@@ -1,0 +1,28 @@
+{
+  "name": "@viapay/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "db:seed": "tsx src/scripts/seed.ts"
+  },
+  "dependencies": {
+    "@viapay/shared": "workspace:*",
+    "@viapay/stellar": "workspace:*",
+    "better-sqlite3": "^11.9.1",
+    "next": "^15.3.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.25.28"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
