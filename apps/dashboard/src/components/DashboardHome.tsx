@@ -3,25 +3,61 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatBps } from "@viapay/shared";
-import { Bell, History, PlusCircle, Wallet } from "lucide-react";
+import {
+  BarChart3,
+  Bell,
+  History,
+  LayoutDashboard,
+  PlusCircle,
+  Wallet,
+} from "lucide-react";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
 import { Logo } from "@/components/Logo";
 import { IntegrationPanel } from "@/components/IntegrationPanel";
+import { OverviewPanel } from "@/components/OverviewPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
-import { PaymentStatsStrip } from "@/components/PaymentStatsStrip";
+import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
 import { Button } from "@/components/ui/button";
 import type { DashboardPayment } from "@/lib/payment-types";
 import type { Readiness } from "@/lib/readiness";
 import { SiteControls, useLocale } from "@/lib/i18n";
 
-const SECTIONS = ["cobros", "historial", "integracion", "notificaciones"] as const;
+const SECTIONS = [
+  "resumen",
+  "cobros",
+  "historial",
+  "estadisticas",
+  "integracion",
+  "notificaciones",
+] as const;
 type DashSection = (typeof SECTIONS)[number];
+const DEFAULT_SECTION: DashSection = "resumen";
 
-function parseSection(raw: string | null | undefined): DashSection {
-  const value = (raw ?? "").replace(/^#/, "").toLowerCase();
+function parseSection(raw: string | null | undefined): DashSection | null {
+  const value = (raw ?? "").replace(/^#/, "").toLowerCase().trim();
   return (SECTIONS as readonly string[]).includes(value)
     ? (value as DashSection)
-    : "cobros";
+    : null;
+}
+
+function readSectionFromLocation(): DashSection {
+  if (typeof window === "undefined") return DEFAULT_SECTION;
+  const params = new URLSearchParams(window.location.search);
+  const fromTab = parseSection(params.get("tab"));
+  if (fromTab) return fromTab;
+  const fromHash = parseSection(window.location.hash);
+  if (fromHash) return fromHash;
+  return DEFAULT_SECTION;
+}
+
+function writeSectionToLocation(next: DashSection) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("tab", next);
+  url.hash = next;
+  const nextUrl = `${url.pathname}?tab=${encodeURIComponent(next)}#${next}`;
+  if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextUrl) {
+    window.history.replaceState(null, "", nextUrl);
+  }
 }
 
 export function DashboardHome({
@@ -42,21 +78,25 @@ export function DashboardHome({
   const network = readiness?.network ?? "testnet";
   const firstName = sessionName.split(/\s+/)[0] || sessionName;
   const [payments, setPayments] = useState(initialPayments);
-  const [section, setSection] = useState<DashSection>("cobros");
+  const [section, setSection] = useState<DashSection>(DEFAULT_SECTION);
 
   useEffect(() => {
-    setSection(parseSection(window.location.hash));
-    const onHash = () => setSection(parseSection(window.location.hash));
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    const initial = readSectionFromLocation();
+    setSection(initial);
+    writeSectionToLocation(initial);
+
+    const sync = () => setSection(readSectionFromLocation());
+    window.addEventListener("hashchange", sync);
+    window.addEventListener("popstate", sync);
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("popstate", sync);
+    };
   }, []);
 
   const go = useCallback((next: DashSection) => {
     setSection(next);
-    const hash = `#${next}`;
-    if (window.location.hash !== hash) {
-      window.history.replaceState(null, "", hash);
-    }
+    writeSectionToLocation(next);
   }, []);
 
   const received = useMemo(
@@ -69,8 +109,10 @@ export function DashboardHome({
     label: string;
     icon: typeof PlusCircle;
   }[] = [
+    { id: "resumen", label: t.navResumen, icon: LayoutDashboard },
     { id: "cobros", label: t.navCobros, icon: PlusCircle },
     { id: "historial", label: t.navHistorial, icon: History },
+    { id: "estadisticas", label: t.navEstadisticas, icon: BarChart3 },
     { id: "integracion", label: t.navIntegracion, icon: Wallet },
     { id: "notificaciones", label: t.navNotificaciones, icon: Bell },
   ];
@@ -138,6 +180,13 @@ export function DashboardHome({
           )}
 
           <div className="dash-view" key={section}>
+            {section === "resumen" && (
+              <OverviewPanel
+                payments={payments}
+                onGoCobros={() => go("cobros")}
+              />
+            )}
+
             {section === "cobros" && (
               <div className="workspace workspace--composer">
                 <CreatePaymentLink
@@ -158,16 +207,26 @@ export function DashboardHome({
 
             {section === "historial" && (
               <div className="workspace workspace--history">
-                <PaymentStatsStrip payments={payments} />
                 <PaymentHistory payments={received} network={network} />
               </div>
             )}
 
+            {section === "estadisticas" && (
+              <PaymentStatsDetail payments={payments} />
+            )}
+
             {section === "integracion" && (
-              <IntegrationPanel
-                apiKey={apiKey}
-                merchantWallet={readiness?.merchant_wallet ?? null}
-              />
+              apiKey ? (
+                <IntegrationPanel
+                  apiKey={apiKey}
+                  merchantWallet={readiness?.merchant_wallet ?? null}
+                />
+              ) : (
+                <div className="section-empty" role="status">
+                  <p className="section-empty__title">{t.integrationEmptyTitle}</p>
+                  <p className="section-empty__body">{t.missingKey}</p>
+                </div>
+              )
             )}
 
             {section === "notificaciones" && (

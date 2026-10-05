@@ -31,7 +31,13 @@ function localizedSum(
     .join(" · ");
 }
 
-export function PaymentStatsStrip({ payments }: { payments: DashboardPayment[] }) {
+export function PaymentStatsStrip({
+  payments,
+  showSucceeded = true,
+}: {
+  payments: DashboardPayment[];
+  showSucceeded?: boolean;
+}) {
   const { t, locale } = useLocale();
   const localeTag = LOCALE_TAG[locale];
   const stats = computePaymentStats(payments);
@@ -58,10 +64,23 @@ export function PaymentStatsStrip({ payments }: { payments: DashboardPayment[] }
           : String(stats.pending),
       hint: t.statPendingHint,
     },
+    ...(showSucceeded
+      ? [
+          {
+            key: "succeeded",
+            label: t.statSucceeded,
+            value: String(stats.succeeded),
+            hint: t.statSucceededHint,
+          },
+        ]
+      : []),
   ];
 
   return (
-    <section className="stats-strip" aria-label={t.statsAria}>
+    <section
+      className={`stats-strip${showSucceeded ? " stats-strip--4" : ""}`}
+      aria-label={t.statsAria}
+    >
       {cards.map((card) => (
         <article key={card.key} className="stat-card">
           <p className="stat-card__label">{card.label}</p>

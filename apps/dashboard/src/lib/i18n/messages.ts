@@ -61,6 +61,28 @@ export type Messages = {
   statReceivedHint: (paid: number) => string;
   statPending: string;
   statPendingHint: string;
+  statSucceeded: string;
+  statSucceededHint: string;
+  statCanceled: string;
+  periodAria: string;
+  periodToday: string;
+  periodMonth: string;
+  periodAll: string;
+  overviewTitle: string;
+  overviewDesc: string;
+  overviewEmptyTitle: string;
+  overviewEmptyBody: string;
+  overviewEmptyCta: string;
+  overviewPeriodEmpty: string;
+  statsTitle: string;
+  statsDesc: string;
+  statsEmptyTitle: string;
+  statsEmptyBody: string;
+  statsPeriodEmpty: string;
+  statsBreakdownAria: string;
+  statsByAsset: string;
+  statsFees: string;
+  integrationEmptyTitle: string;
   historyTitle: string;
   historyEmpty: string;
   integrationTitle: string;
@@ -84,8 +106,10 @@ export type Messages = {
   historyNoMemo: string;
   historyShowMore: (n: number) => string;
   navAria: string;
+  navResumen: string;
   navCobros: string;
   navHistorial: string;
+  navEstadisticas: string;
   navIntegracion: string;
   navNotificaciones: string;
   cobrosGuideTitle: string;
@@ -172,6 +196,28 @@ const es: Messages = {
     paid === 0 ? "Neto acreditado cuando pagan" : `${paid} pago${paid === 1 ? "" : "s"} confirmado${paid === 1 ? "" : "s"}`,
   statPending: "Pendientes",
   statPendingHint: "Esperando pago del cliente",
+  statSucceeded: "Pagados",
+  statSucceededHint: "Cobros con pago confirmado",
+  statCanceled: "Cancelados / expirados",
+  periodAria: "Período",
+  periodToday: "Hoy",
+  periodMonth: "Este mes",
+  periodAll: "Todo",
+  overviewTitle: "Resumen",
+  overviewDesc: "Vista rápida de cobros, recibido y pendientes.",
+  overviewEmptyTitle: "Todavía no hay actividad",
+  overviewEmptyBody: "Creá tu primer link de cobro para ver números acá.",
+  overviewEmptyCta: "Crear cobro",
+  overviewPeriodEmpty: "Sin cobros en este período.",
+  statsTitle: "Estadísticas",
+  statsDesc: "Desglose por estado y activo en el período elegido.",
+  statsEmptyTitle: "Sin datos todavía",
+  statsEmptyBody: "Cuando haya cobros, vas a ver el desglose acá.",
+  statsPeriodEmpty: "Sin cobros en este período.",
+  statsBreakdownAria: "Conteo por estado",
+  statsByAsset: "Por activo",
+  statsFees: "Fees ViaPay",
+  integrationEmptyTitle: "Integración no disponible",
   historyTitle: "Historial",
   historyEmpty: "Todavía no hay pagos recibidos.",
   integrationTitle: "Integración",
@@ -196,13 +242,15 @@ const es: Messages = {
   historyNoMemo: "Sin concepto",
   historyShowMore: (n) => `Ver ${n} más`,
   navAria: "Secciones del panel",
+  navResumen: "Resumen",
   navCobros: "Cobros",
   navHistorial: "Historial",
+  navEstadisticas: "Estadísticas",
   navIntegracion: "Integración",
   navNotificaciones: "Notificaciones",
   cobrosGuideTitle: "Cómo cobrar",
   cobrosGuide1: "Creá el link con el monto y, si aplica, la comisión del revendedor.",
-  cobrosGuide2: "Compartí el checkout. El cliente firma en su wallet (Freighter, Lobstr, …).",
+  cobrosGuide2: "Compartí el checkout ViaPay. El cliente firma en su wallet (Freighter, Lobstr, …).",
   cobrosGuide3:
     "Cuando pague, el cobro pasa a Pagado. Consultá el estado por id con la API.",
   noticesTitle: "Notificaciones",
@@ -285,6 +333,28 @@ const en: Messages = {
     paid === 0 ? "Net credited when customers pay" : `${paid} confirmed payment${paid === 1 ? "" : "s"}`,
   statPending: "Pending",
   statPendingHint: "Waiting for customer payment",
+  statSucceeded: "Paid",
+  statSucceededHint: "Charges with confirmed payment",
+  statCanceled: "Canceled / expired",
+  periodAria: "Period",
+  periodToday: "Today",
+  periodMonth: "This month",
+  periodAll: "All time",
+  overviewTitle: "Overview",
+  overviewDesc: "Quick view of charges, received, and pending.",
+  overviewEmptyTitle: "No activity yet",
+  overviewEmptyBody: "Create your first payment link to see numbers here.",
+  overviewEmptyCta: "Create charge",
+  overviewPeriodEmpty: "No charges in this period.",
+  statsTitle: "Statistics",
+  statsDesc: "Breakdown by status and asset for the selected period.",
+  statsEmptyTitle: "No data yet",
+  statsEmptyBody: "Once you have charges, the breakdown appears here.",
+  statsPeriodEmpty: "No charges in this period.",
+  statsBreakdownAria: "Counts by status",
+  statsByAsset: "By asset",
+  statsFees: "ViaPay fees",
+  integrationEmptyTitle: "Integration unavailable",
   historyTitle: "History",
   historyEmpty: "No payments received yet.",
   integrationTitle: "Integration",
@@ -309,13 +379,15 @@ const en: Messages = {
   historyNoMemo: "No memo",
   historyShowMore: (n) => `Show ${n} more`,
   navAria: "Dashboard sections",
+  navResumen: "Overview",
   navCobros: "Charges",
   navHistorial: "History",
+  navEstadisticas: "Statistics",
   navIntegracion: "Integration",
   navNotificaciones: "Notifications",
   cobrosGuideTitle: "How to get paid",
   cobrosGuide1: "Create the link with the amount and optional reseller fee.",
-  cobrosGuide2: "Share checkout. The customer signs in their wallet (Freighter, Lobstr, …).",
+  cobrosGuide2: "Share the ViaPay checkout. The customer signs in their wallet (Freighter, Lobstr, …).",
   cobrosGuide3:
     "When paid, status becomes Paid. Poll status by id with the API.",
   noticesTitle: "Notifications",
@@ -401,6 +473,28 @@ const pt: Messages = {
       : `${paid} pagamento${paid === 1 ? "" : "s"} confirmado${paid === 1 ? "" : "s"}`,
   statPending: "Pendentes",
   statPendingHint: "Aguardando pagamento do cliente",
+  statSucceeded: "Pagos",
+  statSucceededHint: "Cobranças com pagamento confirmado",
+  statCanceled: "Cancelados / expirados",
+  periodAria: "Período",
+  periodToday: "Hoje",
+  periodMonth: "Este mês",
+  periodAll: "Tudo",
+  overviewTitle: "Resumo",
+  overviewDesc: "Visão rápida de cobranças, recebido e pendentes.",
+  overviewEmptyTitle: "Ainda sem atividade",
+  overviewEmptyBody: "Crie seu primeiro link de cobrança para ver números aqui.",
+  overviewEmptyCta: "Criar cobrança",
+  overviewPeriodEmpty: "Sem cobranças neste período.",
+  statsTitle: "Estatísticas",
+  statsDesc: "Detalhamento por status e ativo no período escolhido.",
+  statsEmptyTitle: "Sem dados ainda",
+  statsEmptyBody: "Quando houver cobranças, o detalhamento aparece aqui.",
+  statsPeriodEmpty: "Sem cobranças neste período.",
+  statsBreakdownAria: "Contagem por status",
+  statsByAsset: "Por ativo",
+  statsFees: "Taxas ViaPay",
+  integrationEmptyTitle: "Integração indisponível",
   historyTitle: "Histórico",
   historyEmpty: "Ainda não há pagamentos recebidos.",
   integrationTitle: "Integração",
@@ -425,13 +519,15 @@ const pt: Messages = {
   historyNoMemo: "Sem conceito",
   historyShowMore: (n) => `Ver mais ${n}`,
   navAria: "Seções do painel",
+  navResumen: "Resumo",
   navCobros: "Cobranças",
   navHistorial: "Histórico",
+  navEstadisticas: "Estatísticas",
   navIntegracion: "Integração",
   navNotificaciones: "Notificações",
   cobrosGuideTitle: "Como cobrar",
   cobrosGuide1: "Crie o link com o valor e, se quiser, a comissão do revendedor.",
-  cobrosGuide2: "Compartilhe o checkout. O cliente assina na wallet (Freighter, Lobstr, …).",
+  cobrosGuide2: "Compartilhe o checkout ViaPay. O cliente assina na wallet (Freighter, Lobstr, …).",
   cobrosGuide3:
     "Quando pagar, fica Pago. Consulte o status por id com a API.",
   noticesTitle: "Notificações",

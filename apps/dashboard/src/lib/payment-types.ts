@@ -53,6 +53,25 @@ function addToMap(
   });
 }
 
+export type StatsPeriod = "today" | "month" | "all";
+
+export function filterPaymentsByPeriod(
+  payments: DashboardPayment[],
+  period: StatsPeriod,
+  now = new Date(),
+): DashboardPayment[] {
+  if (period === "all") return payments;
+  const start =
+    period === "today"
+      ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      : new Date(now.getFullYear(), now.getMonth(), 1);
+  const startMs = start.getTime();
+  return payments.filter((p) => {
+    const t = Date.parse(p.created_at);
+    return Number.isFinite(t) && t >= startMs;
+  });
+}
+
 export function computePaymentStats(
   payments: DashboardPayment[],
 ): DashboardPaymentStats {

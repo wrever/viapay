@@ -6,7 +6,7 @@ Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capa
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. Panel `/app`: app shell — top bar (logo, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile. Secciones con estado cliente + hash (`#cobros` `#historial` `#integracion` `#notificaciones`): Cobros (form + instructivo), Historial (solo `succeeded` + stats), Integración (wallet + API key + poll por id), Notificaciones (poll API, sin UX de webhooks). Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Stats strip solo en Historial. Saludo corto + chips red/fee. Pie: red + fee (sin dirección de tesorería). Sin fee ViaPay acumulado (admin). Sin copy de marketing en el intro.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`). Supabase Site URL debe ser exactamente esa. Local panel+landing: `:3000`. **No mandar comercios a otro frontend** (`apps/web` es legado local; prod es el dashboard). API y checkout siguen como backends aparte; `checkout_url` apunta al host de checkout (prod `viapay-checkout-nine.vercel.app`) pero la UI del pagador es marca ViaPay; links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | Integración | Notificaciones. Resumen = cards (hoy/mes/todo) cobros/recibido/pendientes/pagados. Estadísticas = desglose por estado + por activo. Cobros = form + instructivo. Historial = solo pagos `succeeded`. Integración = wallet + API key + poll. Notificaciones = poll API, sin UX de webhooks. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin copy de marketing en el intro.
 
 **Prod Vercel (vivo, 2026-10-05):**
 - Sitio/panel: https://viapay.vercel.app (`apps/dashboard`). Envs cliente en `web` + `viapay-dashboard`: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay-checkout-nine.vercel.app`. Redeploy production Ready (env bake-in).
@@ -209,9 +209,9 @@ i18n en **web, checkout y dashboard**: ES (default) → EN → PT. Detección po
 | Landing nav / footer | horizontal 128px / 112px |
 | Landing hero y 404 | isotipo 520px / 168px |
 | Landing `#modos` | tabs Link / Split / Agente — los tres con `FlowSplit` + badges `%` |
-| Dashboard header | horizontal 120px; top bar + sidebar/tabs en `/app` |
+| Dashboard header | horizontal 120px; top bar + sidebar/tabs en `/app` (default Resumen) |
 | Dashboard login | stacked 176px |
-| Checkout | horizontal 104px + watermark isotipo en la tarjeta |
+| Checkout | horizontal 104px + watermark isotipo (host backend aparte; marca ViaPay) |
 | Favicon / apple-icon | `icon.svg` del kit + `apple-icon.png` 180px (Next ignora SVG para apple-icon) |
 
 Checkout (pagador): solo el **total a pagar**. Sin fees, sin desglose, sin wallets de ViaPay/revendedor. El split on-chain sigue siendo 3 patas; solo se oculta en UI al pagador. El dashboard sí muestra preview al crear el cobro (el comercio configura el % Hubby).
