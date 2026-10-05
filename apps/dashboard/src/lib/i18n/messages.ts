@@ -126,6 +126,7 @@ export type Messages = {
   walletGateBody: string;
   walletGateCta: string;
   walletGateBlocked: string;
+  walletGateLockedHint: string;
   overviewRecentTitle: string;
   overviewRecentEmpty: string;
   overviewConversion: (paid: number, total: number) => string;
@@ -249,7 +250,8 @@ const es: Messages = {
   integrationWalletSave: "Guardar billetera",
   integrationWalletSaved: "Billetera guardada",
   integrationWalletFail: "No se pudo guardar la billetera",
-  integrationNoWallet: "Configurá una billetera antes de crear cobros.",
+  integrationNoWallet:
+    "Obligatorio: sin billetera de destino el dinero no puede llegar a tu cuenta.",
   integrationPollHint:
     "Consultá el estado con GET /v1/payment_intents/:id (o la lista).",
   historyColWhen: "Fecha",
@@ -280,12 +282,13 @@ const es: Messages = {
   noticesNoWebhook:
     "La API de webhooks sigue disponible si la necesitás, pero el panel no la requiere.",
   walletGateBanner:
-    "Configurá tu billetera de destino (G…) en Integración antes de crear cobros.",
-  walletGateTitle: "Falta tu billetera de destino",
+    "Sin billetera de destino el dinero no puede llegar. Guardá tu cuenta Stellar (G…) para desbloquear el panel.",
+  walletGateTitle: "Billetera de destino obligatoria",
   walletGateBody:
-    "Sin una cuenta Stellar (G…) no podemos crear cobros: el neto no tendría dónde llegar.",
-  walletGateCta: "Ir a Integración",
+    "Sin una cuenta Stellar (G…) los fondos no tienen destino. Configurala ahora: el resto del panel queda bloqueado hasta entonces.",
+  walletGateCta: "Configurar billetera",
   walletGateBlocked: "Configurá la billetera de destino para crear links.",
+  walletGateLockedHint: "Guardá tu billetera de destino para usar esta sección.",
   noticesBellAria: "Notificaciones",
   noticesBellPending: (n) =>
     n === 1 ? "1 cobro pendiente" : `${n} cobros pendientes`,
@@ -404,7 +407,8 @@ const en: Messages = {
   integrationWalletSave: "Save wallet",
   integrationWalletSaved: "Wallet saved",
   integrationWalletFail: "Could not save the wallet",
-  integrationNoWallet: "Set a destination wallet before creating charges.",
+  integrationNoWallet:
+    "Required: without a destination wallet, funds cannot reach your account.",
   integrationPollHint:
     "Check status with GET /v1/payment_intents/:id (or the list).",
   historyColWhen: "Date",
@@ -435,12 +439,13 @@ const en: Messages = {
   noticesNoWebhook:
     "Webhook APIs still exist if you need them, but the dashboard does not require them.",
   walletGateBanner:
-    "Set your destination wallet (G…) in Integration before creating charges.",
+    "Without a destination wallet, funds cannot arrive. Save your Stellar account (G…) to unlock the panel.",
   walletGateTitle: "Destination wallet required",
   walletGateBody:
-    "Without a Stellar account (G…) we can’t create charges: there would be nowhere for the net to land.",
-  walletGateCta: "Go to Integration",
+    "Without a Stellar account (G…) there is nowhere for funds to land. Set it now — the rest of the panel stays locked until then.",
+  walletGateCta: "Set destination wallet",
   walletGateBlocked: "Set a destination wallet to create payment links.",
+  walletGateLockedHint: "Save your destination wallet to use this section.",
   noticesBellAria: "Notifications",
   noticesBellPending: (n) =>
     n === 1 ? "1 pending charge" : `${n} pending charges`,
@@ -562,7 +567,8 @@ const pt: Messages = {
   integrationWalletSave: "Salvar carteira",
   integrationWalletSaved: "Carteira salva",
   integrationWalletFail: "Não foi possível salvar a carteira",
-  integrationNoWallet: "Configure uma carteira antes de criar cobranças.",
+  integrationNoWallet:
+    "Obrigatório: sem carteira de destino o dinheiro não pode chegar à sua conta.",
   integrationPollHint:
     "Consulte o status com GET /v1/payment_intents/:id (ou a lista).",
   historyColWhen: "Data",
@@ -593,12 +599,13 @@ const pt: Messages = {
   noticesNoWebhook:
     "A API de webhooks ainda existe se precisar, mas o painel não exige.",
   walletGateBanner:
-    "Configure sua carteira de destino (G…) em Integração antes de criar cobranças.",
-  walletGateTitle: "Falta a carteira de destino",
+    "Sem carteira de destino o dinheiro não pode chegar. Salve sua conta Stellar (G…) para desbloquear o painel.",
+  walletGateTitle: "Carteira de destino obrigatória",
   walletGateBody:
-    "Sem uma conta Stellar (G…) não podemos criar cobranças: o líquido não teria para onde chegar.",
-  walletGateCta: "Ir para Integração",
+    "Sem uma conta Stellar (G…) os fundos não têm destino. Configure agora: o restante do painel fica bloqueado até então.",
+  walletGateCta: "Configurar carteira",
   walletGateBlocked: "Configure a carteira de destino para criar links.",
+  walletGateLockedHint: "Salve sua carteira de destino para usar esta seção.",
   noticesBellAria: "Notificações",
   noticesBellPending: (n) =>
     n === 1 ? "1 cobrança pendente" : `${n} cobranças pendentes`,

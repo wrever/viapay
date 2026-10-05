@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatBps } from "@viapay/shared";
 import {
   BarChart3,
@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   PlusCircle,
   Wallet,
-  X,
 } from "lucide-react";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
 import { Logo } from "@/components/Logo";
@@ -33,6 +32,7 @@ const SECTIONS = [
 ] as const;
 type DashSection = (typeof SECTIONS)[number];
 const DEFAULT_SECTION: DashSection = "resumen";
+const WALLET_REQUIRED_SECTION: DashSection = "integracion";
 
 function parseSection(raw: string | null | undefined): DashSection | null {
   const value = (raw ?? "").replace(/^#/, "").toLowerCase().trim();
@@ -90,27 +90,63 @@ export function DashboardHome({
   const [noticesOpen, setNoticesOpen] = useState(false);
 
   const hasWallet = Boolean(merchantWallet);
+  const walletLocked = Boolean(apiKey) && !hasWallet;
+  const merchantWalletRef = useRef(merchantWallet);
+  merchantWalletRef.current = merchantWallet;
 
   useEffect(() => {
     const initial = readSectionFromLocation();
-    setSection(initial);
-    writeSectionToLocation(initial);
+    const lockedBoot = Boolean(apiKey) && !readiness?.merchant_wallet;
+    const next = lockedBoot ? WALLET_REQUIRED_SECTION : initial;
+    setSection(next);
+    writeSectionToLocation(next);
 
-    const sync = () => setSection(readSectionFromLocation());
+    const sync = () => {
+      const fromUrl = readSectionFromLocation();
+      if (Boolean(apiKey) && !merchantWalletRef.current) {
+        if (fromUrl !== WALLET_REQUIRED_SECTION) {
+          setSection(WALLET_REQUIRED_SECTION);
+          writeSectionToLocation(WALLET_REQUIRED_SECTION);
+          setWalletGateOpen(true);
+          return;
+        }
+        setSection(WALLET_REQUIRED_SECTION);
+        return;
+      }
+      setSection(fromUrl);
+    };
     window.addEventListener("hashchange", sync);
     window.addEventListener("popstate", sync);
     return () => {
       window.removeEventListener("hashchange", sync);
       window.removeEventListener("popstate", sync);
     };
-  }, []);
+  }, [apiKey, readiness?.merchant_wallet]);
 
-  const go = useCallback((next: DashSection) => {
-    setSection(next);
-    writeSectionToLocation(next);
-    setNoticesOpen(false);
-    if (next !== "cobros") setWalletGateOpen(false);
-  }, []);
+  useEffect(() => {
+    if (!walletLocked) return;
+    if (section !== WALLET_REQUIRED_SECTION) {
+      setSection(WALLET_REQUIRED_SECTION);
+      writeSectionToLocation(WALLET_REQUIRED_SECTION);
+    }
+  }, [walletLocked, section]);
+
+  const go = useCallback(
+    (next: DashSection) => {
+      if (walletLocked && next !== WALLET_REQUIRED_SECTION) {
+        setWalletGateOpen(true);
+        setSection(WALLET_REQUIRED_SECTION);
+        writeSectionToLocation(WALLET_REQUIRED_SECTION);
+        setNoticesOpen(false);
+        return;
+      }
+      setSection(next);
+      writeSectionToLocation(next);
+      setNoticesOpen(false);
+      if (next === WALLET_REQUIRED_SECTION) setWalletGateOpen(false);
+    },
+    [walletLocked],
+  );
 
   const openWalletGate = useCallback(() => {
     setWalletGateOpen(true);
@@ -118,13 +154,13 @@ export function DashboardHome({
 
   const goIntegracion = useCallback(() => {
     setWalletGateOpen(false);
-    go("integracion");
+    go(WALLET_REQUIRED_SECTION);
   }, [go]);
 
   const tryGoCobros = useCallback(() => {
     if (!hasWallet) {
       openWalletGate();
-      go("cobros");
+      go(WALLET_REQUIRED_SECTION);
       return;
     }
     go("cobros");
@@ -167,14 +203,20 @@ export function DashboardHome({
                 aria-label={t.noticesBellAria}
                 aria-expanded={noticesOpen}
                 aria-haspopup="menu"
-                onClick={() => setNoticesOpen((v) => !v)}
+                onClick={() => {
+                  if (walletLocked) {
+                    openWalletGate();
+                    return;
+                  }
+                  setNoticesOpen((v) => !v);
+                }}
               >
                 <Bell className="size-4" aria-hidden />
                 {pendingCount > 0 && (
                   <span className="notices-bell__dot" aria-hidden />
                 )}
               </button>
-              {noticesOpen && (
+              {noticesOpen && !walletLocked && (
                 <div className="notices-bell__menu" role="menu">
                   <p className="notices-bell__title">{t.noticesTitle}</p>
                   <p className="notices-bell__body">
@@ -208,16 +250,19 @@ export function DashboardHome({
         <nav className="dash-nav" aria-label={t.navAria}>
           <ul className="dash-nav__list">
             {navItems.map(({ id, label, icon: Icon }) => {
+              const locked = walletLocked && id !== WALLET_REQUIRED_SECTION;
               const active = section === id;
               return (
                 <li key={id}>
                   <button
                     type="button"
-                    className={`dash-nav__item${active ? " is-active" : ""}`}
+                    className={`dash-nav__item${active ? " is-active" : ""}${locked ? " is-locked" : ""}`}
                     aria-current={active ? "page" : undefined}
+                    aria-disabled={locked || undefined}
+                    title={locked ? t.walletGateLockedHint : undefined}
                     onClick={() => {
-                      if (id === "cobros" && !hasWallet) {
-                        tryGoCobros();
+                      if (locked) {
+                        openWalletGate();
                         return;
                       }
                       go(id);
@@ -253,7 +298,7 @@ export function DashboardHome({
             </p>
           )}
 
-          {apiKey && !hasWallet && (
+          {walletLocked && (
             <div className="wallet-gate-banner" role="status">
               <div>
                 <p className="wallet-gate-banner__title">{t.walletGateTitle}</p>
@@ -266,7 +311,7 @@ export function DashboardHome({
           )}
 
           <div className="dash-view" key={section}>
-            {section === "resumen" && (
+            {section === "resumen" && !walletLocked && (
               <OverviewPanel
                 payments={payments}
                 hasWallet={hasWallet}
@@ -276,7 +321,7 @@ export function DashboardHome({
               />
             )}
 
-            {section === "cobros" && (
+            {section === "cobros" && !walletLocked && (
               <div className="workspace workspace--composer">
                 <CreatePaymentLink
                   apiKey={apiKey}
@@ -296,13 +341,13 @@ export function DashboardHome({
               </div>
             )}
 
-            {section === "historial" && (
+            {section === "historial" && !walletLocked && (
               <div className="workspace workspace--history">
                 <PaymentHistory payments={received} network={network} />
               </div>
             )}
 
-            {section === "estadisticas" && (
+            {section === "estadisticas" && !walletLocked && (
               <PaymentStatsDetail payments={payments} />
             )}
 
@@ -325,7 +370,7 @@ export function DashboardHome({
                 </div>
               ))}
 
-            {section === "notificaciones" && (
+            {section === "notificaciones" && !walletLocked && (
               <section className="panel panel--notices">
                 <div className="panel__head">
                   <h2 className="panel-title">{t.noticesTitle}</h2>
@@ -356,28 +401,15 @@ export function DashboardHome({
         </main>
       </div>
 
-      {walletGateOpen && !hasWallet && (
+      {walletGateOpen && walletLocked && (
         <div
           className="wallet-gate-modal"
           role="dialog"
           aria-modal="true"
           aria-labelledby="wallet-gate-title"
         >
-          <button
-            type="button"
-            className="wallet-gate-modal__backdrop"
-            aria-label="Close"
-            onClick={() => setWalletGateOpen(false)}
-          />
+          <div className="wallet-gate-modal__backdrop" aria-hidden="true" />
           <div className="wallet-gate-modal__card">
-            <button
-              type="button"
-              className="wallet-gate-modal__close"
-              aria-label="Close"
-              onClick={() => setWalletGateOpen(false)}
-            >
-              <X className="size-4" />
-            </button>
             <Wallet className="wallet-gate-modal__icon" aria-hidden />
             <h2 id="wallet-gate-title" className="wallet-gate-modal__title">
               {t.walletGateTitle}

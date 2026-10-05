@@ -194,6 +194,16 @@ code {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
+.dash-nav__item.is-locked {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.dash-nav__item.is-locked:hover {
+  color: var(--text-2);
+  background: transparent;
+}
+
 .dash-nav__icon {
   width: 1.15rem;
   height: 1.15rem;
@@ -1196,7 +1206,6 @@ code {
   inset: 0;
   border: 0;
   background: color-mix(in srgb, var(--text) 42%, transparent);
-  cursor: pointer;
 }
 
 .wallet-gate-modal__card {
@@ -1210,22 +1219,6 @@ code {
   box-shadow: var(--shadow-lg);
   display: grid;
   gap: 0.75rem;
-}
-
-.wallet-gate-modal__close {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--text-2);
-  cursor: pointer;
 }
 
 .wallet-gate-modal__icon {
