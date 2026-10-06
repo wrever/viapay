@@ -1,12 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  ArrowLeftRight,
-  ExternalLink,
-  Loader2,
-  Wallet,
-} from "lucide-react";
+import { ArrowLeftRight, Loader2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +14,6 @@ type SwapAsset = "XLM" | "USDC";
 type SwapStatus = {
   configured: boolean;
   network: "testnet" | "mainnet";
-  app_url: string;
   env_hint: string | null;
 };
 
@@ -187,16 +181,6 @@ export function SwapPanel({
             <p className="swap-degraded__body">{t.swapMissingKeyBody}</p>
             <code className="perf text-xs block break-all">SOROSWAP_API_KEY</code>
             <p className="text-xs text-[var(--text-2)]">{t.swapMissingKeyWhere}</p>
-            <Button variant="outline" size="sm" asChild>
-              <a
-                href={status.app_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t.swapOpenApp}
-                <ExternalLink className="size-3.5" aria-hidden />
-              </a>
-            </Button>
           </div>
         )}
 
@@ -352,19 +336,6 @@ export function SwapPanel({
           </Button>
         </div>
 
-        <p className="text-xs text-[var(--text-2)]">{t.swapHint}</p>
-
-        {!degraded && status?.app_url && (
-          <a
-            className="swap-external text-xs"
-            href={status.app_url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {t.swapOpenApp}
-            <ExternalLink className="size-3" aria-hidden />
-          </a>
-        )}
       </div>
     </section>
   );

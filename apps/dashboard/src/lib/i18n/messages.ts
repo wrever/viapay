@@ -156,8 +156,6 @@ export type Messages = {
   swapConnectAndSwap: string;
   swapExecute: string;
   swapSwapping: string;
-  swapHint: string;
-  swapOpenApp: string;
   swapMissingKey: string;
   swapMissingKeyBody: string;
   swapMissingKeyWhere: string;
@@ -371,7 +369,7 @@ const es: Messages = {
   fiatUnavailable: "≈ —",
   swapTitle: "Swap XLM ↔ USDC",
   swapDesc:
-    "Convertí XLM y USDC con Soroswap (plus). Cotizá, firmá con tu wallet y enviá la tx. No forma parte del cobro.",
+    "Convertí XLM y USDC (plus). Cotizá, firmá con tu wallet y enviá la tx. No forma parte del cobro.",
   swapPlusBadge: "Plus",
   swapFrom: "De",
   swapTo: "A",
@@ -381,9 +379,6 @@ const es: Messages = {
   swapConnectAndSwap: "Conectar wallet y swap",
   swapExecute: "Firmar y swap",
   swapSwapping: "Enviando…",
-  swapHint:
-    "Público: sin login ViaPay. La API key de Soroswap vive solo en el servidor. Firmás vos (Freighter / Wallets Kit).",
-  swapOpenApp: "Abrir Soroswap",
   swapMissingKey: "Swap no configurado",
   swapMissingKeyBody:
     "Falta la variable de entorno en la API. Sin ella no hay cotización ni build.",
@@ -599,7 +594,7 @@ const en: Messages = {
   fiatUnavailable: "≈ —",
   swapTitle: "Swap XLM ↔ USDC",
   swapDesc:
-    "Convert XLM and USDC with Soroswap (plus). Quote, sign with your wallet, submit. Not part of charging.",
+    "Convert XLM and USDC (plus). Quote, sign with your wallet, submit. Not part of charging.",
   swapPlusBadge: "Plus",
   swapFrom: "From",
   swapTo: "To",
@@ -609,9 +604,6 @@ const en: Messages = {
   swapConnectAndSwap: "Connect wallet & swap",
   swapExecute: "Sign & swap",
   swapSwapping: "Submitting…",
-  swapHint:
-    "Public: no ViaPay login. The Soroswap API key stays on the server. You sign with Freighter / Wallets Kit.",
-  swapOpenApp: "Open Soroswap",
   swapMissingKey: "Swap not configured",
   swapMissingKeyBody:
     "Missing API env var. Without it there is no quote or build.",
@@ -830,7 +822,7 @@ const pt: Messages = {
   fiatUnavailable: "≈ —",
   swapTitle: "Swap XLM ↔ USDC",
   swapDesc:
-    "Converta XLM e USDC com Soroswap (plus). Cotize, assine com sua wallet e envie. Não faz parte da cobrança.",
+    "Converta XLM e USDC (plus). Cotize, assine com sua wallet e envie. Não faz parte da cobrança.",
   swapPlusBadge: "Plus",
   swapFrom: "De",
   swapTo: "Para",
@@ -840,9 +832,6 @@ const pt: Messages = {
   swapConnectAndSwap: "Conectar wallet e swap",
   swapExecute: "Assinar e swap",
   swapSwapping: "Enviando…",
-  swapHint:
-    "Público: sem login ViaPay. A API key da Soroswap fica só no servidor. Você assina (Freighter / Wallets Kit).",
-  swapOpenApp: "Abrir Soroswap",
   swapMissingKey: "Swap não configurado",
   swapMissingKeyBody:
     "Falta a variável de ambiente na API. Sem ela não há cotação nem build.",

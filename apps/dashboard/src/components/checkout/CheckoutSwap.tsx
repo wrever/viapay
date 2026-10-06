@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeftRight, ExternalLink, Loader2, Wallet } from "lucide-react";
+import { ArrowLeftRight, Loader2, Wallet } from "lucide-react";
 import { API } from "@/lib/config";
 import { useStellarWallet } from "@/lib/checkout/wallet";
 import type { Messages } from "@/lib/checkout/messages";
@@ -11,7 +11,6 @@ type SwapAsset = "XLM" | "USDC";
 type SwapStatus = {
   configured: boolean;
   network: "testnet" | "mainnet";
-  app_url: string;
 };
 
 type QuoteResult = {
@@ -159,17 +158,6 @@ export function CheckoutSwap({
       {degraded ? (
         <div className="checkout-swap__degraded" role="status">
           <p>{t.swapUnavailable}</p>
-          {status?.app_url && (
-            <a
-              href={status.app_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="checkout-swap__ext"
-            >
-              {t.swapOpenApp}
-              <ExternalLink className="size-3" aria-hidden />
-            </a>
-          )}
         </div>
       ) : (
         <>

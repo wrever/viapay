@@ -53,7 +53,6 @@ export type Messages = {
   swapConnectAndSwap: string;
   swapExecute: string;
   swapSwapping: string;
-  swapOpenApp: string;
   swapUnavailable: string;
   swapQuoteFail: string;
   swapBuildFail: string;
@@ -133,7 +132,7 @@ const es: Messages = {
   warnResellerAsset: (asset) =>
     `Este cobro todavía no se puede completar en ${asset}. El revendedor no puede recibir ese activo.`,
   swapTitle: "Swappear tokens",
-  swapDesc: "Convertí XLM ↔ USDC acá mismo. Sin cuenta ViaPay: cotizá, firmá con Freighter y listo.",
+  swapDesc: "Convertí XLM ↔ USDC acá mismo. Cotizá, firmá con tu wallet y listo.",
   swapFrom: "De",
   swapTo: "A",
   swapFlip: "Invertir par",
@@ -142,8 +141,7 @@ const es: Messages = {
   swapConnectAndSwap: "Conectar y swap",
   swapExecute: "Firmar y swap",
   swapSwapping: "Enviando…",
-  swapOpenApp: "Abrir Soroswap",
-  swapUnavailable: "Swap no disponible ahora. Probá más tarde o abrí Soroswap.",
+  swapUnavailable: "Swap no disponible ahora. Probá más tarde.",
   swapQuoteFail: "No se pudo cotizar",
   swapBuildFail: "No se pudo armar la transacción",
   swapSendFail: "No se pudo enviar la transacción",
@@ -218,7 +216,7 @@ const en: Messages = {
   warnResellerAsset: (asset) =>
     `This charge can’t be completed in ${asset} yet. The reseller can’t receive that asset.`,
   swapTitle: "Swap tokens",
-  swapDesc: "Convert XLM ↔ USDC right here. No ViaPay account: quote, sign with Freighter, done.",
+  swapDesc: "Convert XLM ↔ USDC right here. Quote, sign with your wallet, done.",
   swapFrom: "From",
   swapTo: "To",
   swapFlip: "Flip pair",
@@ -227,8 +225,7 @@ const en: Messages = {
   swapConnectAndSwap: "Connect & swap",
   swapExecute: "Sign & swap",
   swapSwapping: "Submitting…",
-  swapOpenApp: "Open Soroswap",
-  swapUnavailable: "Swap unavailable right now. Try later or open Soroswap.",
+  swapUnavailable: "Swap unavailable right now. Try again later.",
   swapQuoteFail: "Could not get a quote",
   swapBuildFail: "Could not build the transaction",
   swapSendFail: "Could not submit the transaction",
@@ -303,7 +300,7 @@ const pt: Messages = {
   warnResellerAsset: (asset) =>
     `Esta cobrança ainda não pode ser concluída em ${asset}. O revendedor não pode receber esse ativo.`,
   swapTitle: "Trocar tokens",
-  swapDesc: "Converta XLM ↔ USDC aqui mesmo. Sem conta ViaPay: cotize, assine com Freighter e pronto.",
+  swapDesc: "Converta XLM ↔ USDC aqui mesmo. Cotize, assine com sua wallet e pronto.",
   swapFrom: "De",
   swapTo: "Para",
   swapFlip: "Inverter par",
@@ -312,8 +309,7 @@ const pt: Messages = {
   swapConnectAndSwap: "Conectar e trocar",
   swapExecute: "Assinar e trocar",
   swapSwapping: "Enviando…",
-  swapOpenApp: "Abrir Soroswap",
-  swapUnavailable: "Swap indisponível agora. Tente mais tarde ou abra o Soroswap.",
+  swapUnavailable: "Swap indisponível agora. Tente mais tarde.",
   swapQuoteFail: "Não foi possível cotizar",
   swapBuildFail: "Não foi possível montar a transação",
   swapSendFail: "Não foi possível enviar a transação",
