@@ -325,12 +325,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
             </p>
           )}
 
-          {warning && (
-            <div className="mt-4">
-              <p className="pay-notice">{warning}</p>
-              <SwapTokensCta label={t.swapTokens} />
-            </div>
-          )}
+          {warning && <p className="pay-notice mt-4">{warning}</p>}
 
           <div className="pay-tabs mt-6" role="tablist" aria-label={t.methodAria}>
             <button
@@ -434,6 +429,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                   t.signAndPay
                 )}
               </button>
+              <SwapTokensCta label={t.swapTokens} />
               <p
                 className="text-center text-xs"
                 style={{ color: "var(--text-2)" }}
@@ -513,6 +509,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                   t.checkPayment
                 )}
               </button>
+              <SwapTokensCta label={t.swapTokens} />
               <p
                 className="text-center text-xs"
                 style={{ color: "var(--text-2)" }}
@@ -523,16 +520,13 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
           )}
 
           {error && (
-            <div className="mt-4">
-              <p
-                className="text-center text-sm font-medium"
-                style={{ color: "var(--error)" }}
-                role="alert"
-              >
-                {error}
-              </p>
-              {!warning && <SwapTokensCta label={t.swapTokens} />}
-            </div>
+            <p
+              className="mt-4 text-center text-sm font-medium"
+              style={{ color: "var(--error)" }}
+              role="alert"
+            >
+              {error}
+            </p>
           )}
 
           {intent.cancel_url && (

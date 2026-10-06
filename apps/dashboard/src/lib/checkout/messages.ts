@@ -104,7 +104,7 @@ const es: Messages = {
     `Este cobro todavía no se puede completar en ${asset}. La tesorería de ViaPay aún no puede recibir ese activo.`,
   warnResellerAsset: (asset) =>
     `Este cobro todavía no se puede completar en ${asset}. El revendedor no puede recibir ese activo.`,
-  swapTokens: "Ir a swappear tokens",
+  swapTokens: "¿No tienes el token? Swappear",
   pollarPay: "Pagar sin extensión (Pollar)",
   pollarConnected: (short) => `Billetera embebida ${short}`,
   indexTitle: "Acá se pagan los cobros",
@@ -167,7 +167,7 @@ const en: Messages = {
     `This charge can’t be completed in ${asset} yet. ViaPay’s treasury still can’t receive that asset.`,
   warnResellerAsset: (asset) =>
     `This charge can’t be completed in ${asset} yet. The reseller can’t receive that asset.`,
-  swapTokens: "Go swap tokens",
+  swapTokens: "Don't have the token? Swap",
   pollarPay: "Pay without an extension (Pollar)",
   pollarConnected: (short) => `Embedded wallet ${short}`,
   indexTitle: "This is where charges get paid",
@@ -230,7 +230,7 @@ const pt: Messages = {
     `Esta cobrança ainda não pode ser concluída em ${asset}. A tesouraria da ViaPay ainda não pode receber esse ativo.`,
   warnResellerAsset: (asset) =>
     `Esta cobrança ainda não pode ser concluída em ${asset}. O revendedor não pode receber esse ativo.`,
-  swapTokens: "Ir trocar tokens",
+  swapTokens: "Não tem o token? Trocar",
   pollarPay: "Pagar sem extensão (Pollar)",
   pollarConnected: (short) => `Carteira embutida ${short}`,
   indexTitle: "Aqui se pagam as cobranças",
