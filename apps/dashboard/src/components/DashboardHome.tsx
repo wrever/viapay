@@ -19,10 +19,12 @@ import { OverviewPanel } from "@/components/OverviewPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
 import { SwapPanel } from "@/components/SwapPanel";
+import { TrustlineGateModal } from "@/components/TrustlineGateModal";
 import { WalletGateModal } from "@/components/WalletGateModal";
 import { Button } from "@/components/ui/button";
 import type { DashboardPayment } from "@/lib/payment-types";
 import type { Readiness } from "@/lib/readiness";
+import { API } from "@/lib/config";
 import { SiteControls, useLocale } from "@/lib/i18n";
 
 const SECTIONS = [
@@ -90,12 +92,57 @@ export function DashboardHome({
   const [merchantWallet, setMerchantWallet] = useState<string | null>(
     readiness?.merchant_wallet ?? null,
   );
+  const [merchantUsdcReady, setMerchantUsdcReady] = useState<boolean | null>(
+    readiness?.merchant?.usdc?.canReceive ?? null,
+  );
+  const [trustlineGateOpen, setTrustlineGateOpen] = useState(false);
   const [noticesOpen, setNoticesOpen] = useState(false);
 
   const hasWallet = Boolean(merchantWallet);
   const walletLocked = Boolean(apiKey) && !hasWallet;
   const merchantWalletRef = useRef(merchantWallet);
   merchantWalletRef.current = merchantWallet;
+
+  const refreshMerchantUsdc = useCallback(async () => {
+    if (!apiKey) return;
+    try {
+      const res = await fetch(`${API}/v1/readiness`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const body = (await res.json()) as Readiness;
+      setMerchantUsdcReady(body.merchant?.usdc?.canReceive ?? null);
+      if (body.merchant_wallet) setMerchantWallet(body.merchant_wallet);
+    } catch {
+      // Horizon/API down: leave last known readiness.
+    }
+  }, [apiKey]);
+
+  const afterWalletSaved = useCallback(
+    async (address: string) => {
+      setMerchantWallet(address);
+      setMerchantUsdcReady(null);
+      if (!apiKey) return;
+      try {
+        const res = await fetch(`${API}/v1/readiness`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          setTrustlineGateOpen(true);
+          return;
+        }
+        const body = (await res.json()) as Readiness;
+        const ready = body.merchant?.usdc?.canReceive ?? false;
+        setMerchantUsdcReady(ready);
+        if (!ready) setTrustlineGateOpen(true);
+      } catch {
+        setTrustlineGateOpen(true);
+      }
+    },
+    [apiKey],
+  );
 
   useEffect(() => {
     const initial = readSectionFromLocation();
@@ -309,7 +356,9 @@ export function DashboardHome({
                   apiKey={apiKey}
                   feeBps={feeBps}
                   hasWallet={hasWallet}
+                  merchantUsdcReady={merchantUsdcReady}
                   onNeedWallet={() => go(WALLET_REQUIRED_SECTION)}
+                  onNeedUsdcTrustline={() => setTrustlineGateOpen(true)}
                   onPaymentCreated={(p) => setPayments((prev) => [p, ...prev])}
                 />
                 <aside className="cobros-guide" aria-label={t.cobrosGuideTitle}>
@@ -345,7 +394,7 @@ export function DashboardHome({
                   apiKey={apiKey}
                   merchantWallet={merchantWallet}
                   onWalletSaved={(address) => {
-                    setMerchantWallet(address);
+                    void afterWalletSaved(address);
                   }}
                 />
               ) : (
@@ -392,7 +441,23 @@ export function DashboardHome({
         <WalletGateModal
           apiKey={apiKey}
           onWalletSaved={(address) => {
-            setMerchantWallet(address);
+            void afterWalletSaved(address);
+          }}
+        />
+      )}
+
+      {!walletLocked && trustlineGateOpen && apiKey && merchantWallet && (
+        <TrustlineGateModal
+          apiKey={apiKey}
+          network={network}
+          merchantWallet={merchantWallet}
+          onActivated={() => {
+            setMerchantUsdcReady(true);
+            setTrustlineGateOpen(false);
+            void refreshMerchantUsdc();
+          }}
+          onConfirmWithout={() => {
+            setTrustlineGateOpen(false);
           }}
         />
       )}

@@ -26,12 +26,14 @@ function receiveWarning(intent: CheckoutIntent, t: Messages): string | null {
   if (!receive) return null;
   if (!receive.merchant.exists) return t.warnMerchantMissing;
   if (!receive.merchant.canReceive) return t.warnMerchantAsset(intent.asset);
+  if (!receive.treasury.exists || !receive.treasury.canReceive) {
+    return t.warnTreasuryAsset(intent.asset);
+  }
   if (
-    !receive.treasury.exists ||
-    !receive.treasury.canReceive ||
-    (receive.reseller && (!receive.reseller.exists || !receive.reseller.canReceive))
+    receive.reseller &&
+    (!receive.reseller.exists || !receive.reseller.canReceive)
   ) {
-    return t.warnNotReady(intent.asset);
+    return t.warnResellerAsset(intent.asset);
   }
   return null;
 }

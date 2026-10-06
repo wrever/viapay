@@ -40,19 +40,24 @@ export function CreatePaymentLink({
   apiKey,
   feeBps = DEFAULT_FEE_BPS,
   hasWallet,
+  merchantUsdcReady,
   onNeedWallet,
+  onNeedUsdcTrustline,
   onPaymentCreated,
 }: {
   apiKey: string | null;
   feeBps?: number;
   hasWallet: boolean;
+  /** True when Horizon shows USDC trustline on the saved merchant wallet. */
+  merchantUsdcReady: boolean | null;
   onNeedWallet: () => void;
+  onNeedUsdcTrustline: () => void;
   onPaymentCreated: (payment: DashboardPayment) => void;
 }) {
   const { t, locale } = useLocale();
   const localeTag = LOCALE_TAG[locale];
   const [amount, setAmount] = useState("20");
-  // Demo default: XLM — treasury/merchant often lack USDC trustline on testnet.
+  // Prefer XLM when USDC readiness is unknown/false; keep USDC selectable with gate.
   const [asset, setAsset] = useState<"USDC" | "XLM">("XLM");
   const [description, setDescription] = useState("");
   const [resellerOpen, setResellerOpen] = useState(false);
@@ -66,6 +71,7 @@ export function CreatePaymentLink({
 
   const resellerBps = resellerOpen ? (pctToBps(resellerPct) ?? 0) : 0;
   const addressValid = isValidStellarPubkey(resellerAddress.trim());
+  const usdcBlocked = asset === "USDC" && merchantUsdcReady === false;
 
   const resellerError = useMemo(() => {
     if (!resellerOpen) return null;
@@ -134,10 +140,22 @@ export function CreatePaymentLink({
     t,
   ]);
 
+  function selectAsset(next: "USDC" | "XLM") {
+    setAsset(next);
+    if (next === "USDC" && merchantUsdcReady === false) {
+      onNeedUsdcTrustline();
+    }
+  }
+
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!hasWallet) {
       onNeedWallet();
+      return;
+    }
+    if (usdcBlocked) {
+      onNeedUsdcTrustline();
+      setError(t.trustlineUsdcBlocked);
       return;
     }
     if (!apiKey) {
@@ -211,7 +229,9 @@ export function CreatePaymentLink({
                 aria-label={t.asset}
                 className="asset-select"
                 value={asset}
-                onChange={(e) => setAsset(e.target.value as "USDC" | "XLM")}
+                onChange={(e) =>
+                  selectAsset(e.target.value as "USDC" | "XLM")
+                }
               >
                 <option value="XLM">XLM</option>
                 <option value="USDC">USDC</option>
@@ -224,6 +244,11 @@ export function CreatePaymentLink({
               approx={t.fiatApprox}
               unavailable={t.fiatUnavailable}
             />
+            {usdcBlocked && (
+              <p className="tone tone--warning text-sm" role="status">
+                {t.trustlineUsdcBlocked}
+              </p>
+            )}
           </div>
 
           <div className="grid gap-2">
@@ -328,12 +353,17 @@ export function CreatePaymentLink({
           <Button
             type="submit"
             size="lg"
-            disabled={busy || !hasWallet}
+            disabled={busy || !hasWallet || usdcBlocked}
             className="w-full"
             onClick={(e) => {
               if (!hasWallet) {
                 e.preventDefault();
                 onNeedWallet();
+                return;
+              }
+              if (usdcBlocked) {
+                e.preventDefault();
+                onNeedUsdcTrustline();
               }
             }}
           >

@@ -150,7 +150,7 @@ export async function authenticateRequest(
 export function getTreasuryAddress(): string {
   return (
     process.env.VIAPAY_TREASURY_ADDRESS ??
-    "GBIVA57TB4N4IHXYQSDLWSVKC4M4P66AAJWS5A5SQAOIYEZSBUVNCIWD"
+    "GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5"
   );
 }
 

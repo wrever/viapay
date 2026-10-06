@@ -39,7 +39,8 @@ export type Messages = {
   genericError: string;
   warnMerchantMissing: string;
   warnMerchantAsset: (asset: string) => string;
-  warnNotReady: (asset: string) => string;
+  warnTreasuryAsset: (asset: string) => string;
+  warnResellerAsset: (asset: string) => string;
   pollarPay: string;
   pollarConnected: (short: string) => string;
   indexTitle: string;
@@ -98,8 +99,10 @@ const es: Messages = {
     "La billetera del comercio todavía no existe en esta red. El pago no puede llegar hasta que esté lista.",
   warnMerchantAsset: (asset) =>
     `El comercio no puede recibir ${asset}. Tiene que configurar su cuenta antes de que pagues.`,
-  warnNotReady: (asset) =>
-    `Este cobro todavía no se puede completar en ${asset}. El comercio tiene que terminar de configurar su cuenta.`,
+  warnTreasuryAsset: (asset) =>
+    `Este cobro todavía no se puede completar en ${asset}. La tesorería de ViaPay aún no puede recibir ese activo.`,
+  warnResellerAsset: (asset) =>
+    `Este cobro todavía no se puede completar en ${asset}. El revendedor no puede recibir ese activo.`,
   pollarPay: "Pagar sin extensión (Pollar)",
   pollarConnected: (short) => `Billetera embebida ${short}`,
   indexTitle: "Acá se pagan los cobros",
@@ -158,8 +161,10 @@ const en: Messages = {
     "The merchant wallet doesn’t exist on this network yet. Payment can’t arrive until it’s ready.",
   warnMerchantAsset: (asset) =>
     `The merchant can’t receive ${asset}. They need to set up their account before you pay.`,
-  warnNotReady: (asset) =>
-    `This charge can’t be completed in ${asset} yet. The merchant still needs to finish account setup.`,
+  warnTreasuryAsset: (asset) =>
+    `This charge can’t be completed in ${asset} yet. ViaPay’s treasury still can’t receive that asset.`,
+  warnResellerAsset: (asset) =>
+    `This charge can’t be completed in ${asset} yet. The reseller can’t receive that asset.`,
   pollarPay: "Pay without an extension (Pollar)",
   pollarConnected: (short) => `Embedded wallet ${short}`,
   indexTitle: "This is where charges get paid",
@@ -218,8 +223,10 @@ const pt: Messages = {
     "A carteira do comércio ainda não existe nesta rede. O pagamento não chega até ela estar pronta.",
   warnMerchantAsset: (asset) =>
     `O comércio não pode receber ${asset}. Precisa configurar a conta antes de você pagar.`,
-  warnNotReady: (asset) =>
-    `Esta cobrança ainda não pode ser concluída em ${asset}. O comércio precisa terminar de configurar a conta.`,
+  warnTreasuryAsset: (asset) =>
+    `Esta cobrança ainda não pode ser concluída em ${asset}. A tesouraria da ViaPay ainda não pode receber esse ativo.`,
+  warnResellerAsset: (asset) =>
+    `Esta cobrança ainda não pode ser concluída em ${asset}. O revendedor não pode receber esse ativo.`,
   pollarPay: "Pagar sem extensão (Pollar)",
   pollarConnected: (short) => `Carteira embutida ${short}`,
   indexTitle: "Aqui se pagam as cobranças",

@@ -174,6 +174,18 @@ export type Messages = {
   ) => string;
   swapImpact: (pct: string) => string;
   swapSuccess: string;
+  trustlineGateTitle: string;
+  trustlineGateBody: string;
+  trustlineGateWallet: string;
+  trustlineAssetLabel: string;
+  trustlineIssuer: string;
+  trustlineActivateCta: string;
+  trustlineActivating: string;
+  trustlineConfirmXlm: string;
+  trustlineWalletMismatch: string;
+  trustlinePrepareFail: string;
+  trustlineSubmitFail: string;
+  trustlineUsdcBlocked: string;
 };
 
 const es: Messages = {
@@ -376,6 +388,21 @@ const es: Messages = {
     `${amountIn} ${assetIn} → ≈ ${amountOut} ${assetOut}`,
   swapImpact: (pct) => `Impacto de precio ~${pct}%`,
   swapSuccess: "Swap enviado.",
+  trustlineGateTitle: "Trustline USDC requerida",
+  trustlineGateBody:
+    "Tu billetera de destino aún no puede recibir este activo. Sin trustline activa no te llega nada del cobro. Activá la línea con Freighter o cobrá solo en XLM.",
+  trustlineGateWallet: "Wallet guardada",
+  trustlineAssetLabel: "Activo a activar",
+  trustlineIssuer: "Issuer",
+  trustlineActivateCta: "Activar trustline (Freighter)",
+  trustlineActivating: "Firmando…",
+  trustlineConfirmXlm: "Entendido — cobro solo en XLM por ahora",
+  trustlineWalletMismatch:
+    "Freighter está en otra cuenta. Conectá la misma G… que guardaste como destino.",
+  trustlinePrepareFail: "No se pudo armar la trustline",
+  trustlineSubmitFail: "No se pudo enviar la trustline",
+  trustlineUsdcBlocked:
+    "Activá la trustline USDC en tu wallet de destino antes de cobrar en USDC.",
 };
 
 const en: Messages = {
@@ -576,6 +603,21 @@ const en: Messages = {
     `${amountIn} ${assetIn} → ≈ ${amountOut} ${assetOut}`,
   swapImpact: (pct) => `Price impact ~${pct}%`,
   swapSuccess: "Swap submitted.",
+  trustlineGateTitle: "USDC trustline required",
+  trustlineGateBody:
+    "Your destination wallet still can’t receive this asset. Without an active trustline, nothing from the charge reaches you. Open it with Freighter or charge in XLM only.",
+  trustlineGateWallet: "Saved wallet",
+  trustlineAssetLabel: "Asset to activate",
+  trustlineIssuer: "Issuer",
+  trustlineActivateCta: "Activate trustline (Freighter)",
+  trustlineActivating: "Signing…",
+  trustlineConfirmXlm: "Got it — charge in XLM only for now",
+  trustlineWalletMismatch:
+    "Freighter is on a different account. Connect the same G… you saved as destination.",
+  trustlinePrepareFail: "Could not build the trustline",
+  trustlineSubmitFail: "Could not submit the trustline",
+  trustlineUsdcBlocked:
+    "Activate the USDC trustline on your destination wallet before charging in USDC.",
 };
 
 const pt: Messages = {
@@ -779,6 +821,21 @@ const pt: Messages = {
     `${amountIn} ${assetIn} → ≈ ${amountOut} ${assetOut}`,
   swapImpact: (pct) => `Impacto de preço ~${pct}%`,
   swapSuccess: "Swap enviado.",
+  trustlineGateTitle: "Trustline USDC necessária",
+  trustlineGateBody:
+    "Sua carteira de destino ainda não pode receber este ativo. Sem trustline ativa, nada da cobrança chega a você. Ative com Freighter ou cobre só em XLM.",
+  trustlineGateWallet: "Wallet salva",
+  trustlineAssetLabel: "Ativo a ativar",
+  trustlineIssuer: "Issuer",
+  trustlineActivateCta: "Ativar trustline (Freighter)",
+  trustlineActivating: "Assinando…",
+  trustlineConfirmXlm: "Entendi — cobrar só em XLM por agora",
+  trustlineWalletMismatch:
+    "O Freighter está em outra conta. Conecte a mesma G… que você salvou como destino.",
+  trustlinePrepareFail: "Não foi possível montar a trustline",
+  trustlineSubmitFail: "Não foi possível enviar a trustline",
+  trustlineUsdcBlocked:
+    "Ative a trustline USDC na sua wallet de destino antes de cobrar em USDC.",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

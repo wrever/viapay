@@ -440,6 +440,112 @@ export function buildTrustlineSep7(input: {
   return `web+stellar:tx?${params.toString()}`;
 }
 
+/** Credit assets the panel can offer for a one-click changeTrust (Freighter). */
+export function predefinedCreditAssets(network: Network): Array<{
+  code: Exclude<AssetCode, "XLM">;
+  issuer: string;
+  label: string;
+}> {
+  const cfg = NETWORKS[network];
+  return [
+    {
+      code: "USDC",
+      issuer: cfg.usdcIssuer,
+      label: network === "mainnet" ? "USDC (Circle)" : "USDC (Circle testnet)",
+    },
+  ];
+}
+
+/**
+ * Unsigned changeTrust for the merchant (or treasury) to open a credit trustline.
+ * Returns alreadyTrusted when Horizon already shows the line — caller can skip sign.
+ */
+export async function buildChangeTrustXdr(input: {
+  network: Network;
+  source: string;
+  asset: Exclude<AssetCode, "XLM">;
+  assetIssuer?: string | null;
+}): Promise<{
+  xdr: string | null;
+  networkPassphrase: string;
+  alreadyTrusted: boolean;
+  asset: { code: string; issuer: string };
+}> {
+  const cfg = NETWORKS[input.network];
+  const asset = assetFor(input.asset, input.assetIssuer, input.network);
+  if (asset.isNative()) {
+    throw Object.assign(new Error("XLM no necesita trustline"), { status: 400 });
+  }
+  const source = await loadExisting(input.network, input.source);
+  if (!source) {
+    const friendbot = cfg.friendbotUrl;
+    const hint = friendbot
+      ? ` Créala en ${friendbot}?addr=${input.source}`
+      : "";
+    throw Object.assign(
+      new Error(`La wallet no existe en ${input.network}.${hint}`),
+      { status: 400 },
+    );
+  }
+  const issuer = asset.issuer;
+  if (!issuer) {
+    throw Object.assign(new Error("Issuer USDC ausente"), { status: 500 });
+  }
+  const meta: { code: string; issuer: string } = {
+    code: asset.code,
+    issuer,
+  };
+  if (hasTrustline(source, asset)) {
+    return {
+      xdr: null,
+      networkPassphrase: cfg.networkPassphrase,
+      alreadyTrusted: true,
+      asset: meta,
+    };
+  }
+  const tx = new TransactionBuilder(source, {
+    fee: BASE_FEE,
+    networkPassphrase: cfg.networkPassphrase,
+  })
+    .addOperation(Operation.changeTrust({ asset }))
+    .setTimeout(180)
+    .build();
+  return {
+    xdr: tx.toXDR(),
+    networkPassphrase: cfg.networkPassphrase,
+    alreadyTrusted: false,
+    asset: meta,
+  };
+}
+
+/** Submit any signed classic XDR (e.g. merchant changeTrust). */
+export async function submitSignedXdr(
+  network: Network,
+  signedXdr: string,
+): Promise<{ hash: string; ledger: number; source: string }> {
+  const passphrase = NETWORKS[network].networkPassphrase;
+  let tx: Transaction;
+  try {
+    const parsed = TransactionBuilder.fromXDR(signedXdr, passphrase);
+    if (!(parsed instanceof Transaction)) {
+      throw new Error("expected transaction");
+    }
+    tx = parsed;
+  } catch {
+    throw Object.assign(new Error("XDR firmado inválido"), { status: 400 });
+  }
+  try {
+    const result = await horizonServer(network).submitTransaction(tx);
+    return {
+      hash: result.hash,
+      ledger: result.ledger,
+      source: tx.source,
+    };
+  } catch (error) {
+    throw Object.assign(new Error(explainHorizon(error)), { status: 400 });
+  }
+}
+
 type HorizonPaymentOp = {
   type: string;
   to?: string;
