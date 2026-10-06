@@ -120,12 +120,11 @@ export function TrustlineGateModal({
         onActivated();
         return;
       }
-      if (!prepared.xdr) throw new Error(t.trustlinePrepareFail);
-
-      const signed = await wallet.sign(
-        prepared.xdr as string,
-        prepared.network_passphrase as string,
-      );
+      const passphrase =
+        (prepared.network_passphrase as string | undefined) ??
+        (prepared.networkPassphrase as string | undefined);
+      if (!prepared.xdr || !passphrase) throw new Error(t.trustlinePrepareFail);
+      const signed = await wallet.sign(prepared.xdr as string, passphrase);
       const res = await fetch(`${API}/v1/wallets/trustline/submit`, {
         method: "POST",
         headers: {

@@ -393,8 +393,13 @@ export function DashboardHome({
                 <IntegrationPanel
                   apiKey={apiKey}
                   merchantWallet={merchantWallet}
+                  network={network}
                   onWalletSaved={(address) => {
                     void afterWalletSaved(address);
+                  }}
+                  onTrustlineActivated={() => {
+                    setMerchantUsdcReady(true);
+                    void refreshMerchantUsdc();
                   }}
                 />
               ) : (

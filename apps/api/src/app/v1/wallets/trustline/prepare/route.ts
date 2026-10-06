@@ -31,7 +31,10 @@ export async function POST(req: Request) {
       assetIssuer: usdcIssuer(),
     });
     return jsonOk({
-      ...prepared,
+      xdr: prepared.xdr,
+      network_passphrase: prepared.networkPassphrase,
+      alreadyTrusted: prepared.alreadyTrusted,
+      asset: prepared.asset,
       source,
       network,
       assets: predefinedCreditAssets(network as Network),

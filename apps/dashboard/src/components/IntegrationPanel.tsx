@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { API } from "@/lib/config";
 import { useLocale } from "@/lib/i18n";
 import { FiatCurrencySelect } from "@/components/FiatCurrencySelect";
+import { TrustlinesSection } from "@/components/TrustlinesSection";
 
 function maskKey(key: string): string {
   if (key.length <= 16) return `${key.slice(0, 8)}…`;
@@ -62,11 +63,15 @@ function CopySnippet({
 export function IntegrationPanel({
   apiKey,
   merchantWallet,
+  network = "testnet",
   onWalletSaved,
+  onTrustlineActivated,
 }: {
   apiKey: string | null;
   merchantWallet: string | null;
+  network?: string;
   onWalletSaved?: (address: string) => void;
+  onTrustlineActivated?: () => void;
 }) {
   const { t } = useLocale();
   const [wallet, setWallet] = useState(merchantWallet ?? "");
@@ -188,6 +193,13 @@ const link = await via.createPaymentLink({
         </form>
 
         <FiatCurrencySelect id="integration-fiat" />
+
+        <TrustlinesSection
+          apiKey={apiKey}
+          network={network}
+          merchantWallet={currentWallet}
+          onActivated={onTrustlineActivated}
+        />
 
         <div className="grid gap-2">
           <Label>{t.integrationKeyLabel}</Label>

@@ -186,6 +186,15 @@ export type Messages = {
   trustlinePrepareFail: string;
   trustlineSubmitFail: string;
   trustlineUsdcBlocked: string;
+  trustlinesTitle: string;
+  trustlinesDesc: string;
+  trustlinesXlmNote: string;
+  trustlinesNoAction: string;
+  trustlinesActive: string;
+  trustlinesActivateCta: string;
+  trustlinesNeedWallet: string;
+  trustlinesUsdt0Placeholder: string;
+  trustlinesSoon: string;
 };
 
 const es: Messages = {
@@ -293,7 +302,8 @@ const es: Messages = {
   historyTitle: "Historial",
   historyEmpty: "Todavía no hay pagos recibidos.",
   integrationTitle: "Integración",
-  integrationDesc: "Billetera de destino, API key y cómo crear links de pago por código.",
+  integrationDesc:
+    "Billetera de destino, trustlines (testnet), API key y cómo crear links de pago por código.",
   integrationKeyLabel: "API key secreta",
   integrationKeyHint: "Usala en Authorization: Bearer … solo en tu servidor.",
   integrationKeyExplain:
@@ -403,6 +413,18 @@ const es: Messages = {
   trustlineSubmitFail: "No se pudo enviar la trustline",
   trustlineUsdcBlocked:
     "Activá la trustline USDC en tu wallet de destino antes de cobrar en USDC.",
+  trustlinesTitle: "Trustlines (testnet)",
+  trustlinesDesc:
+    "Activá las líneas de crédito en tu billetera de destino para poder recibir cada activo. Firmás con Freighter (misma G… guardada arriba).",
+  trustlinesXlmNote: "Nativo de Stellar — no requiere trustline.",
+  trustlinesNoAction: "No requiere",
+  trustlinesActive: "Activa",
+  trustlinesActivateCta: "Activar",
+  trustlinesNeedWallet:
+    "Guardá una billetera de destino arriba antes de activar trustlines.",
+  trustlinesUsdt0Placeholder:
+    "Issuer / contrato testnet confiable aún no definido. Próximamente.",
+  trustlinesSoon: "Pronto",
 };
 
 const en: Messages = {
@@ -508,7 +530,8 @@ const en: Messages = {
   historyTitle: "History",
   historyEmpty: "No payments received yet.",
   integrationTitle: "Integration",
-  integrationDesc: "Destination wallet, API key, and how to create payment links in code.",
+  integrationDesc:
+    "Destination wallet, trustlines (testnet), API key, and how to create payment links in code.",
   integrationKeyLabel: "Secret API key",
   integrationKeyHint: "Use it as Authorization: Bearer … on your server only.",
   integrationKeyExplain:
@@ -618,6 +641,18 @@ const en: Messages = {
   trustlineSubmitFail: "Could not submit the trustline",
   trustlineUsdcBlocked:
     "Activate the USDC trustline on your destination wallet before charging in USDC.",
+  trustlinesTitle: "Trustlines (testnet)",
+  trustlinesDesc:
+    "Open credit lines on your destination wallet so you can receive each asset. You sign with Freighter (same G… saved above).",
+  trustlinesXlmNote: "Stellar native — no trustline required.",
+  trustlinesNoAction: "Not required",
+  trustlinesActive: "Active",
+  trustlinesActivateCta: "Activate",
+  trustlinesNeedWallet:
+    "Save a destination wallet above before activating trustlines.",
+  trustlinesUsdt0Placeholder:
+    "Reliable testnet issuer / contract not defined yet. Coming soon.",
+  trustlinesSoon: "Soon",
 };
 
 const pt: Messages = {
@@ -726,7 +761,8 @@ const pt: Messages = {
   historyTitle: "Histórico",
   historyEmpty: "Ainda não há pagamentos recebidos.",
   integrationTitle: "Integração",
-  integrationDesc: "Carteira de destino, API key e como criar links de pagamento por código.",
+  integrationDesc:
+    "Carteira de destino, trustlines (testnet), API key e como criar links de pagamento por código.",
   integrationKeyLabel: "API key secreta",
   integrationKeyHint: "Use em Authorization: Bearer … só no seu servidor.",
   integrationKeyExplain:
@@ -836,6 +872,18 @@ const pt: Messages = {
   trustlineSubmitFail: "Não foi possível enviar a trustline",
   trustlineUsdcBlocked:
     "Ative a trustline USDC na sua wallet de destino antes de cobrar em USDC.",
+  trustlinesTitle: "Trustlines (testnet)",
+  trustlinesDesc:
+    "Ative as linhas de crédito na sua carteira de destino para receber cada ativo. Assine com Freighter (mesma G… salva acima).",
+  trustlinesXlmNote: "Nativo da Stellar — não exige trustline.",
+  trustlinesNoAction: "Não exige",
+  trustlinesActive: "Ativa",
+  trustlinesActivateCta: "Ativar",
+  trustlinesNeedWallet:
+    "Salve uma carteira de destino acima antes de ativar trustlines.",
+  trustlinesUsdt0Placeholder:
+    "Issuer / contrato testnet confiável ainda não definido. Em breve.",
+  trustlinesSoon: "Em breve",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };
