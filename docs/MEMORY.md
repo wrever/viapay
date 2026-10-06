@@ -148,7 +148,7 @@ Con `PAYMENT_ROUTER_CONTRACT_ID` en la API: `prepare` / `submit` (y x402 vía su
 - **Anchor SEP-24**: solo descubrimiento de `stellar.toml` si `ANCHOR_HOME_DOMAIN` está definido. No hay flujo interactivo de depósito/retiro.
 - **Escrow Trustless Work**: el POST existe. Sin `TRUSTLESSWORK_API_KEY` no llama a su API. Testnet: `https://beta.api.trustlesswork.com` (`/escrow/single-release/v2/deploy`). Mainnet legacy: `https://api.trustlesswork.com`.
 - **Pollar**: el checkout monta `PollarProvider` solo si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`. Sin key, el botón no aparece. Hace falta una key de `dashboard.pollar.xyz`.
-- **Swap Soroswap (público en checkout + plus en panel)**: `POST /v1/swap/quote|build|send` son **públicos** (sin cuenta ViaPay); `SOROSWAP_API_KEY` solo server-side; rate-limit básico por IP. **Checkout pagador** `/pay/[id]`: acordeón «Swappear tokens» inline (`CheckoutSwap`) — XLM↔USDC, Freighter, sin cookie. Panel `#swap` (`SwapPanel`) usa los mismos endpoints. **Prod:** `SOROSWAP_API_KEY` en Vercel `viapay-api` → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje + link a app.soroswap.finance). Flujo docs: https://docs.soroswap.finance/api/quickstart
+- **Swap Soroswap (público en checkout + plus en panel)**: `POST /v1/swap/quote|build|send` son **públicos** (sin cuenta ViaPay); `SOROSWAP_API_KEY` solo server-side; rate-limit básico por IP. **Checkout pagador** `/pay/[id]`: tercera pestaña del segmented control (Billetera | QR | Swap) con flujo inline (`CheckoutSwap`) — XLM↔USDC, Freighter, sin cookie; sin acordeón. Panel `#swap` (`SwapPanel`) usa los mismos endpoints. **Prod:** `SOROSWAP_API_KEY` en Vercel `viapay-api` → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje + link a app.soroswap.finance). Flujo docs: https://docs.soroswap.finance/api/quickstart
 - **x402 con facilitator**: el endpoint propio está vivo (ver arriba), pero ViaPay liquida por su cuenta. No hay integración con un facilitator x402 ni con el esquema de auth entries de Soroban.
 
 ## Límites reales
@@ -179,7 +179,7 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Auth OAuth → API key (dashboard): `apps/dashboard/src/lib/link-account.ts` + callback
 - Auth OAuth → API key (API link): `apps/api/src/app/v1/auth/link/route.ts`
 - Wallets destino: `POST/GET /v1/wallets` (`apps/api/src/app/v1/wallets/route.ts`) + `IntegrationPanel`
-- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + ruta `/pay/[id]`. CTA «¿No tienes el token? Swappear» abre swap **inline** (`CheckoutSwap`), no manda a `/app?tab=swap`.
+- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + ruta `/pay/[id]`. Tabs Billetera | QR | **Swap** (mismo nivel); swap inline (`CheckoutSwap`), no manda a `/app?tab=swap`.
 - Checkout legado (local): `apps/checkout/src/components/PayPanel.tsx` (puede seguir con CTA externo; prod = dashboard)
 - Wallets Kit: `apps/dashboard/src/lib/checkout/wallet.ts` (y espejo en `apps/checkout`)
 - Pollar: `apps/dashboard/src/components/checkout/PollarShell.tsx`

@@ -29,14 +29,10 @@ export function CheckoutSwap({
   t,
   network,
   payAsset,
-  open,
-  onOpenChange,
 }: {
   t: Messages;
   network: "testnet" | "mainnet" | "local";
   payAsset: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
 }) {
   const kitNetwork = network === "mainnet" ? "mainnet" : "testnet";
   const wallet = useStellarWallet(kitNetwork);
@@ -54,7 +50,6 @@ export function CheckoutSwap({
   const [txHash, setTxHash] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) return;
     const controller = new AbortController();
     (async () => {
       try {
@@ -68,7 +63,7 @@ export function CheckoutSwap({
       }
     })();
     return () => controller.abort();
-  }, [open, t.genericError]);
+  }, [t.genericError]);
 
   const flip = useCallback(() => {
     setAssetIn(assetOut);
@@ -158,192 +153,174 @@ export function CheckoutSwap({
   const degraded = status !== null && !status.configured;
 
   return (
-    <div className="checkout-swap">
-      <button
-        type="button"
-        className="act act--ghost mt-3 checkout-swap__toggle"
-        aria-expanded={open}
-        onClick={() => onOpenChange(!open)}
-      >
-        <ArrowLeftRight
-          className="h-4 w-4"
-          style={{ color: "var(--primary)" }}
-          aria-hidden="true"
-        />
-        {t.swapTokens}
-      </button>
+    <div className="checkout-swap" role="region" aria-label={t.swapTitle}>
+      <p className="checkout-swap__desc">{t.swapDesc}</p>
 
-      {open && (
-        <div className="checkout-swap__panel" role="region" aria-label={t.swapTitle}>
-          <p className="checkout-swap__desc">{t.swapDesc}</p>
-
-          {degraded ? (
-            <div className="checkout-swap__degraded" role="status">
-              <p>{t.swapUnavailable}</p>
-              {status?.app_url && (
-                <a
-                  href={status.app_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="checkout-swap__ext"
-                >
-                  {t.swapOpenApp}
-                  <ExternalLink className="size-3" aria-hidden />
-                </a>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="checkout-swap__pair">
-                <label className="checkout-swap__label">
-                  {t.swapFrom}
-                  <span className="checkout-swap__row">
-                    <select
-                      className="checkout-swap__select"
-                      value={assetIn}
-                      disabled={Boolean(busy)}
-                      onChange={(e) => {
-                        const next = e.target.value as SwapAsset;
-                        setAssetIn(next);
-                        if (next === assetOut) {
-                          setAssetOut(next === "XLM" ? "USDC" : "XLM");
-                        }
-                        setQuote(null);
-                        setTxHash(null);
-                      }}
-                    >
-                      <option value="XLM">XLM</option>
-                      <option value="USDC">USDC</option>
-                    </select>
-                    <input
-                      className="checkout-swap__input perf"
-                      inputMode="decimal"
-                      value={amount}
-                      disabled={Boolean(busy)}
-                      onChange={(e) => {
-                        setAmount(e.target.value);
-                        setQuote(null);
-                        setTxHash(null);
-                      }}
-                      placeholder="0.00"
-                    />
-                  </span>
-                </label>
-
-                <button
-                  type="button"
-                  className="checkout-swap__flip"
-                  aria-label={t.swapFlip}
-                  disabled={Boolean(busy)}
-                  onClick={flip}
-                >
-                  <ArrowLeftRight className="size-4" aria-hidden />
-                </button>
-
-                <label className="checkout-swap__label">
-                  {t.swapTo}
-                  <span className="checkout-swap__row">
-                    <select
-                      className="checkout-swap__select"
-                      value={assetOut}
-                      disabled={Boolean(busy)}
-                      onChange={(e) => {
-                        const next = e.target.value as SwapAsset;
-                        setAssetOut(next);
-                        if (next === assetIn) {
-                          setAssetIn(next === "XLM" ? "USDC" : "XLM");
-                        }
-                        setQuote(null);
-                        setTxHash(null);
-                      }}
-                    >
-                      <option value="XLM">XLM</option>
-                      <option value="USDC">USDC</option>
-                    </select>
-                    <span className="checkout-swap__estimate perf" aria-live="polite">
-                      {quote ? quote.amount_out : "—"}
-                    </span>
-                  </span>
-                </label>
-              </div>
-
-              {quote && (
-                <p className="checkout-swap__quote" role="status">
-                  {t.swapQuoteLine(
-                    quote.amount_in,
-                    quote.asset_in,
-                    quote.amount_out,
-                    quote.asset_out,
-                  )}
-                  {quote.price_impact_pct
-                    ? ` · ${t.swapImpact(quote.price_impact_pct)}`
-                    : ""}
-                </p>
-              )}
-
-              {wallet.address && (
-                <p className="checkout-swap__wallet perf">
-                  {t.swapWallet}: {wallet.address.slice(0, 4)}…{wallet.address.slice(-4)}
-                </p>
-              )}
-
-              {error && (
-                <p className="checkout-swap__error" role="alert">
-                  {error}
-                </p>
-              )}
-
-              {txHash && (
-                <p className="checkout-swap__ok" role="status">
-                  {t.swapSuccess}{" "}
-                  <a
-                    href={`${explorerBase}/${txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {txHash.slice(0, 10)}…{txHash.slice(-6)}
-                  </a>
-                </p>
-              )}
-
-              <div className="checkout-swap__actions">
-                <button
-                  type="button"
-                  className="act act--ghost"
-                  disabled={Boolean(busy) || degraded}
-                  onClick={() => void requestQuote()}
-                >
-                  {busy === "quote" ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      {t.swapQuoting}
-                    </>
-                  ) : (
-                    t.swapGetQuote
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="act act--primary"
-                  disabled={Boolean(busy) || degraded || !quote}
-                  onClick={() => void executeSwap()}
-                >
-                  {busy === "swap" ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      {t.swapSwapping}
-                    </>
-                  ) : (
-                    <>
-                      <Wallet className="h-4 w-4" aria-hidden />
-                      {wallet.address ? t.swapExecute : t.swapConnectAndSwap}
-                    </>
-                  )}
-                </button>
-              </div>
-            </>
+      {degraded ? (
+        <div className="checkout-swap__degraded" role="status">
+          <p>{t.swapUnavailable}</p>
+          {status?.app_url && (
+            <a
+              href={status.app_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="checkout-swap__ext"
+            >
+              {t.swapOpenApp}
+              <ExternalLink className="size-3" aria-hidden />
+            </a>
           )}
         </div>
+      ) : (
+        <>
+          <div className="checkout-swap__pair">
+            <label className="checkout-swap__label">
+              {t.swapFrom}
+              <span className="checkout-swap__row">
+                <select
+                  className="checkout-swap__select"
+                  value={assetIn}
+                  disabled={Boolean(busy)}
+                  onChange={(e) => {
+                    const next = e.target.value as SwapAsset;
+                    setAssetIn(next);
+                    if (next === assetOut) {
+                      setAssetOut(next === "XLM" ? "USDC" : "XLM");
+                    }
+                    setQuote(null);
+                    setTxHash(null);
+                  }}
+                >
+                  <option value="XLM">XLM</option>
+                  <option value="USDC">USDC</option>
+                </select>
+                <input
+                  className="checkout-swap__input perf"
+                  inputMode="decimal"
+                  value={amount}
+                  disabled={Boolean(busy)}
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                    setQuote(null);
+                    setTxHash(null);
+                  }}
+                  placeholder="0.00"
+                />
+              </span>
+            </label>
+
+            <button
+              type="button"
+              className="checkout-swap__flip"
+              aria-label={t.swapFlip}
+              disabled={Boolean(busy)}
+              onClick={flip}
+            >
+              <ArrowLeftRight className="size-4" aria-hidden />
+            </button>
+
+            <label className="checkout-swap__label">
+              {t.swapTo}
+              <span className="checkout-swap__row">
+                <select
+                  className="checkout-swap__select"
+                  value={assetOut}
+                  disabled={Boolean(busy)}
+                  onChange={(e) => {
+                    const next = e.target.value as SwapAsset;
+                    setAssetOut(next);
+                    if (next === assetIn) {
+                      setAssetIn(next === "XLM" ? "USDC" : "XLM");
+                    }
+                    setQuote(null);
+                    setTxHash(null);
+                  }}
+                >
+                  <option value="XLM">XLM</option>
+                  <option value="USDC">USDC</option>
+                </select>
+                <span className="checkout-swap__estimate perf" aria-live="polite">
+                  {quote ? quote.amount_out : "—"}
+                </span>
+              </span>
+            </label>
+          </div>
+
+          {quote && (
+            <p className="checkout-swap__quote" role="status">
+              {t.swapQuoteLine(
+                quote.amount_in,
+                quote.asset_in,
+                quote.amount_out,
+                quote.asset_out,
+              )}
+              {quote.price_impact_pct
+                ? ` · ${t.swapImpact(quote.price_impact_pct)}`
+                : ""}
+            </p>
+          )}
+
+          {wallet.address && (
+            <p className="checkout-swap__wallet perf">
+              {t.swapWallet}: {wallet.address.slice(0, 4)}…{wallet.address.slice(-4)}
+            </p>
+          )}
+
+          {error && (
+            <p className="checkout-swap__error" role="alert">
+              {error}
+            </p>
+          )}
+
+          {txHash && (
+            <p className="checkout-swap__ok" role="status">
+              {t.swapSuccess}{" "}
+              <a
+                href={`${explorerBase}/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {txHash.slice(0, 10)}…{txHash.slice(-6)}
+              </a>
+            </p>
+          )}
+
+          <div className="checkout-swap__actions">
+            <button
+              type="button"
+              className="act act--ghost"
+              disabled={Boolean(busy) || degraded}
+              onClick={() => void requestQuote()}
+            >
+              {busy === "quote" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  {t.swapQuoting}
+                </>
+              ) : (
+                t.swapGetQuote
+              )}
+            </button>
+            <button
+              type="button"
+              className="act act--primary"
+              disabled={Boolean(busy) || degraded || !quote}
+              onClick={() => void executeSwap()}
+            >
+              {busy === "swap" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  {t.swapSwapping}
+                </>
+              ) : (
+                <>
+                  <Wallet className="h-4 w-4" aria-hidden />
+                  {wallet.address ? t.swapExecute : t.swapConnectAndSwap}
+                </>
+              )}
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

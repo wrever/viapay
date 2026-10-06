@@ -7,6 +7,7 @@ export type Messages = {
   methodAria: string;
   walletTab: string;
   qrTab: string;
+  swapTab: string;
   connectWallet: string;
   openingWallets: string;
   walletConnected: string;
@@ -41,7 +42,6 @@ export type Messages = {
   warnMerchantAsset: (asset: string) => string;
   warnTreasuryAsset: (asset: string) => string;
   warnResellerAsset: (asset: string) => string;
-  swapTokens: string;
   swapTitle: string;
   swapDesc: string;
   swapFrom: string;
@@ -85,9 +85,10 @@ const es: Messages = {
     switch: "Elegir idioma",
   },
   totalLabel: "Total a pagar",
-  methodAria: "Método de pago",
+  methodAria: "Cómo pagar",
   walletTab: "Billetera",
-  qrTab: "Código QR",
+  qrTab: "QR",
+  swapTab: "Swap",
   connectWallet: "Conectar billetera Stellar",
   openingWallets: "Abriendo billeteras…",
   walletConnected: "Billetera conectada",
@@ -129,7 +130,6 @@ const es: Messages = {
     `Este cobro todavía no se puede completar en ${asset}. La tesorería de ViaPay aún no puede recibir ese activo.`,
   warnResellerAsset: (asset) =>
     `Este cobro todavía no se puede completar en ${asset}. El revendedor no puede recibir ese activo.`,
-  swapTokens: "¿No tienes el token? Swappear",
   swapTitle: "Swappear tokens",
   swapDesc: "Convertí XLM ↔ USDC acá mismo. Sin cuenta ViaPay: cotizá, firmá con Freighter y listo.",
   swapFrom: "De",
@@ -169,9 +169,10 @@ const en: Messages = {
     switch: "Choose language",
   },
   totalLabel: "Amount due",
-  methodAria: "Payment method",
+  methodAria: "How to pay",
   walletTab: "Wallet",
-  qrTab: "QR code",
+  qrTab: "QR",
+  swapTab: "Swap",
   connectWallet: "Connect Stellar wallet",
   openingWallets: "Opening wallets…",
   walletConnected: "Wallet connected",
@@ -213,7 +214,6 @@ const en: Messages = {
     `This charge can’t be completed in ${asset} yet. ViaPay’s treasury still can’t receive that asset.`,
   warnResellerAsset: (asset) =>
     `This charge can’t be completed in ${asset} yet. The reseller can’t receive that asset.`,
-  swapTokens: "Don't have the token? Swap",
   swapTitle: "Swap tokens",
   swapDesc: "Convert XLM ↔ USDC right here. No ViaPay account: quote, sign with Freighter, done.",
   swapFrom: "From",
@@ -253,9 +253,10 @@ const pt: Messages = {
     switch: "Escolher idioma",
   },
   totalLabel: "Total a pagar",
-  methodAria: "Método de pagamento",
+  methodAria: "Como pagar",
   walletTab: "Carteira",
-  qrTab: "Código QR",
+  qrTab: "QR",
+  swapTab: "Swap",
   connectWallet: "Conectar carteira Stellar",
   openingWallets: "Abrindo carteiras…",
   walletConnected: "Carteira conectada",
@@ -297,7 +298,6 @@ const pt: Messages = {
     `Esta cobrança ainda não pode ser concluída em ${asset}. A tesouraria da ViaPay ainda não pode receber esse ativo.`,
   warnResellerAsset: (asset) =>
     `Esta cobrança ainda não pode ser concluída em ${asset}. O revendedor não pode receber esse ativo.`,
-  swapTokens: "Não tem o token? Trocar",
   swapTitle: "Trocar tokens",
   swapDesc: "Converta XLM ↔ USDC aqui mesmo. Sem conta ViaPay: cotize, assine com Freighter e pronto.",
   swapFrom: "De",

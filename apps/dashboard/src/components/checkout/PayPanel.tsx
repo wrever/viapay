@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import {
+  ArrowLeftRight,
   CheckCircle2,
   Loader2,
   QrCode,
@@ -51,7 +52,7 @@ function receiveWarning(intent: CheckoutIntent, t: Messages): string | null {
   return null;
 }
 
-type Method = "wallet" | "qr";
+type Method = "wallet" | "qr" | "swap";
 
 export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const { t, locale } = useCheckoutLocale();
@@ -61,7 +62,6 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const [status, setStatus] = useState(intent.status);
   const [txHash, setTxHash] = useState(intent.stellar_tx_hash);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [swapOpen, setSwapOpen] = useState(false);
   const network =
     intent.stellar?.network === "mainnet" || intent.stellar?.network === "local"
       ? intent.stellar.network
@@ -312,6 +312,16 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
             >
               <QrCode className="h-4 w-4" aria-hidden="true" /> {t.qrTab}
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={method === "swap"}
+              onClick={() => setMethod("swap")}
+              className="pay-tabs__tab"
+            >
+              <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />{" "}
+              {t.swapTab}
+            </button>
           </div>
 
           {method === "wallet" ? (
@@ -403,7 +413,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                 {intent.asset === "USDC" ? t.walletHintUsdc : ""}
               </p>
             </div>
-          ) : (
+          ) : method === "qr" ? (
             <div className="mt-5 space-y-4">
               <div
                 className="mx-auto w-fit rounded-[var(--r-lg)] p-3"
@@ -481,15 +491,15 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                 {t.qrHint}
               </p>
             </div>
+          ) : (
+            <div className="mt-5">
+              <CheckoutSwap
+                t={t}
+                network={network}
+                payAsset={intent.asset}
+              />
+            </div>
           )}
-
-          <CheckoutSwap
-            t={t}
-            network={network}
-            payAsset={intent.asset}
-            open={swapOpen}
-            onOpenChange={setSwapOpen}
-          />
 
           {error && (
             <p
