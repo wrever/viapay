@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { API } from "@/lib/config";
 import { useLocale } from "@/lib/i18n";
+import { FiatCurrencySelect } from "@/components/FiatCurrencySelect";
 
 function maskKey(key: string): string {
   if (key.length <= 16) return `${key.slice(0, 8)}…`;
@@ -110,6 +111,8 @@ export function IntegrationPanel({
             </Button>
           </div>
         </form>
+
+        <FiatCurrencySelect id="integration-fiat" />
 
         <div className="grid gap-2">
           <Label>{t.integrationKeyLabel}</Label>

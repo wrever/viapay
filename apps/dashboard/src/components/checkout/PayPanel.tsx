@@ -18,6 +18,8 @@ import {
 } from "@/lib/checkout/i18n";
 import type { Messages } from "@/lib/checkout/messages";
 import { API } from "@/lib/config";
+import { FiatEquivalent } from "@/components/FiatEquivalent";
+import { FiatCurrencySelectBare } from "@/components/FiatCurrencySelect";
 
 function totalAmount(value: string, localeTag: string): string {
   return Number(value).toLocaleString(localeTag, {
@@ -193,6 +195,20 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
               {totalAmount(intent.amount, localeTag)}
               <span className="pay-amount__asset">{intent.asset}</span>
             </p>
+            <div className="pay-fiat">
+              <FiatEquivalent
+                amount={intent.amount}
+                asset={intent.asset}
+                locale={locale}
+                approx={t.fiatApprox}
+                unavailable={t.fiatUnavailable}
+                className="fiat-hint fiat-hint--pay"
+              />
+              <FiatCurrencySelectBare
+                label={t.fiatSelectLabel}
+                locale={locale}
+              />
+            </div>
 
             {txHash && (
               <div className="mt-6 text-left">
@@ -247,6 +263,20 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
             {totalAmount(intent.amount, localeTag)}
             <span className="pay-amount__asset">{intent.asset}</span>
           </p>
+          <div className="pay-fiat">
+            <FiatEquivalent
+              amount={intent.amount}
+              asset={intent.asset}
+              locale={locale}
+              approx={t.fiatApprox}
+              unavailable={t.fiatUnavailable}
+              className="fiat-hint fiat-hint--pay"
+            />
+            <FiatCurrencySelectBare
+              label={t.fiatSelectLabel}
+              locale={locale}
+            />
+          </div>
           {intent.description && (
             <p className="mt-2 text-sm" style={{ color: "var(--text-2)" }}>
               {intent.description}

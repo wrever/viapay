@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { API } from "@/lib/config";
 import type { DashboardPayment } from "@/lib/payment-types";
 import { useLocale } from "@/lib/i18n";
+import { FiatEquivalent } from "@/components/FiatEquivalent";
 
 function pctToBps(raw: string): number | null {
   const cleaned = raw.trim().replace(",", ".");
@@ -216,6 +217,13 @@ export function CreatePaymentLink({
                 <option value="USDC">USDC</option>
               </select>
             </div>
+            <FiatEquivalent
+              amount={amount}
+              asset={asset}
+              locale={locale}
+              approx={t.fiatApprox}
+              unavailable={t.fiatUnavailable}
+            />
           </div>
 
           <div className="grid gap-2">

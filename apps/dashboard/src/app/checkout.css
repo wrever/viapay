@@ -65,6 +65,19 @@
   color: var(--primary);
 }
 
+.checkout-page .pay-fiat {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.55rem;
+}
+
+.checkout-page .fiat-hint--pay {
+  font-size: 0.95rem;
+  color: var(--text-2);
+}
+
 .checkout-page .act {
   display: inline-flex;
   align-items: center;

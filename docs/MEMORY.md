@@ -1,12 +1,12 @@
 # ViaPay — memoria de proyecto
 
-Actualizado: 2026-10-05. Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
+Actualizado: 2026-10-06. Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
 **Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `scripts/rebuild-history.py` usa `git commit-tree` (sin hooks). Repo: https://github.com/wrever/viapay (88 commits limpios).
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`, **checkout pagador `/pay/[id]`**). Supabase Site URL debe ser exactamente esa. Local panel+landing+checkout: `:3000`. **No mandar comercios ni pagadores a otro frontend** (`apps/web` es legado local; `apps/checkout` es legado/local — prod es el dashboard). `checkout_url` de la API apunta a `https://viapay.vercel.app/pay/…` (`VIAPAY_CHECKOUT_URL` / `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL`). API JSON sigue en `viapay-api.vercel.app`. Links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, campana notificaciones, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | Integración | Notificaciones. **Wallet de destino hard-mandatory:** sin `merchant_wallet` el panel fuerza Integración, bloquea el resto de tabs (nav locked), banner + **modal no descartable** con form G… (cierra solo al guardar vía `POST /v1/wallets`), y desbloquea al guardar. API también rechaza `POST /v1/payment_intents` sin wallet. Cobros default **XLM** (USDC demo bloqueado si falta trustline en comercio/tesorería). Resumen = cards (hoy/mes/todo) + conversión + últimos pagos. Estadísticas = desglose por estado + por activo. Cobros = form + instructivo. Historial = solo pagos `succeeded`. Integración = wallet + API key + poll. Notificaciones = poll API, sin UX de webhooks. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin tour/onboarding multi-paso (videos después). Sin copy de marketing en el intro.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`, **checkout pagador `/pay/[id]`**). Supabase Site URL debe ser exactamente esa. Local panel+landing+checkout: `:3000`. **No mandar comercios ni pagadores a otro frontend** (`apps/web` es legado local; `apps/checkout` es legado/local — prod es el dashboard). `checkout_url` de la API apunta a `https://viapay.vercel.app/pay/…` (`VIAPAY_CHECKOUT_URL` / `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL`). API JSON sigue en `viapay-api.vercel.app`. Links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, campana notificaciones, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#swap` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | **Swap** (plus, opcional) | Integración | Notificaciones. **Wallet de destino hard-mandatory:** sin `merchant_wallet` el panel fuerza Integración, bloquea el resto de tabs (nav locked), banner + **modal no descartable** con form G… (cierra solo al guardar vía `POST /v1/wallets`), y desbloquea al guardar. API también rechaza `POST /v1/payment_intents` sin wallet. Cobros default **XLM** (USDC demo bloqueado si falta trustline en comercio/tesorería). Resumen = cards (hoy/mes/todo) + conversión + últimos pagos + hints fiat aprox. Estadísticas = desglose por estado + por activo (+ ≈ fiat). Cobros = form + equivalencia crypto→fiat + instructivo. Historial = solo pagos `succeeded`. Integración = wallet + moneda local preferida (`viapay-fiat`, default CLP) + API key + poll. Notificaciones = poll API, sin UX de webhooks. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin tour/onboarding multi-paso (videos después). Sin copy de marketing en el intro.
 
 **Prod Vercel (vivo, 2026-10-05):**
 - Sitio/panel/checkout: https://viapay.vercel.app (proyecto Vercel `web`, Root = `apps/dashboard`). Envs: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`.
@@ -90,6 +90,11 @@ Tesorería por defecto: `GBIVA57TB4N4IHXYQSDLWSVKC4M4P66AAJWS5A5SQAOIYEZSBUVNCIW
 | Método | Ruta | Para qué |
 |---|---|---|
 | GET | `/v1/health` | health |
+| GET | `/v1/rates` | tasas crypto→fiat (XLM/USDC → CLP/ARS/COP/BOB/MXN/PEN/USD). Público, cache ~10 min. CoinGecko (crypto→USD) + open.er-api (USD→fiat); fallback a última tasa |
+| GET | `/v1/swap` | estado plus Soroswap (`configured`, red, tokens). Público; no filtra la API key |
+| POST | `/v1/swap/quote` | cotización XLM↔USDC vía Soroswap Aggregator. Bearer ViaPay. Requiere `SOROSWAP_API_KEY` |
+| POST | `/v1/swap/build` | arma XDR sin firmar desde un quote. Bearer ViaPay |
+| POST | `/v1/swap/send` | envía XDR firmado a Soroswap `/send`. Bearer ViaPay |
 | POST/GET | `/v1/payment_intents` | crear y listar. Acepta `reseller_fee_bps` + `reseller_address`. El GET reconcilia pendientes en Horizon (path clásico) |
 | GET | `/v1/payment_intents/:id` | un cobro del comercio autenticado (poll por id → `succeeded` + `stellar_tx_hash`) |
 | GET | `/v1/checkout/:id?client_secret=` | estado público + `sep7_tx` + si comercio, tesorería y revendedor pueden recibir |
@@ -140,6 +145,7 @@ Con `PAYMENT_ROUTER_CONTRACT_ID` en la API: `prepare` / `submit` (y x402 vía su
 - **Anchor SEP-24**: solo descubrimiento de `stellar.toml` si `ANCHOR_HOME_DOMAIN` está definido. No hay flujo interactivo de depósito/retiro.
 - **Escrow Trustless Work**: el POST existe. Sin `TRUSTLESSWORK_API_KEY` no llama a su API. Testnet: `https://beta.api.trustlesswork.com` (`/escrow/single-release/v2/deploy`). Mainnet legacy: `https://api.trustlesswork.com`.
 - **Pollar**: el checkout monta `PollarProvider` solo si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`. Sin key, el botón no aparece. Hace falta una key de `dashboard.pollar.xyz`.
+- **Swap Soroswap (plus)**: sección panel `#swap` + proxy API `/v1/swap/*`. Sin `SOROSWAP_API_KEY` en **Vercel `viapay-api`** la UI degrada (mensaje + link a app.soroswap.finance) sin crashear. Con key: quote → build XDR → firma Freighter/Wallets Kit → `/send`. No es parte del cobro. Flujo docs: https://docs.soroswap.finance/api/quickstart
 - **x402 con facilitator**: el endpoint propio está vivo (ver arriba), pero ViaPay liquida por su cuenta. No hay integración con un facilitator x402 ni con el esquema de auth entries de Soroban.
 
 ## Límites reales
@@ -158,7 +164,7 @@ Archivo `data/viapay.db` (`VIAPAY_DATABASE_PATH`). Tablas en `apps/api/src/lib/d
 
 ## Variables
 
-Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELLAR_NETWORK=testnet`, `USDC_ISSUER`, `VIAPAY_TREASURY_ADDRESS`, `VIAPAY_API_PUBLIC_URL`. `FEE_BPS` es opcional: si falta o trae basura, `resolveViaFeeBps` cae a 100 (1%). Opcionales que activan integraciones y no deben fingirse: `NEXT_PUBLIC_SUPABASE_*` + `SUPABASE_*`, `PAYMENT_ROUTER_CONTRACT_ID`, `ANCHOR_HOME_DOMAIN`, `TRUSTLESSWORK_API_KEY`, `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`.
+Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELLAR_NETWORK=testnet`, `USDC_ISSUER`, `VIAPAY_TREASURY_ADDRESS`, `VIAPAY_API_PUBLIC_URL`. `FEE_BPS` es opcional: si falta o trae basura, `resolveViaFeeBps` cae a 100 (1%). Opcionales que activan integraciones y no deben fingirse: `NEXT_PUBLIC_SUPABASE_*` + `SUPABASE_*`, `PAYMENT_ROUTER_CONTRACT_ID`, `ANCHOR_HOME_DOMAIN`, `TRUSTLESSWORK_API_KEY`, `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`, `SOROSWAP_API_KEY` (solo API / proyecto Vercel **viapay-api**; opcional `SOROSWAP_API_URL`).
 
 ## Dónde está el código
 
@@ -176,6 +182,8 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Pollar: `apps/dashboard/src/components/checkout/PollarShell.tsx`
 - Dashboard login OAuth: `apps/dashboard/src/lib/supabase.ts`, `auth/oauth`, `auth/callback` (`@supabase/ssr`)
 - Alta de cobro con revendedor y preview del desglose: `apps/dashboard/src/components/CreatePaymentLink.tsx`
+- Equivalencias crypto→fiat (aprox.): prefs `viapay-fiat` en `@viapay/prefs` (default CLP); tasas `GET /v1/rates` (`apps/api/src/lib/rates.ts`); UI en Cobros (`FiatEquivalent`), Integración (selector), checkout `/pay` y hints en Resumen/Estadísticas
+- Swap plus Soroswap (XLM↔USDC): `apps/api/src/lib/soroswap.ts` + rutas `/v1/swap`; UI `apps/dashboard/src/components/SwapPanel.tsx` (nav `#swap`)
 - Integración (wallet + API key + poll hint): `apps/dashboard/src/components/IntegrationPanel.tsx`
 - Tipo readiness del panel: `apps/dashboard/src/lib/readiness.ts`
 - SDK: `packages/sdk/src/index.ts` — `createCheckout` (acepta `reseller_fee_bps` + `reseller_address`), `parseX402Challenge`, `encodePaymentHeader`, `verifyWebhook` con `crypto.subtle`
@@ -202,7 +210,7 @@ Tipografía: Bricolage Grotesque 800 (display), Figtree 400/500/700 (UI), IBM Pl
 
 Tokens: `packages/brand/tokens.css` (import `@viapay/brand/tokens.css` en cada layout). Logos SVG en `packages/brand/logos/` y sync a `apps/*/public/brand/` con `pnpm brand:sync`. Nadie más declara color: `packages/shared/brand.css`, el mascota `via-mascot.png` y `via-mark.svg` quedaron retirados.
 
-Esquema por `data-theme` + `prefers-color-scheme`. Por defecto sigue al OS; si el usuario elige claro/oscuro, queda en `localStorage` (`viapay-theme`). Misma key en web, checkout y dashboard. Boot script (`THEME_BOOT` de `@viapay/prefs`) evita FOUC. El logo cambia de variante solo con CSS (`.via-logo--on-light` / `--on-dark`). Superficies fijadas oscuras: masthead del dashboard y terminal de la landing.
+Esquema por `data-theme` + `prefers-color-scheme`. Por defecto sigue al OS; si el usuario elige claro/oscuro, queda en `localStorage` (`viapay-theme`). Misma key en web, checkout y dashboard. Boot script (`THEME_BOOT` de `@viapay/prefs`) evita FOUC. El logo cambia de variante solo con CSS (`.via-logo--on-light` / `--on-dark`). Superficies fijadas oscuras: masthead del dashboard y terminal de la landing. Moneda fiat de display (equivalencias ≈): `localStorage` `viapay-fiat` (default **CLP**; códigos CLP/ARS/COP/BOB/MXN/PEN/USD) vía `@viapay/prefs`.
 
 i18n en **web, checkout y dashboard**: ES (default) → EN → PT. Detección por `navigator.language` o `viapay-locale`. Toggle de idioma + tema en las tres apps (`@viapay/prefs` + `createI18n`). Cadenas por app en `apps/*/src/lib/i18n/messages.ts`.
 

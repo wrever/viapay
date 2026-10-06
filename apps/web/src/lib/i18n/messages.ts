@@ -160,7 +160,7 @@ const es: Messages = {
     headlineBefore: "Cobra con un link. Lo paga una persona o ",
     headlineEm: "su agente",
     headlineAfter: ".",
-    lede: "Creas el cobro, compartes el link. Paga tu cliente con su billetera — o un agente de IA. ViaPay solo toma el 1%. Sin custodiar tu dinero: llega directo a tu billetera, al instante.",
+    lede: "Creas el cobro, compartes el link. Paga tu cliente con su billetera o un agente de IA. ViaPay solo toma el 1%. Sin custodiar tu dinero: llega directo a tu billetera, al instante.",
     ctaPrimary: "Crear un cobro",
     ctaSecondary: "Ver cómo funciona",
     note: "Prueba hoy en Stellar · con USDC o XLM",

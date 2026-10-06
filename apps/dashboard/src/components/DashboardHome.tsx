@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatBps } from "@viapay/shared";
 import {
+  ArrowLeftRight,
   BarChart3,
   Bell,
   History,
@@ -17,6 +18,7 @@ import { IntegrationPanel } from "@/components/IntegrationPanel";
 import { OverviewPanel } from "@/components/OverviewPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
+import { SwapPanel } from "@/components/SwapPanel";
 import { WalletGateModal } from "@/components/WalletGateModal";
 import { Button } from "@/components/ui/button";
 import type { DashboardPayment } from "@/lib/payment-types";
@@ -28,6 +30,7 @@ const SECTIONS = [
   "cobros",
   "historial",
   "estadisticas",
+  "swap",
   "integracion",
   "notificaciones",
 ] as const;
@@ -171,6 +174,7 @@ export function DashboardHome({
     { id: "cobros", label: t.navCobros, icon: PlusCircle },
     { id: "historial", label: t.navHistorial, icon: History },
     { id: "estadisticas", label: t.navEstadisticas, icon: BarChart3 },
+    { id: "swap", label: t.navSwap, icon: ArrowLeftRight },
     { id: "integracion", label: t.navIntegracion, icon: Wallet },
     { id: "notificaciones", label: t.navNotificaciones, icon: Bell },
   ];
@@ -327,6 +331,12 @@ export function DashboardHome({
 
             {section === "estadisticas" && !walletLocked && (
               <PaymentStatsDetail payments={payments} />
+            )}
+
+            {section === "swap" && !walletLocked && (
+              <div className="workspace workspace--composer">
+                <SwapPanel apiKey={apiKey} network={network} />
+              </div>
             )}
 
             {section === "integracion" &&

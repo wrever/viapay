@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { formatAssetAmount } from "@viapay/shared";
 import { LOCALE_TAG } from "@viapay/prefs";
 import { PeriodFilter } from "@/components/PeriodFilter";
+import { FiatEquivalent } from "@/components/FiatEquivalent";
 import {
   computePaymentStats,
   filterPaymentsByPeriod,
@@ -105,7 +106,21 @@ export function PaymentStatsDetail({
                       <tr key={row.asset}>
                         <td className="perf">{row.asset}</td>
                         <td className="history-table__num perf">
-                          {row.net > 0n ? money(row.net, row.asset, localeTag) : "—"}
+                          {row.net > 0n ? (
+                            <>
+                              {money(row.net, row.asset, localeTag)}
+                              <FiatEquivalent
+                                amount={formatAssetAmount(row.net)}
+                                asset={row.asset}
+                                locale={locale}
+                                approx={t.fiatApprox}
+                                unavailable={t.fiatUnavailable}
+                                className="fiat-hint fiat-hint--table"
+                              />
+                            </>
+                          ) : (
+                            "—"
+                          )}
                         </td>
                         <td className="history-table__num perf">
                           {row.pendingGross > 0n

@@ -3,6 +3,8 @@
 import { formatAssetAmount } from "@viapay/shared";
 import { LOCALE_TAG } from "@viapay/prefs";
 import { computePaymentStats, type DashboardPayment } from "@/lib/payment-types";
+import { formatFiatAmount, sumCryptoToFiat } from "@/lib/fiat/format";
+import { useCryptoRates, useFiatCurrency } from "@/lib/fiat/use-fiat";
 import { useLocale } from "@/lib/i18n";
 
 function formatTotals(
@@ -31,6 +33,25 @@ function localizedSum(
     .join(" · ");
 }
 
+function fiatSumHint(
+  stats: ReturnType<typeof computePaymentStats>,
+  field: "net" | "pendingGross",
+  fiat: ReturnType<typeof useFiatCurrency>["fiat"],
+  rates: ReturnType<typeof useCryptoRates>["rates"],
+  localeTag: string,
+  approx: (formatted: string) => string,
+): string | null {
+  const rows = stats.byAsset
+    .filter((a) => a[field] > 0n)
+    .map((a) => ({
+      amount: formatAssetAmount(a[field]),
+      asset: a.asset,
+    }));
+  const total = sumCryptoToFiat(rows, fiat, rates);
+  if (total == null) return null;
+  return approx(formatFiatAmount(total, fiat, localeTag));
+}
+
 export function PaymentStatsStrip({
   payments,
   showSucceeded = true,
@@ -40,7 +61,26 @@ export function PaymentStatsStrip({
 }) {
   const { t, locale } = useLocale();
   const localeTag = LOCALE_TAG[locale];
+  const { fiat } = useFiatCurrency();
+  const { rates } = useCryptoRates();
   const stats = computePaymentStats(payments);
+
+  const receivedFiat = fiatSumHint(
+    stats,
+    "net",
+    fiat,
+    rates,
+    localeTag,
+    t.fiatApprox,
+  );
+  const pendingFiat = fiatSumHint(
+    stats,
+    "pendingGross",
+    fiat,
+    rates,
+    localeTag,
+    t.fiatApprox,
+  );
 
   const cards = [
     {
@@ -53,7 +93,9 @@ export function PaymentStatsStrip({
       key: "received",
       label: t.statReceived,
       value: localizedSum(stats, "net", localeTag),
-      hint: t.statReceivedHint(stats.succeeded),
+      hint: receivedFiat
+        ? `${t.statReceivedHint(stats.succeeded)} · ${receivedFiat}`
+        : t.statReceivedHint(stats.succeeded),
     },
     {
       key: "pending",
@@ -62,7 +104,9 @@ export function PaymentStatsStrip({
         stats.pending > 0
           ? `${stats.pending} · ${localizedSum(stats, "pendingGross", localeTag)}`
           : String(stats.pending),
-      hint: t.statPendingHint,
+      hint: pendingFiat
+        ? `${t.statPendingHint} · ${pendingFiat}`
+        : t.statPendingHint,
     },
     ...(showSucceeded
       ? [

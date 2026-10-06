@@ -110,6 +110,7 @@ export type Messages = {
   navCobros: string;
   navHistorial: string;
   navEstadisticas: string;
+  navSwap: string;
   navIntegracion: string;
   navNotificaciones: string;
   cobrosGuideTitle: string;
@@ -134,6 +135,39 @@ export type Messages = {
   noticesBellAria: string;
   noticesBellPending: (n: number) => string;
   noticesBellHint: string;
+  fiatSelectLabel: string;
+  fiatSelectHint: string;
+  fiatApprox: (formatted: string) => string;
+  fiatUnavailable: string;
+  swapTitle: string;
+  swapDesc: string;
+  swapPlusBadge: string;
+  swapFrom: string;
+  swapTo: string;
+  swapFlip: string;
+  swapGetQuote: string;
+  swapQuoting: string;
+  swapConnectAndSwap: string;
+  swapExecute: string;
+  swapSwapping: string;
+  swapHint: string;
+  swapOpenApp: string;
+  swapMissingKey: string;
+  swapMissingKeyBody: string;
+  swapMissingKeyWhere: string;
+  swapQuoteFail: string;
+  swapBuildFail: string;
+  swapSendFail: string;
+  swapWalletNeeded: string;
+  swapWallet: string;
+  swapQuoteLine: (
+    amountIn: string,
+    assetIn: string,
+    amountOut: string,
+    assetOut: string,
+  ) => string;
+  swapImpact: (pct: string) => string;
+  swapSuccess: string;
 };
 
 const es: Messages = {
@@ -267,6 +301,7 @@ const es: Messages = {
   navCobros: "Cobros",
   navHistorial: "Historial",
   navEstadisticas: "Estadísticas",
+  navSwap: "Swap",
   navIntegracion: "Integración",
   navNotificaciones: "Notificaciones",
   cobrosGuideTitle: "Cómo cobrar",
@@ -293,6 +328,40 @@ const es: Messages = {
   noticesBellPending: (n) =>
     n === 1 ? "1 cobro pendiente" : `${n} cobros pendientes`,
   noticesBellHint: "Abrí Notificaciones para ver cómo consultar el estado por API.",
+  fiatSelectLabel: "Moneda local",
+  fiatSelectHint:
+    "Se usa para mostrar equivalencias aproximadas de XLM/USDC en el panel y el checkout de este navegador.",
+  fiatApprox: (formatted) => `≈ ${formatted}`,
+  fiatUnavailable: "≈ —",
+  swapTitle: "Swap XLM ↔ USDC",
+  swapDesc:
+    "Convertí XLM y USDC con Soroswap (plus). Cotizá, firmá con tu wallet y enviá la tx. No forma parte del cobro.",
+  swapPlusBadge: "Plus",
+  swapFrom: "De",
+  swapTo: "A",
+  swapFlip: "Invertir par",
+  swapGetQuote: "Cotizar",
+  swapQuoting: "Cotizando…",
+  swapConnectAndSwap: "Conectar wallet y swap",
+  swapExecute: "Firmar y swap",
+  swapSwapping: "Enviando…",
+  swapHint:
+    "La API key de Soroswap vive solo en el servidor. La firma es tuya (Freighter / Wallets Kit), igual que en el checkout.",
+  swapOpenApp: "Abrir Soroswap",
+  swapMissingKey: "Swap no configurado",
+  swapMissingKeyBody:
+    "Falta la variable de entorno en la API. Sin ella no hay cotización ni build.",
+  swapMissingKeyWhere:
+    "Vercel proyecto viapay-api → Environment Variables → SOROSWAP_API_KEY (también en .env local).",
+  swapQuoteFail: "No se pudo cotizar",
+  swapBuildFail: "No se pudo armar la transacción",
+  swapSendFail: "No se pudo enviar la transacción",
+  swapWalletNeeded: "Conectá una wallet Stellar para firmar.",
+  swapWallet: "Wallet",
+  swapQuoteLine: (amountIn, assetIn, amountOut, assetOut) =>
+    `${amountIn} ${assetIn} → ≈ ${amountOut} ${assetOut}`,
+  swapImpact: (pct) => `Impacto de precio ~${pct}%`,
+  swapSuccess: "Swap enviado.",
 };
 
 const en: Messages = {
@@ -424,6 +493,7 @@ const en: Messages = {
   navCobros: "Charges",
   navHistorial: "History",
   navEstadisticas: "Statistics",
+  navSwap: "Swap",
   navIntegracion: "Integration",
   navNotificaciones: "Notifications",
   cobrosGuideTitle: "How to get paid",
@@ -450,6 +520,40 @@ const en: Messages = {
   noticesBellPending: (n) =>
     n === 1 ? "1 pending charge" : `${n} pending charges`,
   noticesBellHint: "Open Notifications to see how to poll status via the API.",
+  fiatSelectLabel: "Local currency",
+  fiatSelectHint:
+    "Used for approximate XLM/USDC equivalents in the panel and checkout on this browser.",
+  fiatApprox: (formatted) => `≈ ${formatted}`,
+  fiatUnavailable: "≈ —",
+  swapTitle: "Swap XLM ↔ USDC",
+  swapDesc:
+    "Convert XLM and USDC with Soroswap (plus). Quote, sign with your wallet, submit. Not part of charging.",
+  swapPlusBadge: "Plus",
+  swapFrom: "From",
+  swapTo: "To",
+  swapFlip: "Flip pair",
+  swapGetQuote: "Get quote",
+  swapQuoting: "Quoting…",
+  swapConnectAndSwap: "Connect wallet & swap",
+  swapExecute: "Sign & swap",
+  swapSwapping: "Submitting…",
+  swapHint:
+    "The Soroswap API key stays on the server. You sign with Freighter / Wallets Kit, same as checkout.",
+  swapOpenApp: "Open Soroswap",
+  swapMissingKey: "Swap not configured",
+  swapMissingKeyBody:
+    "Missing API env var. Without it there is no quote or build.",
+  swapMissingKeyWhere:
+    "Vercel project viapay-api → Environment Variables → SOROSWAP_API_KEY (and local .env).",
+  swapQuoteFail: "Could not get a quote",
+  swapBuildFail: "Could not build the transaction",
+  swapSendFail: "Could not submit the transaction",
+  swapWalletNeeded: "Connect a Stellar wallet to sign.",
+  swapWallet: "Wallet",
+  swapQuoteLine: (amountIn, assetIn, amountOut, assetOut) =>
+    `${amountIn} ${assetIn} → ≈ ${amountOut} ${assetOut}`,
+  swapImpact: (pct) => `Price impact ~${pct}%`,
+  swapSuccess: "Swap submitted.",
 };
 
 const pt: Messages = {
@@ -584,6 +688,7 @@ const pt: Messages = {
   navCobros: "Cobranças",
   navHistorial: "Histórico",
   navEstadisticas: "Estatísticas",
+  navSwap: "Swap",
   navIntegracion: "Integração",
   navNotificaciones: "Notificações",
   cobrosGuideTitle: "Como cobrar",
@@ -610,6 +715,40 @@ const pt: Messages = {
   noticesBellPending: (n) =>
     n === 1 ? "1 cobrança pendente" : `${n} cobranças pendentes`,
   noticesBellHint: "Abra Notificações para ver como consultar o status pela API.",
+  fiatSelectLabel: "Moeda local",
+  fiatSelectHint:
+    "Usada para mostrar equivalentes aproximados de XLM/USDC no painel e no checkout neste navegador.",
+  fiatApprox: (formatted) => `≈ ${formatted}`,
+  fiatUnavailable: "≈ —",
+  swapTitle: "Swap XLM ↔ USDC",
+  swapDesc:
+    "Converta XLM e USDC com Soroswap (plus). Cotize, assine com sua wallet e envie. Não faz parte da cobrança.",
+  swapPlusBadge: "Plus",
+  swapFrom: "De",
+  swapTo: "Para",
+  swapFlip: "Inverter par",
+  swapGetQuote: "Cotizar",
+  swapQuoting: "Cotizando…",
+  swapConnectAndSwap: "Conectar wallet e swap",
+  swapExecute: "Assinar e swap",
+  swapSwapping: "Enviando…",
+  swapHint:
+    "A API key da Soroswap fica só no servidor. A assinatura é sua (Freighter / Wallets Kit), como no checkout.",
+  swapOpenApp: "Abrir Soroswap",
+  swapMissingKey: "Swap não configurado",
+  swapMissingKeyBody:
+    "Falta a variável de ambiente na API. Sem ela não há cotação nem build.",
+  swapMissingKeyWhere:
+    "Vercel projeto viapay-api → Environment Variables → SOROSWAP_API_KEY (e .env local).",
+  swapQuoteFail: "Não foi possível cotizar",
+  swapBuildFail: "Não foi possível montar a transação",
+  swapSendFail: "Não foi possível enviar a transação",
+  swapWalletNeeded: "Conecte uma wallet Stellar para assinar.",
+  swapWallet: "Wallet",
+  swapQuoteLine: (amountIn, assetIn, amountOut, assetOut) =>
+    `${amountIn} ${assetIn} → ≈ ${amountOut} ${assetOut}`,
+  swapImpact: (pct) => `Impacto de preço ~${pct}%`,
+  swapSuccess: "Swap enviado.",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

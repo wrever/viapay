@@ -44,6 +44,9 @@ export type Messages = {
   pollarConnected: (short: string) => string;
   indexTitle: string;
   indexBody: string;
+  fiatApprox: (formatted: string) => string;
+  fiatUnavailable: string;
+  fiatSelectLabel: string;
 };
 
 const es: Messages = {
@@ -101,6 +104,9 @@ const es: Messages = {
   pollarConnected: (short) => `Billetera embebida ${short}`,
   indexTitle: "Acá se pagan los cobros",
   indexBody: "Abre el link que te compartió el comercio. Tiene la forma /pay/pi_…",
+  fiatApprox: (formatted) => `≈ ${formatted}`,
+  fiatUnavailable: "≈ —",
+  fiatSelectLabel: "Moneda local",
 };
 
 const en: Messages = {
@@ -158,6 +164,9 @@ const en: Messages = {
   pollarConnected: (short) => `Embedded wallet ${short}`,
   indexTitle: "This is where charges get paid",
   indexBody: "Open the link the merchant shared with you. It looks like /pay/pi_…",
+  fiatApprox: (formatted) => `≈ ${formatted}`,
+  fiatUnavailable: "≈ —",
+  fiatSelectLabel: "Local currency",
 };
 
 const pt: Messages = {
@@ -215,6 +224,9 @@ const pt: Messages = {
   pollarConnected: (short) => `Carteira embutida ${short}`,
   indexTitle: "Aqui se pagam as cobranças",
   indexBody: "Abra o link que o comércio compartilhou. Tem o formato /pay/pi_…",
+  fiatApprox: (formatted) => `≈ ${formatted}`,
+  fiatUnavailable: "≈ —",
+  fiatSelectLabel: "Moeda local",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };
