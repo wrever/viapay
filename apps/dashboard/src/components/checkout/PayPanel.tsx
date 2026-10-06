@@ -52,10 +52,12 @@ function receiveWarning(intent: CheckoutIntent, t: Messages): string | null {
   return null;
 }
 
-type Method = "wallet" | "qr" | "swap";
+type Method = "wallet" | "qr";
+type View = "pay" | "swap";
 
 export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const { t, locale } = useCheckoutLocale();
+  const [view, setView] = useState<View>("pay");
   const [method, setMethod] = useState<Method>("wallet");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -293,212 +295,234 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
 
           {warning && <p className="pay-notice mt-4">{warning}</p>}
 
-          <div className="pay-tabs mt-6" role="tablist" aria-label={t.methodAria}>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={method === "wallet"}
-              onClick={() => setMethod("wallet")}
-              className="pay-tabs__tab"
-            >
-              <Wallet className="h-4 w-4" aria-hidden="true" /> {t.walletTab}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={method === "qr"}
-              onClick={() => setMethod("qr")}
-              className="pay-tabs__tab"
-            >
-              <QrCode className="h-4 w-4" aria-hidden="true" /> {t.qrTab}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={method === "swap"}
-              onClick={() => setMethod("swap")}
-              className="pay-tabs__tab"
-            >
-              <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />{" "}
-              {t.swapTab}
-            </button>
-          </div>
-
-          {method === "wallet" ? (
-            <div className="mt-5 space-y-3">
-              {!canPay ? (
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => {
-                    setBusy(true);
-                    setError(null);
-                    walletKit
-                      .connect()
-                      .catch((e: unknown) => {
-                        setError(
-                          e instanceof Error ? e.message : t.connectFailed,
-                        );
-                      })
-                      .finally(() => setBusy(false));
-                  }}
-                  className="act act--ghost"
-                >
-                  <Wallet
-                    className="h-4 w-4"
-                    style={{ color: "var(--primary)" }}
-                    aria-hidden="true"
-                  />
-                  {busy ? t.openingWallets : t.connectWallet}
-                </button>
-              ) : (
-                <div
-                  className="rounded-[var(--r-lg)] px-4 py-3"
-                  style={{ background: "var(--surface)" }}
-                >
-                  <p className="via-label" style={{ color: "var(--text-2)" }}>
-                    {walletKit.address ? t.walletConnected : t.walletEmbedded}
-                  </p>
-                  <p className="mono mt-1">
-                    {walletKit.address ?? pollar?.address}
-                  </p>
-                  {walletKit.address && (
-                    <button
-                      type="button"
-                      className="mt-2 text-xs underline-offset-2 hover:underline"
-                      style={{ color: "var(--text-2)" }}
-                      onClick={() => {
-                        walletKit
-                          .disconnect()
-                          .catch(() => walletKit.setError(null));
-                      }}
-                    >
-                      {t.disconnect}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              <PollarLoginButton
-                onSession={(session) =>
-                  setPollar((prev) =>
-                    prev?.address === session.address ? prev : session,
-                  )
-                }
-              />
-
-              <button
-                type="button"
-                disabled={busy || !canPay}
-                onClick={() => payWithWallet()}
-                className="act act--primary"
-              >
-                {busy ? (
-                  <>
-                    <Loader2
-                      className="h-4 w-4 animate-spin"
-                      aria-hidden="true"
-                    />{" "}
-                    {t.signing}
-                  </>
-                ) : (
-                  t.signAndPay
-                )}
-              </button>
-              <p
-                className="text-center text-xs"
-                style={{ color: "var(--text-2)" }}
-              >
-                {t.walletHint}
-                {intent.asset === "USDC" ? t.walletHintUsdc : ""}
-              </p>
-            </div>
-          ) : method === "qr" ? (
-            <div className="mt-5 space-y-4">
-              <div
-                className="mx-auto w-fit rounded-[var(--r-lg)] p-3"
-                style={{
-                  background: "#ffffff",
-                  border: "1px solid var(--border)",
-                }}
-              >
-                {qrDataUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={qrDataUrl}
-                    alt={t.qrAlt}
-                    width={240}
-                    height={240}
-                    className="block"
-                  />
-                ) : (
-                  <div
-                    className="flex h-[240px] w-[240px] items-center justify-center text-sm"
-                    style={{ color: "var(--text-2)" }}
-                  >
-                    {t.qrGenerating}
-                  </div>
-                )}
-              </div>
-              <p
-                className="text-center text-sm"
-                style={{ color: "var(--text-2)" }}
-              >
-                {splitReady ? (
-                  t.qrReady
-                ) : (
-                  <>
-                    {t.qrFallback}{" "}
-                    {intent.stellar?.sep7_error ?? t.qrFallbackError}
-                  </>
-                )}
-              </p>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  setBusy(true);
-                  setError(null);
-                  refreshStatus()
-                    .then((next) => {
-                      if (next !== "succeeded") setError(t.notSeenYet);
-                    })
-                    .catch((e: unknown) => {
-                      setError(
-                        e instanceof Error ? e.message : t.genericError,
-                      );
-                    })
-                    .finally(() => setBusy(false));
-                }}
-                className="act act--primary"
-              >
-                {busy ? (
-                  <>
-                    <Loader2
-                      className="h-4 w-4 animate-spin"
-                      aria-hidden="true"
-                    />{" "}
-                    {t.checking}
-                  </>
-                ) : (
-                  t.checkPayment
-                )}
-              </button>
-              <p
-                className="text-center text-xs"
-                style={{ color: "var(--text-2)" }}
-              >
-                {t.qrHint}
-              </p>
-            </div>
-          ) : (
-            <div className="mt-5">
+          {view === "swap" ? (
+            <div className="mt-6 space-y-4">
               <CheckoutSwap
                 t={t}
                 network={network}
                 payAsset={intent.asset}
               />
+              <button
+                type="button"
+                onClick={() => setView("pay")}
+                className="act act--ghost"
+              >
+                {t.backToPay}
+              </button>
             </div>
+          ) : (
+            <>
+              <div
+                className="pay-tabs mt-6"
+                role="tablist"
+                aria-label={t.methodAria}
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={method === "wallet"}
+                  onClick={() => setMethod("wallet")}
+                  className="pay-tabs__tab"
+                >
+                  <Wallet className="h-4 w-4" aria-hidden="true" /> {t.walletTab}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={method === "qr"}
+                  onClick={() => setMethod("qr")}
+                  className="pay-tabs__tab"
+                >
+                  <QrCode className="h-4 w-4" aria-hidden="true" /> {t.qrTab}
+                </button>
+              </div>
+
+              {method === "wallet" ? (
+                <div className="mt-5 space-y-3">
+                  {!canPay ? (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setBusy(true);
+                        setError(null);
+                        walletKit
+                          .connect()
+                          .catch((e: unknown) => {
+                            setError(
+                              e instanceof Error ? e.message : t.connectFailed,
+                            );
+                          })
+                          .finally(() => setBusy(false));
+                      }}
+                      className="act act--ghost"
+                    >
+                      <Wallet
+                        className="h-4 w-4"
+                        style={{ color: "var(--primary)" }}
+                        aria-hidden="true"
+                      />
+                      {busy ? t.openingWallets : t.connectWallet}
+                    </button>
+                  ) : (
+                    <div
+                      className="rounded-[var(--r-lg)] px-4 py-3"
+                      style={{ background: "var(--surface)" }}
+                    >
+                      <p
+                        className="via-label"
+                        style={{ color: "var(--text-2)" }}
+                      >
+                        {walletKit.address
+                          ? t.walletConnected
+                          : t.walletEmbedded}
+                      </p>
+                      <p className="mono mt-1">
+                        {walletKit.address ?? pollar?.address}
+                      </p>
+                      {walletKit.address && (
+                        <button
+                          type="button"
+                          className="mt-2 text-xs underline-offset-2 hover:underline"
+                          style={{ color: "var(--text-2)" }}
+                          onClick={() => {
+                            walletKit
+                              .disconnect()
+                              .catch(() => walletKit.setError(null));
+                          }}
+                        >
+                          {t.disconnect}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  <PollarLoginButton
+                    onSession={(session) =>
+                      setPollar((prev) =>
+                        prev?.address === session.address ? prev : session,
+                      )
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    disabled={busy || !canPay}
+                    onClick={() => payWithWallet()}
+                    className="act act--primary"
+                  >
+                    {busy ? (
+                      <>
+                        <Loader2
+                          className="h-4 w-4 animate-spin"
+                          aria-hidden="true"
+                        />{" "}
+                        {t.signing}
+                      </>
+                    ) : (
+                      t.signAndPay
+                    )}
+                  </button>
+                  <p
+                    className="text-center text-xs"
+                    style={{ color: "var(--text-2)" }}
+                  >
+                    {t.walletHint}
+                    {intent.asset === "USDC" ? t.walletHintUsdc : ""}
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-5 space-y-4">
+                  <div
+                    className="mx-auto w-fit rounded-[var(--r-lg)] p-3"
+                    style={{
+                      background: "#ffffff",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    {qrDataUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={qrDataUrl}
+                        alt={t.qrAlt}
+                        width={240}
+                        height={240}
+                        className="block"
+                      />
+                    ) : (
+                      <div
+                        className="flex h-[240px] w-[240px] items-center justify-center text-sm"
+                        style={{ color: "var(--text-2)" }}
+                      >
+                        {t.qrGenerating}
+                      </div>
+                    )}
+                  </div>
+                  <p
+                    className="text-center text-sm"
+                    style={{ color: "var(--text-2)" }}
+                  >
+                    {splitReady ? (
+                      t.qrReady
+                    ) : (
+                      <>
+                        {t.qrFallback}{" "}
+                        {intent.stellar?.sep7_error ?? t.qrFallbackError}
+                      </>
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => {
+                      setBusy(true);
+                      setError(null);
+                      refreshStatus()
+                        .then((next) => {
+                          if (next !== "succeeded") setError(t.notSeenYet);
+                        })
+                        .catch((e: unknown) => {
+                          setError(
+                            e instanceof Error ? e.message : t.genericError,
+                          );
+                        })
+                        .finally(() => setBusy(false));
+                    }}
+                    className="act act--primary"
+                  >
+                    {busy ? (
+                      <>
+                        <Loader2
+                          className="h-4 w-4 animate-spin"
+                          aria-hidden="true"
+                        />{" "}
+                        {t.checking}
+                      </>
+                    ) : (
+                      t.checkPayment
+                    )}
+                  </button>
+                  <p
+                    className="text-center text-xs"
+                    style={{ color: "var(--text-2)" }}
+                  >
+                    {t.qrHint}
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  setView("swap");
+                }}
+                className="pay-swap-link mt-5"
+              >
+                <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden="true" />
+                {t.swapTokens}
+              </button>
+            </>
           )}
 
           {error && (

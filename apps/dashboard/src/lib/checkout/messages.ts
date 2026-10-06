@@ -7,7 +7,8 @@ export type Messages = {
   methodAria: string;
   walletTab: string;
   qrTab: string;
-  swapTab: string;
+  swapTokens: string;
+  backToPay: string;
   connectWallet: string;
   openingWallets: string;
   walletConnected: string;
@@ -87,8 +88,9 @@ const es: Messages = {
   totalLabel: "Total a pagar",
   methodAria: "Cómo pagar",
   walletTab: "Billetera",
-  qrTab: "QR",
-  swapTab: "Swap",
+  qrTab: "Código QR",
+  swapTokens: "¿No tienes el token? Swappear",
+  backToPay: "Volver a pagar",
   connectWallet: "Conectar billetera Stellar",
   openingWallets: "Abriendo billeteras…",
   walletConnected: "Billetera conectada",
@@ -171,8 +173,9 @@ const en: Messages = {
   totalLabel: "Amount due",
   methodAria: "How to pay",
   walletTab: "Wallet",
-  qrTab: "QR",
-  swapTab: "Swap",
+  qrTab: "QR code",
+  swapTokens: "Don't have the token? Swap",
+  backToPay: "Back to checkout",
   connectWallet: "Connect Stellar wallet",
   openingWallets: "Opening wallets…",
   walletConnected: "Wallet connected",
@@ -255,8 +258,9 @@ const pt: Messages = {
   totalLabel: "Total a pagar",
   methodAria: "Como pagar",
   walletTab: "Carteira",
-  qrTab: "QR",
-  swapTab: "Swap",
+  qrTab: "Código QR",
+  swapTokens: "Não tem o token? Trocar",
+  backToPay: "Voltar a pagar",
   connectWallet: "Conectar carteira Stellar",
   openingWallets: "Abrindo carteiras…",
   walletConnected: "Carteira conectada",
