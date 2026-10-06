@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { CheckCircle2, Loader2, QrCode, Wallet } from "lucide-react";
+import {
+  ArrowLeftRight,
+  CheckCircle2,
+  Loader2,
+  QrCode,
+  Wallet,
+} from "lucide-react";
 import { LOCALE_TAG } from "@viapay/prefs";
 import { Logo } from "@/components/Logo";
 import {
@@ -28,6 +34,16 @@ function totalAmount(value: string, localeTag: string): string {
   });
 }
 
+const SWAP_PANEL_HREF = "/app?tab=swap";
+const SWAP_EXTERNAL_HREF = "https://app.soroswap.finance";
+
+function hasViaPaySession(): boolean {
+  if (typeof document === "undefined") return false;
+  return /(?:^|;\s*)(viapay_demo_session|viapay_test_api_key)=/.test(
+    document.cookie,
+  );
+}
+
 function receiveWarning(intent: CheckoutIntent, t: Messages): string | null {
   const receive = intent.stellar?.receive;
   if (!receive) return null;
@@ -43,6 +59,31 @@ function receiveWarning(intent: CheckoutIntent, t: Messages): string | null {
     return t.warnResellerAsset(intent.asset);
   }
   return null;
+}
+
+function SwapTokensCta({ label }: { label: string }) {
+  const [href, setHref] = useState(SWAP_EXTERNAL_HREF);
+  useEffect(() => {
+    if (hasViaPaySession()) setHref(SWAP_PANEL_HREF);
+  }, []);
+  const external = href.startsWith("http");
+  return (
+    <a
+      href={href}
+      className="act act--ghost mt-3"
+      style={{ textDecoration: "none", color: "inherit" }}
+      {...(external
+        ? { target: "_blank", rel: "noreferrer" }
+        : {})}
+    >
+      <ArrowLeftRight
+        className="h-4 w-4"
+        style={{ color: "var(--primary)" }}
+        aria-hidden="true"
+      />
+      {label}
+    </a>
+  );
 }
 
 type Method = "wallet" | "qr";
@@ -284,7 +325,12 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
             </p>
           )}
 
-          {warning && <p className="pay-notice mt-4">{warning}</p>}
+          {warning && (
+            <div className="mt-4">
+              <p className="pay-notice">{warning}</p>
+              <SwapTokensCta label={t.swapTokens} />
+            </div>
+          )}
 
           <div className="pay-tabs mt-6" role="tablist" aria-label={t.methodAria}>
             <button
@@ -477,13 +523,16 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
           )}
 
           {error && (
-            <p
-              className="mt-4 text-center text-sm font-medium"
-              style={{ color: "var(--error)" }}
-              role="alert"
-            >
-              {error}
-            </p>
+            <div className="mt-4">
+              <p
+                className="text-center text-sm font-medium"
+                style={{ color: "var(--error)" }}
+                role="alert"
+              >
+                {error}
+              </p>
+              {!warning && <SwapTokensCta label={t.swapTokens} />}
+            </div>
           )}
 
           {intent.cancel_url && (

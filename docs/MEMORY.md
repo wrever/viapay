@@ -179,7 +179,7 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Auth OAuth → API key (dashboard): `apps/dashboard/src/lib/link-account.ts` + callback
 - Auth OAuth → API key (API link): `apps/api/src/app/v1/auth/link/route.ts`
 - Wallets destino: `POST/GET /v1/wallets` (`apps/api/src/app/v1/wallets/route.ts`) + `IntegrationPanel`
-- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + ruta `/pay/[id]`
+- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + ruta `/pay/[id]`. Si receive/error: CTA «swappear tokens» → `/app?tab=swap` (sesión) o `https://app.soroswap.finance`
 - Checkout legado (local): `apps/checkout/src/components/PayPanel.tsx`
 - Wallets Kit: `apps/dashboard/src/lib/checkout/wallet.ts` (y espejo en `apps/checkout`)
 - Pollar: `apps/dashboard/src/components/checkout/PollarShell.tsx`
