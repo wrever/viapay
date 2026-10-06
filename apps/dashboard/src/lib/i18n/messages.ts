@@ -382,7 +382,7 @@ const es: Messages = {
   swapExecute: "Firmar y swap",
   swapSwapping: "Enviando…",
   swapHint:
-    "La API key de Soroswap vive solo en el servidor. La firma es tuya (Freighter / Wallets Kit), igual que en el checkout.",
+    "Público: sin login ViaPay. La API key de Soroswap vive solo en el servidor. Firmás vos (Freighter / Wallets Kit).",
   swapOpenApp: "Abrir Soroswap",
   swapMissingKey: "Swap no configurado",
   swapMissingKeyBody:
@@ -610,7 +610,7 @@ const en: Messages = {
   swapExecute: "Sign & swap",
   swapSwapping: "Submitting…",
   swapHint:
-    "The Soroswap API key stays on the server. You sign with Freighter / Wallets Kit, same as checkout.",
+    "Public: no ViaPay login. The Soroswap API key stays on the server. You sign with Freighter / Wallets Kit.",
   swapOpenApp: "Open Soroswap",
   swapMissingKey: "Swap not configured",
   swapMissingKeyBody:
@@ -841,7 +841,7 @@ const pt: Messages = {
   swapExecute: "Assinar e swap",
   swapSwapping: "Enviando…",
   swapHint:
-    "A API key da Soroswap fica só no servidor. A assinatura é sua (Freighter / Wallets Kit), como no checkout.",
+    "Público: sem login ViaPay. A API key da Soroswap fica só no servidor. Você assina (Freighter / Wallets Kit).",
   swapOpenApp: "Abrir Soroswap",
   swapMissingKey: "Swap não configurado",
   swapMissingKeyBody:

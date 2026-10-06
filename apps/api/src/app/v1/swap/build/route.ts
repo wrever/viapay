@@ -1,6 +1,13 @@
 import { z } from "zod";
-import { jsonError, jsonOk, requireAuth } from "@/lib/http";
-import { buildSoroswapTx, type SoroswapQuote } from "@/lib/soroswap";
+import { jsonError, jsonOk } from "@/lib/http";
+import { assertSwapRateLimit } from "@/lib/rate-limit";
+import {
+  buildSoroswapTx,
+  resolveSwapNetwork,
+  tokenFor,
+  type SoroswapQuote,
+  type SwapAsset,
+} from "@/lib/soroswap";
 
 const schema = z.object({
   quote: z.record(z.any()),
@@ -11,11 +18,28 @@ const schema = z.object({
     .optional(),
 });
 
-/** Build unsigned XDR from a prior Soroswap quote. */
+function assertKnownSwapPair(quote: Record<string, unknown>): void {
+  const network = resolveSwapNetwork();
+  const allowed = new Set<string>([
+    tokenFor("XLM" as SwapAsset, network).contract,
+    tokenFor("USDC" as SwapAsset, network).contract,
+  ]);
+  const assetIn = typeof quote.assetIn === "string" ? quote.assetIn : "";
+  const assetOut = typeof quote.assetOut === "string" ? quote.assetOut : "";
+  if (!allowed.has(assetIn) || !allowed.has(assetOut) || assetIn === assetOut) {
+    throw Object.assign(
+      new Error("Solo se permiten swaps XLM ↔ USDC en esta red"),
+      { status: 400 },
+    );
+  }
+}
+
+/** Public: build unsigned XDR from a prior Soroswap quote. */
 export async function POST(req: Request) {
   try {
-    await requireAuth(req);
+    assertSwapRateLimit(req);
     const body = schema.parse(await req.json());
+    assertKnownSwapPair(body.quote);
     const built = await buildSoroswapTx({
       quote: body.quote as SoroswapQuote,
       from: body.from,

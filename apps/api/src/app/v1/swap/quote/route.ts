@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { jsonError, jsonOk, requireAuth } from "@/lib/http";
+import { jsonError, jsonOk } from "@/lib/http";
+import { assertSwapRateLimit } from "@/lib/rate-limit";
 import { getSoroswapQuote } from "@/lib/soroswap";
 
 const schema = z.object({
@@ -9,11 +10,17 @@ const schema = z.object({
   slippage_bps: z.number().int().min(1).max(5000).optional(),
 });
 
-/** Quote XLM↔USDC via Soroswap Aggregator (API key server-side). */
+/** Public quote XLM↔USDC via Soroswap (SOROSWAP_API_KEY stays server-side). */
 export async function POST(req: Request) {
   try {
-    await requireAuth(req);
+    assertSwapRateLimit(req);
     const body = schema.parse(await req.json());
+    if (body.asset_in === body.asset_out) {
+      throw Object.assign(
+        new Error("asset_in y asset_out deben ser distintos"),
+        { status: 400 },
+      );
+    }
     const quoted = await getSoroswapQuote({
       assetIn: body.asset_in,
       assetOut: body.asset_out,

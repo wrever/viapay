@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import {
-  ArrowLeftRight,
   CheckCircle2,
   Loader2,
   QrCode,
@@ -15,6 +14,7 @@ import {
   PollarLoginButton,
   type PollarSession,
 } from "@/components/checkout/PollarShell";
+import { CheckoutSwap } from "@/components/checkout/CheckoutSwap";
 import { buildSep7PayUri } from "@/lib/checkout/sep7";
 import type { CheckoutIntent } from "@/lib/checkout/types";
 import { useStellarWallet } from "@/lib/checkout/wallet";
@@ -34,16 +34,6 @@ function totalAmount(value: string, localeTag: string): string {
   });
 }
 
-const SWAP_PANEL_HREF = "/app?tab=swap";
-const SWAP_EXTERNAL_HREF = "https://app.soroswap.finance";
-
-function hasViaPaySession(): boolean {
-  if (typeof document === "undefined") return false;
-  return /(?:^|;\s*)(viapay_demo_session|viapay_test_api_key)=/.test(
-    document.cookie,
-  );
-}
-
 function receiveWarning(intent: CheckoutIntent, t: Messages): string | null {
   const receive = intent.stellar?.receive;
   if (!receive) return null;
@@ -61,31 +51,6 @@ function receiveWarning(intent: CheckoutIntent, t: Messages): string | null {
   return null;
 }
 
-function SwapTokensCta({ label }: { label: string }) {
-  const [href, setHref] = useState(SWAP_EXTERNAL_HREF);
-  useEffect(() => {
-    if (hasViaPaySession()) setHref(SWAP_PANEL_HREF);
-  }, []);
-  const external = href.startsWith("http");
-  return (
-    <a
-      href={href}
-      className="act act--ghost mt-3"
-      style={{ textDecoration: "none", color: "inherit" }}
-      {...(external
-        ? { target: "_blank", rel: "noreferrer" }
-        : {})}
-    >
-      <ArrowLeftRight
-        className="h-4 w-4"
-        style={{ color: "var(--primary)" }}
-        aria-hidden="true"
-      />
-      {label}
-    </a>
-  );
-}
-
 type Method = "wallet" | "qr";
 
 export function PayPanel({ intent }: { intent: CheckoutIntent }) {
@@ -96,6 +61,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const [status, setStatus] = useState(intent.status);
   const [txHash, setTxHash] = useState(intent.stellar_tx_hash);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [swapOpen, setSwapOpen] = useState(false);
   const network =
     intent.stellar?.network === "mainnet" || intent.stellar?.network === "local"
       ? intent.stellar.network
@@ -429,7 +395,6 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                   t.signAndPay
                 )}
               </button>
-              <SwapTokensCta label={t.swapTokens} />
               <p
                 className="text-center text-xs"
                 style={{ color: "var(--text-2)" }}
@@ -509,7 +474,6 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                   t.checkPayment
                 )}
               </button>
-              <SwapTokensCta label={t.swapTokens} />
               <p
                 className="text-center text-xs"
                 style={{ color: "var(--text-2)" }}
@@ -518,6 +482,14 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
               </p>
             </div>
           )}
+
+          <CheckoutSwap
+            t={t}
+            network={network}
+            payAsset={intent.asset}
+            open={swapOpen}
+            onOpenChange={setSwapOpen}
+          />
 
           {error && (
             <p

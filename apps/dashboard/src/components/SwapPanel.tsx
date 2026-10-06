@@ -35,10 +35,11 @@ type QuoteResult = {
 };
 
 export function SwapPanel({
-  apiKey,
+  apiKey: _apiKey,
   network,
 }: {
-  apiKey: string | null;
+  /** @deprecated Public swap endpoints; kept for call-site compat. */
+  apiKey?: string | null;
   network: string;
 }) {
   const { t } = useLocale();
@@ -83,10 +84,6 @@ export function SwapPanel({
   }, [assetIn, assetOut]);
 
   async function requestQuote() {
-    if (!apiKey) {
-      setError(t.errNoKey);
-      return;
-    }
     if (!status?.configured) {
       setError(t.swapMissingKey);
       return;
@@ -98,10 +95,7 @@ export function SwapPanel({
     try {
       const res = await fetch(`${API}/v1/swap/quote`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           asset_in: assetIn,
           asset_out: assetOut,
@@ -119,7 +113,7 @@ export function SwapPanel({
   }
 
   async function executeSwap() {
-    if (!apiKey || !quote) return;
+    if (!quote) return;
     setBusy("swap");
     setError(null);
     setTxHash(null);
@@ -132,10 +126,7 @@ export function SwapPanel({
 
       const buildRes = await fetch(`${API}/v1/swap/build`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           quote: quote.quote,
           from: address,
@@ -152,10 +143,7 @@ export function SwapPanel({
 
       const sendRes = await fetch(`${API}/v1/swap/send`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ xdr: signedXdr }),
       });
       const sent = await sendRes.json();
@@ -333,7 +321,7 @@ export function SwapPanel({
           <Button
             type="button"
             variant="outline"
-            disabled={Boolean(busy) || degraded || !apiKey}
+            disabled={Boolean(busy) || degraded}
             onClick={() => void requestQuote()}
           >
             {busy === "quote" ? (
@@ -347,7 +335,7 @@ export function SwapPanel({
           </Button>
           <Button
             type="button"
-            disabled={Boolean(busy) || degraded || !quote || !apiKey}
+            disabled={Boolean(busy) || degraded || !quote}
             onClick={() => void executeSwap()}
           >
             {busy === "swap" ? (

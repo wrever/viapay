@@ -92,9 +92,9 @@ Tesorería por defecto: `GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT
 | GET | `/v1/health` | health |
 | GET | `/v1/rates` | tasas crypto→fiat (XLM/USDC → CLP/ARS/COP/BOB/MXN/PEN/USD). Público, cache ~10 min. CoinGecko (crypto→USD) + open.er-api (USD→fiat); fallback a última tasa |
 | GET | `/v1/swap` | estado plus Soroswap (`configured`, red, tokens). Público; no filtra la API key |
-| POST | `/v1/swap/quote` | cotización XLM↔USDC vía Soroswap Aggregator. Bearer ViaPay. Requiere `SOROSWAP_API_KEY` |
-| POST | `/v1/swap/build` | arma XDR sin firmar desde un quote. Bearer ViaPay |
-| POST | `/v1/swap/send` | envía XDR firmado a Soroswap `/send`. Bearer ViaPay |
+| POST | `/v1/swap/quote` | cotización XLM↔USDC vía Soroswap Aggregator. **Público** (sin Bearer). Solo XLM↔USDC. Rate-limit ~40/min/IP. Requiere `SOROSWAP_API_KEY` server-side |
+| POST | `/v1/swap/build` | arma XDR sin firmar desde un quote. **Público**. Valida contratos XLM/USDC de la red |
+| POST | `/v1/swap/send` | envía XDR firmado a Soroswap `/send`. **Público** |
 | POST/GET | `/v1/wallets` | alta/lee billetera de destino del comercio |
 | POST | `/v1/wallets/trustline/prepare` | XDR `changeTrust` sin firmar (USDC Circle predefinido). Bearer comercio |
 | POST | `/v1/wallets/trustline/submit` | XDR firmado (Freighter) → Horizon. Fuente debe ser la wallet guardada |
@@ -148,7 +148,7 @@ Con `PAYMENT_ROUTER_CONTRACT_ID` en la API: `prepare` / `submit` (y x402 vía su
 - **Anchor SEP-24**: solo descubrimiento de `stellar.toml` si `ANCHOR_HOME_DOMAIN` está definido. No hay flujo interactivo de depósito/retiro.
 - **Escrow Trustless Work**: el POST existe. Sin `TRUSTLESSWORK_API_KEY` no llama a su API. Testnet: `https://beta.api.trustlesswork.com` (`/escrow/single-release/v2/deploy`). Mainnet legacy: `https://api.trustlesswork.com`.
 - **Pollar**: el checkout monta `PollarProvider` solo si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`. Sin key, el botón no aparece. Hace falta una key de `dashboard.pollar.xyz`.
-- **Swap Soroswap (plus)**: sección panel `#swap` + proxy API `/v1/swap/*`. **Prod (2026-10-06):** `SOROSWAP_API_KEY` en Vercel `viapay-api` como Secret (Encrypted/Sensitive) Production+Preview → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje + link a app.soroswap.finance) sin crashear. Con key: quote → build XDR → firma Freighter/Wallets Kit → `/send`. No es parte del cobro. Flujo docs: https://docs.soroswap.finance/api/quickstart
+- **Swap Soroswap (público en checkout + plus en panel)**: `POST /v1/swap/quote|build|send` son **públicos** (sin cuenta ViaPay); `SOROSWAP_API_KEY` solo server-side; rate-limit básico por IP. **Checkout pagador** `/pay/[id]`: acordeón «Swappear tokens» inline (`CheckoutSwap`) — XLM↔USDC, Freighter, sin cookie. Panel `#swap` (`SwapPanel`) usa los mismos endpoints. **Prod:** `SOROSWAP_API_KEY` en Vercel `viapay-api` → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje + link a app.soroswap.finance). Flujo docs: https://docs.soroswap.finance/api/quickstart
 - **x402 con facilitator**: el endpoint propio está vivo (ver arriba), pero ViaPay liquida por su cuenta. No hay integración con un facilitator x402 ni con el esquema de auth entries de Soroban.
 
 ## Límites reales
@@ -179,14 +179,14 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Auth OAuth → API key (dashboard): `apps/dashboard/src/lib/link-account.ts` + callback
 - Auth OAuth → API key (API link): `apps/api/src/app/v1/auth/link/route.ts`
 - Wallets destino: `POST/GET /v1/wallets` (`apps/api/src/app/v1/wallets/route.ts`) + `IntegrationPanel`
-- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + ruta `/pay/[id]`. CTA secundario siempre visible «¿No tienes el token? Swappear» → `/app?tab=swap` (sesión) o `https://app.soroswap.finance` (también en warning receive).
-- Checkout legado (local): `apps/checkout/src/components/PayPanel.tsx` (mismo CTA swap siempre)
+- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + ruta `/pay/[id]`. CTA «¿No tienes el token? Swappear» abre swap **inline** (`CheckoutSwap`), no manda a `/app?tab=swap`.
+- Checkout legado (local): `apps/checkout/src/components/PayPanel.tsx` (puede seguir con CTA externo; prod = dashboard)
 - Wallets Kit: `apps/dashboard/src/lib/checkout/wallet.ts` (y espejo en `apps/checkout`)
 - Pollar: `apps/dashboard/src/components/checkout/PollarShell.tsx`
 - Dashboard login OAuth: `apps/dashboard/src/lib/supabase.ts`, `auth/oauth`, `auth/callback` (`@supabase/ssr`)
 - Alta de cobro con revendedor y preview del desglose: `apps/dashboard/src/components/CreatePaymentLink.tsx`
 - Equivalencias crypto→fiat (aprox.): prefs `viapay-fiat` en `@viapay/prefs` (default CLP); tasas `GET /v1/rates` (`apps/api/src/lib/rates.ts`); UI en Cobros (`FiatEquivalent`), Integración (selector), checkout `/pay` y hints en Resumen/Estadísticas
-- Swap plus Soroswap (XLM↔USDC): `apps/api/src/lib/soroswap.ts` + rutas `/v1/swap`; UI `apps/dashboard/src/components/SwapPanel.tsx` (nav `#swap`)
+- Swap Soroswap XLM↔USDC: `apps/api/src/lib/soroswap.ts` + `rate-limit.ts` + rutas públicas `/v1/swap/*`; UI panel `SwapPanel.tsx` (`#swap`); checkout `CheckoutSwap.tsx`
 - Integración (wallet + trustlines testnet + API key + snippets curl/SDK + `externalUserId`): `apps/dashboard/src/components/IntegrationPanel.tsx` + `TrustlinesSection.tsx`
 - Tipo readiness del panel: `apps/dashboard/src/lib/readiness.ts`
 - SDK: `packages/sdk/src/index.ts` — `createPaymentLink` (camelCase + `externalUserId`), `createCheckout`, `getPaymentLink`, `parseX402Challenge`, `encodePaymentHeader`, `verifyWebhook` con `crypto.subtle`. README: `packages/sdk/README.md`

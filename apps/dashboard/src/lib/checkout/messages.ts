@@ -42,6 +42,31 @@ export type Messages = {
   warnTreasuryAsset: (asset: string) => string;
   warnResellerAsset: (asset: string) => string;
   swapTokens: string;
+  swapTitle: string;
+  swapDesc: string;
+  swapFrom: string;
+  swapTo: string;
+  swapFlip: string;
+  swapGetQuote: string;
+  swapQuoting: string;
+  swapConnectAndSwap: string;
+  swapExecute: string;
+  swapSwapping: string;
+  swapOpenApp: string;
+  swapUnavailable: string;
+  swapQuoteFail: string;
+  swapBuildFail: string;
+  swapSendFail: string;
+  swapWalletNeeded: string;
+  swapWallet: string;
+  swapQuoteLine: (
+    amountIn: string,
+    assetIn: string,
+    amountOut: string,
+    assetOut: string,
+  ) => string;
+  swapImpact: (pct: string) => string;
+  swapSuccess: string;
   pollarPay: string;
   pollarConnected: (short: string) => string;
   indexTitle: string;
@@ -105,6 +130,27 @@ const es: Messages = {
   warnResellerAsset: (asset) =>
     `Este cobro todavía no se puede completar en ${asset}. El revendedor no puede recibir ese activo.`,
   swapTokens: "¿No tienes el token? Swappear",
+  swapTitle: "Swappear tokens",
+  swapDesc: "Convertí XLM ↔ USDC acá mismo. Sin cuenta ViaPay: cotizá, firmá con Freighter y listo.",
+  swapFrom: "De",
+  swapTo: "A",
+  swapFlip: "Invertir par",
+  swapGetQuote: "Cotizar",
+  swapQuoting: "Cotizando…",
+  swapConnectAndSwap: "Conectar y swap",
+  swapExecute: "Firmar y swap",
+  swapSwapping: "Enviando…",
+  swapOpenApp: "Abrir Soroswap",
+  swapUnavailable: "Swap no disponible ahora. Probá más tarde o abrí Soroswap.",
+  swapQuoteFail: "No se pudo cotizar",
+  swapBuildFail: "No se pudo armar la transacción",
+  swapSendFail: "No se pudo enviar la transacción",
+  swapWalletNeeded: "Conectá una wallet Stellar para firmar.",
+  swapWallet: "Wallet",
+  swapQuoteLine: (amountIn, assetIn, amountOut, assetOut) =>
+    `${amountIn} ${assetIn} → ${amountOut} ${assetOut}`,
+  swapImpact: (pct) => `impacto ~${pct}%`,
+  swapSuccess: "Swap enviado.",
   pollarPay: "Pagar sin extensión (Pollar)",
   pollarConnected: (short) => `Billetera embebida ${short}`,
   indexTitle: "Acá se pagan los cobros",
@@ -168,6 +214,27 @@ const en: Messages = {
   warnResellerAsset: (asset) =>
     `This charge can’t be completed in ${asset} yet. The reseller can’t receive that asset.`,
   swapTokens: "Don't have the token? Swap",
+  swapTitle: "Swap tokens",
+  swapDesc: "Convert XLM ↔ USDC right here. No ViaPay account: quote, sign with Freighter, done.",
+  swapFrom: "From",
+  swapTo: "To",
+  swapFlip: "Flip pair",
+  swapGetQuote: "Get quote",
+  swapQuoting: "Quoting…",
+  swapConnectAndSwap: "Connect & swap",
+  swapExecute: "Sign & swap",
+  swapSwapping: "Submitting…",
+  swapOpenApp: "Open Soroswap",
+  swapUnavailable: "Swap unavailable right now. Try later or open Soroswap.",
+  swapQuoteFail: "Could not get a quote",
+  swapBuildFail: "Could not build the transaction",
+  swapSendFail: "Could not submit the transaction",
+  swapWalletNeeded: "Connect a Stellar wallet to sign.",
+  swapWallet: "Wallet",
+  swapQuoteLine: (amountIn, assetIn, amountOut, assetOut) =>
+    `${amountIn} ${assetIn} → ${amountOut} ${assetOut}`,
+  swapImpact: (pct) => `impact ~${pct}%`,
+  swapSuccess: "Swap submitted.",
   pollarPay: "Pay without an extension (Pollar)",
   pollarConnected: (short) => `Embedded wallet ${short}`,
   indexTitle: "This is where charges get paid",
@@ -231,6 +298,27 @@ const pt: Messages = {
   warnResellerAsset: (asset) =>
     `Esta cobrança ainda não pode ser concluída em ${asset}. O revendedor não pode receber esse ativo.`,
   swapTokens: "Não tem o token? Trocar",
+  swapTitle: "Trocar tokens",
+  swapDesc: "Converta XLM ↔ USDC aqui mesmo. Sem conta ViaPay: cotize, assine com Freighter e pronto.",
+  swapFrom: "De",
+  swapTo: "Para",
+  swapFlip: "Inverter par",
+  swapGetQuote: "Cotizar",
+  swapQuoting: "Cotizando…",
+  swapConnectAndSwap: "Conectar e trocar",
+  swapExecute: "Assinar e trocar",
+  swapSwapping: "Enviando…",
+  swapOpenApp: "Abrir Soroswap",
+  swapUnavailable: "Swap indisponível agora. Tente mais tarde ou abra o Soroswap.",
+  swapQuoteFail: "Não foi possível cotizar",
+  swapBuildFail: "Não foi possível montar a transação",
+  swapSendFail: "Não foi possível enviar a transação",
+  swapWalletNeeded: "Conecte uma carteira Stellar para assinar.",
+  swapWallet: "Carteira",
+  swapQuoteLine: (amountIn, assetIn, amountOut, assetOut) =>
+    `${amountIn} ${assetIn} → ${amountOut} ${assetOut}`,
+  swapImpact: (pct) => `impacto ~${pct}%`,
+  swapSuccess: "Swap enviado.",
   pollarPay: "Pagar sem extensão (Pollar)",
   pollarConnected: (short) => `Carteira embutida ${short}`,
   indexTitle: "Aqui se pagam as cobranças",

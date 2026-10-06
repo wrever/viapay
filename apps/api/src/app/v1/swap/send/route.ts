@@ -1,15 +1,16 @@
 import { z } from "zod";
-import { jsonError, jsonOk, requireAuth } from "@/lib/http";
+import { jsonError, jsonOk } from "@/lib/http";
+import { assertSwapRateLimit } from "@/lib/rate-limit";
 import { sendSoroswapTx } from "@/lib/soroswap";
 
 const schema = z.object({
-  xdr: z.string().min(20),
+  xdr: z.string().min(20).max(200_000),
 });
 
-/** Submit a signed swap XDR through Soroswap /send. */
+/** Public: submit a signed swap XDR through Soroswap /send. */
 export async function POST(req: Request) {
   try {
-    await requireAuth(req);
+    assertSwapRateLimit(req);
     const body = schema.parse(await req.json());
     const sent = await sendSoroswapTx({ xdr: body.xdr });
     return jsonOk(sent);
