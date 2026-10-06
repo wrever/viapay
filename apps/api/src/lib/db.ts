@@ -116,6 +116,8 @@ export function migrate(db = getDb()): void {
     reseller_fee_bps: "integer not null default 0",
     reseller_amount: "text not null default '0.0000000'",
     reseller_address: "text",
+    external_user_id: "text",
+    metadata: "text",
   });
 }
 

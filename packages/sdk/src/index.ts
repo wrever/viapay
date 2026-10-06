@@ -50,10 +50,82 @@ export type X402Challenge = {
 };
 
 export type ViaPayClientOptions = {
+  /**
+   * Merchant secret API key (`sk_test_…` / `sk_live_…`).
+   * Server-side only — creates payment links. There is no publishable key yet.
+   */
   apiKey: string;
+  /** API base, e.g. `https://viapay-api.vercel.app`. Default: localhost:3001. */
   baseUrl?: string;
+  /** Unused for now; checkout URL comes from the API response. */
   checkoutUrl?: string;
 };
+
+export type CreatePaymentLinkInput = {
+  /** Decimal string, Stellar precision (e.g. `"10.0000000"` or `"10"`). */
+  amount: string;
+  asset: AssetCode;
+  /** Optional display currency hint for your own records (not used on-chain). */
+  currency?: string;
+  /** Your end-customer id — stored on the payment intent for reconciliation. */
+  externalUserId?: string;
+  /** Alias of `externalUserId`. */
+  customerId?: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
+  successUrl?: string;
+  cancelUrl?: string;
+  /** Reseller's cut in basis points. 700 = 7%. Needs `resellerAddress`. */
+  resellerFeeBps?: number;
+  /** Stellar account (G…) that receives the reseller cut. */
+  resellerAddress?: string;
+};
+
+/** Snake_case body for `createCheckout` (HTTP-shaped). */
+export type CreateCheckoutInput = {
+  amount: string;
+  asset: AssetCode;
+  description?: string;
+  success_url?: string;
+  cancel_url?: string;
+  reseller_fee_bps?: number;
+  reseller_address?: string;
+  external_user_id?: string;
+  customer_id?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type PaymentLink = {
+  id: string;
+  url: string;
+  clientSecret: string;
+  amount: string;
+  asset: AssetCode;
+  feeAmount: string;
+  netAmount: string;
+  resellerAmount: string;
+  resellerAddress: string | null;
+  externalUserId: string | null;
+  metadata: Record<string, unknown> | null;
+  raw: unknown;
+};
+
+function mapPaymentLink(body: Record<string, unknown>): PaymentLink {
+  return {
+    id: body.id as string,
+    url: body.checkout_url as string,
+    clientSecret: body.client_secret as string,
+    amount: body.amount as string,
+    asset: body.asset as AssetCode,
+    feeAmount: body.fee_amount as string,
+    netAmount: body.net_amount as string,
+    resellerAmount: (body.reseller_amount as string) ?? "0.0000000",
+    resellerAddress: (body.reseller_address ?? null) as string | null,
+    externalUserId: (body.external_user_id ?? null) as string | null,
+    metadata: (body.metadata ?? null) as Record<string, unknown> | null,
+    raw: body,
+  };
+}
 
 export class ViaPay {
   private apiKey: string;
@@ -65,21 +137,38 @@ export class ViaPay {
   }
 
   /**
+   * Create a unique hosted payment link (`/pay/{id}`) for one charge.
+   * Prefer this over `createCheckout` for new integrations (camelCase + user id).
+   */
+  async createPaymentLink(input: CreatePaymentLinkInput): Promise<PaymentLink> {
+    const externalUserId = input.externalUserId ?? input.customerId;
+    const metadata =
+      input.metadata || input.currency
+        ? {
+            ...(input.metadata ?? {}),
+            ...(input.currency ? { currency: input.currency } : {}),
+          }
+        : undefined;
+
+    return this.createCheckout({
+      amount: input.amount,
+      asset: input.asset,
+      description: input.description,
+      success_url: input.successUrl,
+      cancel_url: input.cancelUrl,
+      reseller_fee_bps: input.resellerFeeBps,
+      reseller_address: input.resellerAddress,
+      external_user_id: externalUserId,
+      metadata,
+    });
+  }
+
+  /**
    * Create a hosted checkout. ViaPay's own fee lives on the server and cannot
    * be set from here; `reseller_fee_bps` is an extra cut on top of it, paid to
    * `reseller_address` in the same Stellar transaction.
    */
-  async createCheckout(input: {
-    amount: string;
-    asset: AssetCode;
-    description?: string;
-    success_url?: string;
-    cancel_url?: string;
-    /** Reseller's cut in basis points. 700 = 7%. Needs `reseller_address`. */
-    reseller_fee_bps?: number;
-    /** Stellar account (G…) that receives the reseller cut. */
-    reseller_address?: string;
-  }) {
+  async createCheckout(input: CreateCheckoutInput): Promise<PaymentLink> {
     if (input.reseller_fee_bps != null && input.reseller_fee_bps > 0 && !input.reseller_address) {
       throw new Error("reseller_fee_bps necesita reseller_address");
     }
@@ -89,23 +178,35 @@ export class ViaPay {
         Authorization: `Bearer ${this.apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        amount: input.amount,
+        asset: input.asset,
+        description: input.description,
+        success_url: input.success_url,
+        cancel_url: input.cancel_url,
+        reseller_fee_bps: input.reseller_fee_bps,
+        reseller_address: input.reseller_address,
+        external_user_id: input.external_user_id ?? input.customer_id,
+        metadata: input.metadata,
+      }),
     });
-    const body = await res.json();
+    const body = (await res.json()) as Record<string, unknown> & { error?: string };
     if (!res.ok) {
       throw new Error(body.error ?? `ViaPay error ${res.status}`);
     }
-    return {
-      id: body.id as string,
-      url: body.checkout_url as string,
-      clientSecret: body.client_secret as string,
-      amount: body.amount as string,
-      feeAmount: body.fee_amount as string,
-      netAmount: body.net_amount as string,
-      resellerAmount: body.reseller_amount as string,
-      resellerAddress: (body.reseller_address ?? null) as string | null,
-      raw: body,
-    };
+    return mapPaymentLink(body);
+  }
+
+  /** Fetch one payment intent by id (same merchant as the API key). */
+  async getPaymentLink(id: string): Promise<PaymentLink> {
+    const res = await fetch(`${this.baseUrl}/v1/payment_intents/${encodeURIComponent(id)}`, {
+      headers: { Authorization: `Bearer ${this.apiKey}` },
+    });
+    const body = (await res.json()) as Record<string, unknown> & { error?: string };
+    if (!res.ok) {
+      throw new Error(body.error ?? `ViaPay error ${res.status}`);
+    }
+    return mapPaymentLink(body);
   }
 
   /**

@@ -13,6 +13,7 @@ const SNIPPETS = {
   -d '{
     "amount": "20.0000000",
     "asset": "USDC",
+    "external_user_id": "user_42",
     "success_url": "https://tu-tienda.example/gracias",
     "cancel_url": "https://tu-tienda.example/carrito",
     "reseller_fee_bps": 700,
@@ -21,14 +22,15 @@ const SNIPPETS = {
   sdk: `import { ViaPay } from "@viapay/sdk";
 
 const via = new ViaPay({ apiKey, baseUrl });
-const checkout = await via.createCheckout({
-  amount: "20.0000000",
+const link = await via.createPaymentLink({
+  amount: "20",
   asset: "USDC",
-  success_url: "https://tu-tienda.example/gracias",
-  reseller_fee_bps: 700,
-  reseller_address: "G…",
+  externalUserId: "user_42",
+  successUrl: "https://tu-tienda.example/gracias",
+  resellerFeeBps: 700,
+  resellerAddress: "G…",
 });
-// window.location = checkout.url;
+// window.location = link.url;
 
 const ok = await ViaPay.verifyWebhook(rawBody, signatureHeader, secret);`,
   x402: `GET  /v1/x402/:id?client_secret=…  → 402 + accepts[] + viapay.breakdown

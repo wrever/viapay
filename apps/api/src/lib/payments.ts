@@ -28,6 +28,10 @@ export interface PaymentIntentRow {
   asset_code: AssetCode;
   merchant_wallet: string;
   description: string | null;
+  /** Merchant's own end-customer id (not a ViaPay user). */
+  external_user_id: string | null;
+  /** Opaque JSON object from the merchant (stringified in DB). */
+  metadata: Record<string, unknown> | null;
   client_secret: string;
   success_url: string | null;
   cancel_url: string | null;
@@ -36,6 +40,23 @@ export interface PaymentIntentRow {
   succeeded_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+function parseMetadata(raw: unknown): Record<string, unknown> | null {
+  if (raw == null || raw === "") return null;
+  if (typeof raw === "object" && !Array.isArray(raw)) {
+    return raw as Record<string, unknown>;
+  }
+  if (typeof raw !== "string") return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 function normalizeRow(raw: Record<string, unknown>): PaymentIntentRow {
@@ -53,6 +74,8 @@ function normalizeRow(raw: Record<string, unknown>): PaymentIntentRow {
     asset_code: raw.asset_code as AssetCode,
     merchant_wallet: String(raw.merchant_wallet),
     description: (raw.description as string | null) ?? null,
+    external_user_id: (raw.external_user_id as string | null) ?? null,
+    metadata: parseMetadata(raw.metadata),
     client_secret: String(raw.client_secret),
     success_url: (raw.success_url as string | null) ?? null,
     cancel_url: (raw.cancel_url as string | null) ?? null,
@@ -93,6 +116,8 @@ export function serializePaymentIntent(row: PaymentIntentRow) {
     asset: row.asset_code,
     merchant_wallet: row.merchant_wallet,
     description: row.description,
+    external_user_id: row.external_user_id,
+    metadata: row.metadata,
     client_secret: row.client_secret,
     checkout_url: buildCheckoutUrl(row.id, row.client_secret),
     success_url: row.success_url,
@@ -114,6 +139,9 @@ export async function createPaymentIntent(
     cancel_url?: string;
     reseller_fee_bps?: number;
     reseller_address?: string;
+    /** Merchant's end-customer id (aliases accepted at the HTTP layer). */
+    external_user_id?: string;
+    metadata?: Record<string, unknown>;
   },
 ): Promise<PaymentIntentRow> {
   if (!auth.merchantWallet) {
@@ -155,6 +183,13 @@ export async function createPaymentIntent(
       { status: 400 },
     );
   }
+  const externalUserId = input.external_user_id?.trim() || null;
+  const metadata =
+    input.metadata && Object.keys(input.metadata).length > 0
+      ? input.metadata
+      : null;
+  const metadataJson = metadata ? JSON.stringify(metadata) : null;
+
   const id = generatePrefixedId("pi");
   const now = new Date().toISOString();
   const row: PaymentIntentRow = {
@@ -171,6 +206,8 @@ export async function createPaymentIntent(
     asset_code: input.asset,
     merchant_wallet: auth.merchantWallet,
     description: input.description ?? null,
+    external_user_id: externalUserId,
+    metadata,
     client_secret: `${id}_secret_${generatePrefixedId("cs").slice(3)}`,
     success_url: input.success_url ?? null,
     cancel_url: input.cancel_url ?? null,
@@ -196,6 +233,8 @@ export async function createPaymentIntent(
       asset_code: row.asset_code,
       merchant_wallet: row.merchant_wallet,
       description: row.description,
+      external_user_id: row.external_user_id,
+      metadata: metadataJson,
       client_secret: row.client_secret,
       success_url: row.success_url,
       cancel_url: row.cancel_url,
@@ -212,16 +251,19 @@ export async function createPaymentIntent(
       `insert into payment_intents (
         id, account_id, status, amount, fee_amount, net_amount, fee_bps,
         reseller_fee_bps, reseller_amount, reseller_address,
-        asset_code, merchant_wallet, description, client_secret,
-        success_url, cancel_url, expires_at, created_at, updated_at
+        asset_code, merchant_wallet, description, external_user_id, metadata,
+        client_secret, success_url, cancel_url, expires_at, created_at, updated_at
       ) values (
         @id, @account_id, @status, @amount, @fee_amount, @net_amount, @fee_bps,
         @reseller_fee_bps, @reseller_amount, @reseller_address,
-        @asset_code, @merchant_wallet, @description, @client_secret,
-        @success_url, @cancel_url, @expires_at, @created_at, @updated_at
+        @asset_code, @merchant_wallet, @description, @external_user_id, @metadata,
+        @client_secret, @success_url, @cancel_url, @expires_at, @created_at, @updated_at
       )`,
     )
-    .run(row);
+    .run({
+      ...row,
+      metadata: metadataJson,
+    });
 
   return row;
 }

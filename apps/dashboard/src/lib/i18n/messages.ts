@@ -89,6 +89,7 @@ export type Messages = {
   integrationDesc: string;
   integrationKeyLabel: string;
   integrationKeyHint: string;
+  integrationKeyExplain: string;
   integrationDocs: string;
   integrationWalletLabel: string;
   integrationWalletHint: string;
@@ -97,6 +98,11 @@ export type Messages = {
   integrationWalletFail: string;
   integrationNoWallet: string;
   integrationPollHint: string;
+  integrationUsersTitle: string;
+  integrationUsersBody: string;
+  integrationSnippetTitle: string;
+  integrationSnippetCurl: string;
+  integrationSnippetSdk: string;
   historyColWhen: string;
   historyColConcept: string;
   historyColAmount: string;
@@ -275,9 +281,11 @@ const es: Messages = {
   historyTitle: "Historial",
   historyEmpty: "Todavía no hay pagos recibidos.",
   integrationTitle: "Integración",
-  integrationDesc: "Billetera de destino y API key de tu comercio.",
-  integrationKeyLabel: "API key",
-  integrationKeyHint: "Usala en Authorization: Bearer …",
+  integrationDesc: "Billetera de destino, API key y cómo crear links de pago por código.",
+  integrationKeyLabel: "API key secreta",
+  integrationKeyHint: "Usala en Authorization: Bearer … solo en tu servidor.",
+  integrationKeyExplain:
+    "Hoy solo hay key secreta (sk_…). No hay publishable key: no crees cobros desde el navegador del pagador. Guardá la key en variables de entorno.",
   integrationDocs: "Ver docs",
   integrationWalletLabel: "Billetera de destino",
   integrationWalletHint: "Cuenta Stellar (G…) donde llega el neto.",
@@ -288,6 +296,12 @@ const es: Messages = {
     "Obligatorio: sin billetera de destino el dinero no puede llegar a tu cuenta.",
   integrationPollHint:
     "Consultá el estado con GET /v1/payment_intents/:id (o la lista).",
+  integrationUsersTitle: "Usuarios de tu plataforma",
+  integrationUsersBody:
+    "Pasá external_user_id (o externalUserId / customerId) con el id de tu cliente. Queda guardado en el cobro para que puedas reconciliar quién pagó. No es un usuario de ViaPay.",
+  integrationSnippetTitle: "Crear un link de pago",
+  integrationSnippetCurl: "cURL",
+  integrationSnippetSdk: "SDK JavaScript",
   historyColWhen: "Fecha",
   historyColConcept: "Concepto",
   historyColAmount: "Total",
@@ -467,9 +481,11 @@ const en: Messages = {
   historyTitle: "History",
   historyEmpty: "No payments received yet.",
   integrationTitle: "Integration",
-  integrationDesc: "Destination wallet and API key for your merchant.",
-  integrationKeyLabel: "API key",
-  integrationKeyHint: "Use it as Authorization: Bearer …",
+  integrationDesc: "Destination wallet, API key, and how to create payment links in code.",
+  integrationKeyLabel: "Secret API key",
+  integrationKeyHint: "Use it as Authorization: Bearer … on your server only.",
+  integrationKeyExplain:
+    "Today you only get a secret key (sk_…). There is no publishable key — do not create charges from the payer's browser. Store the key in env vars.",
   integrationDocs: "View docs",
   integrationWalletLabel: "Destination wallet",
   integrationWalletHint: "Stellar account (G…) that receives the net.",
@@ -480,6 +496,12 @@ const en: Messages = {
     "Required: without a destination wallet, funds cannot reach your account.",
   integrationPollHint:
     "Check status with GET /v1/payment_intents/:id (or the list).",
+  integrationUsersTitle: "Your platform users",
+  integrationUsersBody:
+    "Pass external_user_id (or externalUserId / customerId) with your customer's id. It is stored on the charge so you can reconcile who paid. It is not a ViaPay user.",
+  integrationSnippetTitle: "Create a payment link",
+  integrationSnippetCurl: "cURL",
+  integrationSnippetSdk: "JavaScript SDK",
   historyColWhen: "Date",
   historyColConcept: "Memo",
   historyColAmount: "Total",
@@ -662,9 +684,11 @@ const pt: Messages = {
   historyTitle: "Histórico",
   historyEmpty: "Ainda não há pagamentos recebidos.",
   integrationTitle: "Integração",
-  integrationDesc: "Carteira de destino e API key do seu comércio.",
-  integrationKeyLabel: "API key",
-  integrationKeyHint: "Use em Authorization: Bearer …",
+  integrationDesc: "Carteira de destino, API key e como criar links de pagamento por código.",
+  integrationKeyLabel: "API key secreta",
+  integrationKeyHint: "Use em Authorization: Bearer … só no seu servidor.",
+  integrationKeyExplain:
+    "Hoje só existe key secreta (sk_…). Não há publishable key: não crie cobranças no navegador do pagador. Guarde a key em variáveis de ambiente.",
   integrationDocs: "Ver docs",
   integrationWalletLabel: "Carteira de destino",
   integrationWalletHint: "Conta Stellar (G…) que recebe o líquido.",
@@ -675,6 +699,12 @@ const pt: Messages = {
     "Obrigatório: sem carteira de destino o dinheiro não pode chegar à sua conta.",
   integrationPollHint:
     "Consulte o status com GET /v1/payment_intents/:id (ou a lista).",
+  integrationUsersTitle: "Usuários da sua plataforma",
+  integrationUsersBody:
+    "Passe external_user_id (ou externalUserId / customerId) com o id do seu cliente. Fica salvo na cobrança para reconciliar quem pagou. Não é um usuário ViaPay.",
+  integrationSnippetTitle: "Criar um link de pagamento",
+  integrationSnippetCurl: "cURL",
+  integrationSnippetSdk: "SDK JavaScript",
   historyColWhen: "Data",
   historyColConcept: "Conceito",
   historyColAmount: "Total",

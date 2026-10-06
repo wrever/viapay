@@ -31,12 +31,15 @@ curl -s -X POST http://localhost:3001/v1/payment_intents \
     "amount": "20.0000000",
     "asset": "USDC",
     "description": "Curso Hubby",
+    "external_user_id": "user_42",
     "success_url": "https://tu-tienda.example/gracias",
     "cancel_url": "https://tu-tienda.example/carrito"
   }'
 ```
 
-Respuesta útil: `id`, `client_secret`, `checkout_url`, `fee_amount`, `net_amount`, `reseller_amount`.
+Respuesta útil: `id`, `client_secret`, `checkout_url`, `fee_amount`, `net_amount`, `reseller_amount`, `external_user_id`, `metadata`.
+
+`external_user_id` (aliases: `externalUserId`, `customer_id`, `customerId`, `customer_ref`) es **tu** id de cliente — no es un usuario ViaPay. Opcional `metadata` (objeto JSON, ~4KB).
 
 Redirige al cliente a `checkout_url`. Cuando pague, ViaPay puede redirigir a `success_url` con `payment_intent` y `tx_hash` en la query.
 
@@ -62,25 +65,30 @@ Curso $20 → ~$0.20 ViaPay, ~$1.40 Hubby, ~$18.40 creador, en **una** tx Stella
 
 ## 3. SDK JavaScript
 
+Paquete monorepo: [`packages/sdk`](../packages/sdk) (`@viapay/sdk`). Auth: **secret key** `sk_…` en servidor. No hay publishable key todavía.
+
 ```js
 import { ViaPay } from "@viapay/sdk";
 
 const via = new ViaPay({
   apiKey: process.env.VIAPAY_API_KEY,
-  baseUrl: "http://localhost:3001",
+  baseUrl: "https://viapay-api.vercel.app", // o http://localhost:3001
 });
 
-const checkout = await via.createCheckout({
-  amount: "20.0000000",
+const link = await via.createPaymentLink({
+  amount: "20",
   asset: "USDC",
-  success_url: "https://tu-tienda.example/gracias",
-  reseller_fee_bps: 700,
-  reseller_address: "G…",
+  externalUserId: "user_42",
+  successUrl: "https://tu-tienda.example/gracias",
+  resellerFeeBps: 700,
+  resellerAddress: "G…",
 });
 
 // Redirige al humano:
-// window.location = checkout.url;
+// window.location = link.url;
 ```
+
+También: `createCheckout` (snake_case HTTP), `getPaymentLink(id)`.
 
 Webhooks:
 
