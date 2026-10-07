@@ -4,7 +4,8 @@ Actualizado: 2026-10-07. Honestidad: pelear **top-3 / mención**; oro solo con *
 
 ## Ángulo (no negociar)
 
-Mismo `payment_intent` → **un `checkout_url`** → humano (Freighter) o agente (402) → split en **payment-router** → hash. Pasarela de cobro, no protocolo.
+**Pasarela completa**, no protocolo. Mismo `payment_intent` → **un `checkout_url`** → humano o agente → split en **payment-router** → hash + panel.  
+Local402/Honorarios = nicho; ViaPay = checkout de punta a cabo. Ver [`submission/PITCH_KILL.md`](./submission/PITCH_KILL.md).
 
 ## Amenazas #1 a vigilar
 

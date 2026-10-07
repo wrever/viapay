@@ -13,9 +13,9 @@
 2. **15–35s** — Cobros: monto + revendedor → crear → copiar **un** link. Chip “Soroban router” en `/pay`.
 3. **35–60s** — Browser → Freighter → Firmar → recibo + hash (invoke `pay`, no 3 ops clásicas).
 4. **60–80s** — `curl -i` al mismo link → 402; o `agent-pay.mjs` → liquidación.
-5. **80–90s** — Historial. Cierre: “No somos Local402 ni Honorarios; somos el checkout del comercio.”
+5. **80–90s** — Historial. Cierre: “Ellos son apps de nicho. Nosotros somos la pasarela completa.”
 
-One-pager: [`JUDGE_ONE_PAGER.md`](./JUDGE_ONE_PAGER.md).
+One-pager: [`JUDGE_ONE_PAGER.md`](./JUDGE_ONE_PAGER.md) · Kill sheet: [`PITCH_KILL.md`](./PITCH_KILL.md).
 
 ## Frases prohibidas
 

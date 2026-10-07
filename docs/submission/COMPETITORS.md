@@ -35,7 +35,10 @@ Actualizado: 2026-10-07. Meta: **top-3 / mención**. Oro solo con mainnet + SEP-
 
 ## Ángulo ViaPay (repetir)
 
-> Un cobro. Un link. Humano o agente. Split 3 patas en el contrato payment-router. Hash en stellar.expert. Panel para el comercio.
+> No somos un protocolo. Somos la **pasarela de cobro completa**: panel → un link → humano o agente → split en payment-router → hash.  
+> Local402 y Honorarios son apps de nicho (FX / tax). Nosotros cobramos el negocio de punta a cabo.
+
+Kill sheet: [`PITCH_KILL.md`](./PITCH_KILL.md).
 
 ## NO hacer para “ganar”
 
