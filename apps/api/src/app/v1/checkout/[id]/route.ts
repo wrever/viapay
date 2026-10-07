@@ -6,6 +6,7 @@ import { ensureDb, jsonError, jsonOk } from "@/lib/http";
 import { getTreasuryAddress } from "@/lib/auth";
 import {
   buildCheckoutSep7,
+  paymentRouterContractId,
   receiveStatusFor,
   reconcileCheckoutPayment,
   stellarNetwork,
@@ -63,17 +64,21 @@ export async function GET(
       sep7Error = error instanceof Error ? error.message : "No se pudo armar el QR";
     }
 
+    const routerId = paymentRouterContractId();
     return jsonOk({
       ...serializePaymentIntent(row),
       treasury_wallet: getTreasuryAddress(),
       breakdown: breakdownFor(row),
       x402_url: x402ResourceUrl(row),
       sep7_tx: sep7Tx,
+      settlement: routerId ? "router" : "classic",
+      contract_id: routerId,
       stellar: {
         network: stellarNetwork(),
         asset_issuer: issuer,
         sep7_error: sep7Error,
         receive,
+        payment_router: routerId,
       },
     });
   } catch (e) {

@@ -20,10 +20,30 @@ import {
   type PaymentIntentRow,
 } from "./payments";
 
-/** Prefer Soroban payment-router when configured; else classic multi-op. */
+/** Soroban payment-router contract id when configured. */
 export function paymentRouterContractId(): string | null {
   const id = process.env.PAYMENT_ROUTER_CONTRACT_ID?.trim();
   return id || null;
+}
+
+/**
+ * On-chain settlement must go through payment-router so args (merchant / treasury /
+ * reseller / amounts / intent) are verified before RPC submit.
+ * Classic multi-op is only allowed in STELLAR_MODE=simulated without a contract id.
+ */
+export function requirePaymentRouterContractId(): string {
+  const id = paymentRouterContractId();
+  if (id) return id;
+  throw Object.assign(
+    new Error(
+      "PAYMENT_ROUTER_CONTRACT_ID no está configurado. Los cobros on-chain solo liquidan por el contrato payment-router.",
+    ),
+    { status: 503 },
+  );
+}
+
+export function usesPaymentRouter(): boolean {
+  return Boolean(paymentRouterContractId());
 }
 
 export function stellarNetwork(): Network {
@@ -70,6 +90,14 @@ export function sep7CallbackUrl(id: string, clientSecret: string): string {
 }
 
 export function buildCheckoutSep7(row: PaymentIntentRow): string {
+  if (usesPaymentRouter()) {
+    throw Object.assign(
+      new Error(
+        "Este cobro liquida por el contrato payment-router. Usá Billetera (Freighter); el QR clásico no aplica.",
+      ),
+      { status: 400 },
+    );
+  }
   const leg = splitLegFor(row, getTreasuryAddress());
   return buildSep7SplitUri({
     ...leg,
@@ -113,9 +141,13 @@ export async function prepareCheckoutXdr(
       xdr: prepared.xdr,
       network_passphrase: prepared.networkPassphrase,
       included_trustline: prepared.includedTrustline,
-      settlement: prepared.settlement,
+      settlement: "router" as const,
       contract_id: prepared.contractId,
     };
+  }
+  // Simulated / local only — onchain without contract id fails via require.
+  if (process.env.STELLAR_MODE !== "simulated") {
+    requirePaymentRouterContractId();
   }
   const prepared = await buildSplitPaymentXdr(leg);
   return {
@@ -176,8 +208,32 @@ export async function submitCheckoutXdr(
   if (row.status === "succeeded") return row;
   const leg = splitLegFor(row, "");
   const routerId = paymentRouterContractId();
-  const submitted = routerId
-    ? await submitVerifiedRouter(signedXdr, leg, routerId)
-    : await submitVerifiedSplit(signedXdr, leg);
+  if (routerId) {
+    try {
+      const submitted = await submitVerifiedRouter(signedXdr, leg, routerId);
+      return markCheckoutSucceeded(id, submitted.hash);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Pago router rechazado";
+      // Classic multi-op XDR must never settle when the router is configured.
+      if (
+        /invokeHostFunction|invokeContract|payment-router|única operación/i.test(
+          message,
+        )
+      ) {
+        throw Object.assign(
+          new Error(
+            `${message}. Este cobro solo acepta liquidación por el contrato payment-router (prepare → firmar → submit).`,
+          ),
+          { status: (error as { status?: number }).status ?? 400 },
+        );
+      }
+      throw error;
+    }
+  }
+  if (process.env.STELLAR_MODE !== "simulated") {
+    requirePaymentRouterContractId();
+  }
+  const submitted = await submitVerifiedSplit(signedXdr, leg);
   return markCheckoutSucceeded(id, submitted.hash);
 }

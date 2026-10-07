@@ -60,7 +60,7 @@ Monorepo pnpm. Puertos: dashboard (:3000, incluye checkout `/pay/[id]`), API `:3
 
 ## Qué está vivo
 
-El camino de cobro **preferido** es Soroban `payment-router` cuando `PAYMENT_ROUTER_CONTRACT_ID` está set. Si falta, cae al split clásico multi-op.
+En **onchain**, la liquidación **exige** Soroban `payment-router` (`PAYMENT_ROUTER_CONTRACT_ID`). Prepare arma `pay(...)`; submit llama `assertRouterPayXdr` (contrato, merchant, treasury, reseller, montos, intent_id) antes del RPC. Sin contract id en onchain → 503. Clásico multi-op solo si `STELLAR_MODE=simulated` sin router. Con router activo, SEP-7 clásico **no** se ofrece (error en QR: usá Billetera).
 
 1. El dashboard crea un payment intent (`POST /v1/payment_intents`), con o sin revendedor (preview del split al crear).
 2. Quien abre `checkout_url`: si es navegador → 302 a `pay_url` (`/pay/[id]`); si es agente → 402. El hosted carga `GET /v1/checkout/:id` (breakdown, preflight). Tabs **Billetera | QR**.
@@ -146,7 +146,7 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 | tx del deploy | `7f0d1f0a4e9090e86f17eecb438544e8e178d632fc0ac5c91fdfc712b4c7f159` |
 | hash del wasm | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
 
-Con `PAYMENT_ROUTER_CONTRACT_ID` en la API: `prepare` / `submit` (y x402 vía submit) invoca el contrato. Sin esa env: split clásico. SEP-7 y reconcile Horizon siguen clásicos. Código: `buildRouterPayXdr` / `submitVerifiedRouter` en `packages/stellar`.
+Onchain + `PAYMENT_ROUTER_CONTRACT_ID`: `prepare` / `submit` / x402 solo router; un XDR clásico se rechaza. SEP-7 clásico desactivado si hay router. Reconcile Horizon por memo sigue siendo path clásico (no marca cobros router). Código: `requirePaymentRouterContractId`, `buildRouterPayXdr`, `assertRouterPayXdr`, `submitVerifiedRouter`.
 
 ## Lo que no está desplegado
 
