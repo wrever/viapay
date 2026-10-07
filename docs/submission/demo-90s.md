@@ -9,10 +9,10 @@
 
 ## Guión
 
-1. **0–15s** — “Pasarela Stellar: un cobro, humano o agente, split 3 patas.”
+1. **0–15s** — “Pasarela Stellar: un cobro, tres puertas, un hash; split 3 patas.”
 2. **15–35s** — Cobros: monto + revendedor → crear → copiar link. Mencionar preflight receive/trustline.
-3. **35–60s** — Abrir `/pay` → Freighter → Firmar y pagar → `succeeded` + abrir hash en stellar.expert.
-4. **60–80s** — Segundo cobro → `pnpm`/`node examples/agent-pay.mjs` → 402 → liquidación → succeeded.
+3. **35–60s** — Abrir `/pay` → mostrar preview del split + tabs Billetera/QR/Agente → Freighter → Firmar → recibo on-chain + hash en stellar.expert.
+4. **60–80s** — Tab Agente (misma URL x402) o `node examples/agent-pay.mjs` → 402 → liquidación → succeeded.
 5. **80–90s** — Panel Historial. Cierre: “No somos otro protocolo; somos el checkout.”
 
 ## Frases prohibidas

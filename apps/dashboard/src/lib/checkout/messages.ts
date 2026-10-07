@@ -7,6 +7,22 @@ export type Messages = {
   methodAria: string;
   walletTab: string;
   qrTab: string;
+  agentTab: string;
+  doorsHint: string;
+  splitTitle: string;
+  splitHint: string;
+  receiptTitle: string;
+  receiptHint: string;
+  splitMerchant: string;
+  splitViaPay: string;
+  splitReseller: string;
+  agentTitle: string;
+  agentBody: string;
+  agentUrlLabel: string;
+  agentCopy: string;
+  agentCopied: string;
+  agentCurlLabel: string;
+  agentDemoHint: string;
   swapTokens: string;
   backToPay: string;
   connectWallet: string;
@@ -88,6 +104,23 @@ const es: Messages = {
   methodAria: "Cómo pagar",
   walletTab: "Billetera",
   qrTab: "Código QR",
+  agentTab: "Agente",
+  doorsHint: "Mismo cobro · tres formas · un solo hash en Stellar",
+  splitTitle: "En esta firma se reparte",
+  splitHint: "Una transacción, varias transferencias on-chain. El % de ViaPay lo fija el servidor.",
+  receiptTitle: "Recibo on-chain",
+  receiptHint: "Así quedó el reparto en la misma transacción.",
+  splitMerchant: "Comercio",
+  splitViaPay: "ViaPay",
+  splitReseller: "Revendedor",
+  agentTitle: "Pagar con un agente (x402)",
+  agentBody:
+    "Un bot o script puede liquidar este mismo payment_intent por HTTP 402. El split (comercio + ViaPay + revendedor) va en el challenge.",
+  agentUrlLabel: "Endpoint x402",
+  agentCopy: "Copiar URL",
+  agentCopied: "Copiada",
+  agentCurlLabel: "Probar challenge",
+  agentDemoHint: "Demo completa: examples/agent-pay.mjs en el repo.",
   swapTokens: "¿No tienes el token? Swappear",
   backToPay: "Volver a pagar",
   connectWallet: "Conectar billetera Stellar",
@@ -172,6 +205,23 @@ const en: Messages = {
   methodAria: "How to pay",
   walletTab: "Wallet",
   qrTab: "QR code",
+  agentTab: "Agent",
+  doorsHint: "Same charge · three ways · one Stellar hash",
+  splitTitle: "This signature splits to",
+  splitHint: "One transaction, multiple on-chain transfers. ViaPay’s % is server-fixed.",
+  receiptTitle: "On-chain receipt",
+  receiptHint: "How the split landed in the same transaction.",
+  splitMerchant: "Merchant",
+  splitViaPay: "ViaPay",
+  splitReseller: "Reseller",
+  agentTitle: "Pay with an agent (x402)",
+  agentBody:
+    "A bot or script can settle this same payment_intent over HTTP 402. The split (merchant + ViaPay + reseller) is in the challenge.",
+  agentUrlLabel: "x402 endpoint",
+  agentCopy: "Copy URL",
+  agentCopied: "Copied",
+  agentCurlLabel: "Probe the challenge",
+  agentDemoHint: "Full demo: examples/agent-pay.mjs in the repo.",
   swapTokens: "Don't have the token? Swap",
   backToPay: "Back to checkout",
   connectWallet: "Connect Stellar wallet",
@@ -256,6 +306,23 @@ const pt: Messages = {
   methodAria: "Como pagar",
   walletTab: "Carteira",
   qrTab: "Código QR",
+  agentTab: "Agente",
+  doorsHint: "Mesma cobrança · três formas · um único hash na Stellar",
+  splitTitle: "Nesta assinatura o valor vai para",
+  splitHint: "Uma transação, várias transferências on-chain. O % da ViaPay é fixo no servidor.",
+  receiptTitle: "Recibo on-chain",
+  receiptHint: "Como ficou o rateio na mesma transação.",
+  splitMerchant: "Comércio",
+  splitViaPay: "ViaPay",
+  splitReseller: "Revendedor",
+  agentTitle: "Pagar com um agente (x402)",
+  agentBody:
+    "Um bot ou script pode liquidar este mesmo payment_intent via HTTP 402. O split (comércio + ViaPay + revendedor) vem no challenge.",
+  agentUrlLabel: "Endpoint x402",
+  agentCopy: "Copiar URL",
+  agentCopied: "Copiada",
+  agentCurlLabel: "Testar o challenge",
+  agentDemoHint: "Demo completa: examples/agent-pay.mjs no repositório.",
   swapTokens: "Não tem o token? Trocar",
   backToPay: "Voltar a pagar",
   connectWallet: "Conectar carteira Stellar",

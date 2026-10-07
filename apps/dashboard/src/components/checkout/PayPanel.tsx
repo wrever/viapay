@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import {
   ArrowLeftRight,
+  Bot,
   CheckCircle2,
   Loader2,
   QrCode,
@@ -16,6 +17,8 @@ import {
   type PollarSession,
 } from "@/components/checkout/PollarShell";
 import { CheckoutSwap } from "@/components/checkout/CheckoutSwap";
+import { SplitLegsList } from "@/components/checkout/SplitLegsList";
+import { legsFromIntent } from "@/lib/checkout/breakdown";
 import { buildSep7PayUri } from "@/lib/checkout/sep7";
 import type { CheckoutIntent } from "@/lib/checkout/types";
 import { useStellarWallet } from "@/lib/checkout/wallet";
@@ -52,7 +55,14 @@ function receiveWarning(intent: CheckoutIntent, t: Messages): string | null {
   return null;
 }
 
-type Method = "wallet" | "qr";
+function x402UrlFor(intent: CheckoutIntent): string {
+  if (intent.x402_url) return intent.x402_url;
+  const url = new URL(`${API}/v1/x402/${intent.id}`);
+  url.searchParams.set("client_secret", intent.client_secret);
+  return url.toString();
+}
+
+type Method = "wallet" | "qr" | "agent";
 type View = "pay" | "swap";
 
 export function PayPanel({ intent }: { intent: CheckoutIntent }) {
@@ -64,6 +74,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const [status, setStatus] = useState(intent.status);
   const [txHash, setTxHash] = useState(intent.stellar_tx_hash);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const network =
     intent.stellar?.network === "mainnet" || intent.stellar?.network === "local"
       ? intent.stellar.network
@@ -73,6 +84,12 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
 
   const warning = receiveWarning(intent, t);
   const localeTag = LOCALE_TAG[locale];
+  const legs = useMemo(() => legsFromIntent(intent), [intent]);
+  const agentUrl = useMemo(() => x402UrlFor(intent), [intent]);
+  const agentCurl = useMemo(
+    () => `curl -i "${agentUrl}"`,
+    [agentUrl],
+  );
 
   const sep7 = useMemo(() => {
     if (intent.sep7_tx) return intent.sep7_tx;
@@ -177,6 +194,16 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
     }
   }
 
+  async function copyAgentUrl() {
+    try {
+      await navigator.clipboard.writeText(agentUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError(t.genericError);
+    }
+  }
+
   useEffect(() => {
     if (method !== "qr" || status === "succeeded") return;
     const timer = window.setInterval(() => {
@@ -217,6 +244,17 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
               <FiatCurrencySelectBare
                 label={t.fiatSelectLabel}
                 locale={locale}
+              />
+            </div>
+
+            <div className="mt-5 text-left">
+              <SplitLegsList
+                legs={legs}
+                asset={intent.asset}
+                localeTag={localeTag}
+                t={t}
+                variant="receipt"
+                network={network}
               />
             </div>
 
@@ -293,6 +331,17 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
             </p>
           )}
 
+          <div className="mt-4">
+            <SplitLegsList
+              legs={legs}
+              asset={intent.asset}
+              localeTag={localeTag}
+              t={t}
+              variant="preview"
+              network={network}
+            />
+          </div>
+
           {warning && <p className="pay-notice mt-4">{warning}</p>}
 
           {view === "swap" ? (
@@ -312,8 +361,9 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
             </div>
           ) : (
             <>
+              <p className="pay-doors mt-5">{t.doorsHint}</p>
               <div
-                className="pay-tabs mt-6"
+                className="pay-tabs pay-tabs--three mt-3"
                 role="tablist"
                 aria-label={t.methodAria}
               >
@@ -334,6 +384,15 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                   className="pay-tabs__tab"
                 >
                   <QrCode className="h-4 w-4" aria-hidden="true" /> {t.qrTab}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={method === "agent"}
+                  onClick={() => setMethod("agent")}
+                  className="pay-tabs__tab"
+                >
+                  <Bot className="h-4 w-4" aria-hidden="true" /> {t.agentTab}
                 </button>
               </div>
 
@@ -431,7 +490,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                     {intent.asset === "USDC" ? t.walletHintUsdc : ""}
                   </p>
                 </div>
-              ) : (
+              ) : method === "qr" ? (
                 <div className="mt-5 space-y-4">
                   <div
                     className="mx-auto w-fit rounded-[var(--r-lg)] p-3"
@@ -507,6 +566,31 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                     style={{ color: "var(--text-2)" }}
                   >
                     {t.qrHint}
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-5 space-y-3">
+                  <h2 className="pay-agent__title">{t.agentTitle}</h2>
+                  <p className="pay-agent__body">{t.agentBody}</p>
+                  <p className="via-label" style={{ color: "var(--text-2)" }}>
+                    {t.agentUrlLabel}
+                  </p>
+                  <p className="pay-agent__url mono">{agentUrl}</p>
+                  <button
+                    type="button"
+                    className="act act--ghost"
+                    onClick={() => {
+                      void copyAgentUrl();
+                    }}
+                  >
+                    {copied ? t.agentCopied : t.agentCopy}
+                  </button>
+                  <p className="via-label mt-2" style={{ color: "var(--text-2)" }}>
+                    {t.agentCurlLabel}
+                  </p>
+                  <pre className="pay-agent__curl">{agentCurl}</pre>
+                  <p className="text-xs" style={{ color: "var(--text-2)" }}>
+                    {t.agentDemoHint}
                   </p>
                 </div>
               )}

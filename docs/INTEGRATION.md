@@ -116,7 +116,7 @@ const header = ViaPay.encodePaymentHeader({ signed_xdr });
 
 El QR es SEP-7 `tx` con split, **no** `web+stellar:pay`.
 
-UI del pagador: solo el **total**. El desglose no se muestra ahí.
+UI del pagador: **total** + preview/recibo del split + puertas billetera / QR / agente x402.
 
 ---
 

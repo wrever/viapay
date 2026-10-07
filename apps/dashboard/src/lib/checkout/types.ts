@@ -1,3 +1,5 @@
+import type { PayoutShare } from "@viapay/shared";
+
 export type AssetCode = "XLM" | "USDC";
 
 export type ReceiveStatus = { exists: boolean; canReceive: boolean };
@@ -21,6 +23,10 @@ export type CheckoutIntent = {
   stellar_tx_hash: string | null;
   merchant_wallet: string;
   treasury_wallet?: string;
+  /** Same shape as x402 `viapay.breakdown`. */
+  breakdown?: PayoutShare[];
+  /** GET /v1/x402/:id?client_secret=… — same payment_intent for agents. */
+  x402_url?: string;
   sep7_tx?: string | null;
   stellar?: {
     network?: "testnet" | "mainnet" | "local" | string;

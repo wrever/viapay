@@ -12,7 +12,7 @@
 ## Comprador
 
 1. Abre el link (`/pay/pi_…?cs=…`)  
-2. Ve el **total a pagar** (sin desglose de fees en pantalla)  
+2. Ve el **total a pagar** y cómo se reparte on-chain (comercio / ViaPay / revendedor)  
 3. Elige cómo pagar:
    - **Wallet** → Stellar Wallets Kit (Freighter, Lobstr, xBull, …) → Firmar y pagar. La misma tx parte neto, fee ViaPay y (si hay) revendedor. Si el asset es USDC y falta trustline, la firma también la abre.  
    - **Código QR** → SEP-7 `tx` (split), no `pay`.  

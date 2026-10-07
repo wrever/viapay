@@ -116,3 +116,72 @@ export function formatBps(bps: number): string {
 export function isValidStellarPubkey(address: string): boolean {
   return STELLAR_PUBKEY_RE.test(address);
 }
+
+/** Who receives a payout leg in a ViaPay split (on-chain order: merchant → treasury → reseller). */
+export type PayoutRole = "merchant" | "viapay_treasury" | "reseller";
+
+export type PayoutShare = {
+  role: PayoutRole;
+  address: string;
+  amount: string;
+  /** Atomic units, 7 decimals — same shape x402 quotes. */
+  amount_atomic: string;
+  bps: number;
+  share: string;
+};
+
+export type PayoutBreakdownInput = {
+  merchant_wallet: string;
+  treasury_wallet: string;
+  net_amount: string;
+  fee_amount: string;
+  fee_bps: number;
+  reseller_address?: string | null;
+  reseller_amount?: string | null;
+  reseller_fee_bps?: number | null;
+};
+
+/**
+ * Build the 2–3 payout legs from persisted intent amounts.
+ * Filters zero amounts so a 0% reseller never appears.
+ */
+export function buildPayoutBreakdown(
+  input: PayoutBreakdownInput,
+): PayoutShare[] {
+  const resellerBps = input.reseller_fee_bps ?? 0;
+  const merchantBps = 10000 - input.fee_bps - resellerBps;
+  const shares: PayoutShare[] = [
+    {
+      role: "merchant",
+      address: input.merchant_wallet,
+      amount: input.net_amount,
+      amount_atomic: parseAssetAmount(input.net_amount).toString(),
+      bps: merchantBps,
+      share: formatBps(merchantBps),
+    },
+    {
+      role: "viapay_treasury",
+      address: input.treasury_wallet,
+      amount: input.fee_amount,
+      amount_atomic: parseAssetAmount(input.fee_amount).toString(),
+      bps: input.fee_bps,
+      share: formatBps(input.fee_bps),
+    },
+  ];
+  if (
+    input.reseller_address &&
+    resellerBps > 0 &&
+    input.reseller_amount &&
+    parseAssetAmount(input.reseller_amount) > 0n
+  ) {
+    shares.push({
+      role: "reseller",
+      address: input.reseller_address,
+      amount: input.reseller_amount,
+      amount_atomic: parseAssetAmount(input.reseller_amount).toString(),
+      bps: resellerBps,
+      share: formatBps(resellerBps),
+    });
+  }
+  return shares.filter((share) => parseAssetAmount(share.amount) > 0n);
+}

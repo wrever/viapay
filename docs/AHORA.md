@@ -15,7 +15,7 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 
 - Landing: modos gráficos en un solo lugar (tabs).
 - Dashboard: crear + copiar link claro; preview de split al crear (solo comercio).
-- Checkout pagador: **solo total** (sin fees en pantalla).
+- Checkout pagador: total + **preview del split** (comercio / ViaPay / revendedor) + **recibo** post-pago + tres puertas (billetera / QR / agente x402).
 - Evidencia on-chain y docs de jurado al día (`HACKATHON.md`, `MEMORY.md`).
 - Pulir copy y CTAs hacia demo en testnet.
 - Path Soroban en checkout cuando `PAYMENT_ROUTER_CONTRACT_ID` está configurado.

@@ -11,6 +11,7 @@ import {
   stellarNetwork,
   usdcIssuer,
 } from "@/lib/chain";
+import { breakdownFor, x402ResourceUrl } from "@/lib/x402";
 
 export async function GET(
   req: Request,
@@ -65,6 +66,8 @@ export async function GET(
     return jsonOk({
       ...serializePaymentIntent(row),
       treasury_wallet: getTreasuryAddress(),
+      breakdown: breakdownFor(row),
+      x402_url: x402ResourceUrl(row),
       sep7_tx: sep7Tx,
       stellar: {
         network: stellarNetwork(),

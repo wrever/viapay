@@ -1,7 +1,13 @@
-import { formatBps, parseAssetAmount } from "@viapay/shared";
+import {
+  buildPayoutBreakdown,
+  parseAssetAmount,
+  type PayoutShare,
+} from "@viapay/shared";
 import { getTreasuryAddress } from "./auth";
 import { publicApiUrl, stellarNetwork, usdcIssuer } from "./chain";
 import type { PaymentIntentRow } from "./payments";
+
+export type { PayoutShare };
 
 /** x402 speaks CAIP-2, not our short network names. */
 export function caip2Network(): string {
@@ -15,48 +21,18 @@ export function caip2Network(): string {
   }
 }
 
-export type PayoutShare = {
-  role: "merchant" | "viapay_treasury" | "reseller";
-  address: string;
-  amount: string;
-  /** Atomic units, 7 decimals, the way x402 quotes amounts. */
-  amount_atomic: string;
-  bps: number;
-  share: string;
-};
-
 /** The three-way cut, in the order the on-chain operations are built. */
 export function breakdownFor(row: PaymentIntentRow): PayoutShare[] {
-  const merchantBps = 10000 - row.fee_bps - row.reseller_fee_bps;
-  const shares: PayoutShare[] = [
-    {
-      role: "merchant",
-      address: row.merchant_wallet,
-      amount: row.net_amount,
-      amount_atomic: parseAssetAmount(row.net_amount).toString(),
-      bps: merchantBps,
-      share: formatBps(merchantBps),
-    },
-    {
-      role: "viapay_treasury",
-      address: getTreasuryAddress(),
-      amount: row.fee_amount,
-      amount_atomic: parseAssetAmount(row.fee_amount).toString(),
-      bps: row.fee_bps,
-      share: formatBps(row.fee_bps),
-    },
-  ];
-  if (row.reseller_address && row.reseller_fee_bps > 0) {
-    shares.push({
-      role: "reseller",
-      address: row.reseller_address,
-      amount: row.reseller_amount,
-      amount_atomic: parseAssetAmount(row.reseller_amount).toString(),
-      bps: row.reseller_fee_bps,
-      share: formatBps(row.reseller_fee_bps),
-    });
-  }
-  return shares.filter((share) => parseAssetAmount(share.amount) > 0n);
+  return buildPayoutBreakdown({
+    merchant_wallet: row.merchant_wallet,
+    treasury_wallet: getTreasuryAddress(),
+    net_amount: row.net_amount,
+    fee_amount: row.fee_amount,
+    fee_bps: row.fee_bps,
+    reseller_address: row.reseller_address,
+    reseller_amount: row.reseller_amount,
+    reseller_fee_bps: row.reseller_fee_bps,
+  });
 }
 
 export function x402ResourceUrl(row: PaymentIntentRow): string {
