@@ -58,13 +58,15 @@ if (!createRes.ok) {
   process.exit(1);
 }
 
-const resource = `${API}/v1/x402/${intent.id}?client_secret=${encodeURIComponent(
-  intent.client_secret,
-)}`;
-console.log(`→ GET /v1/x402/${intent.id}`);
+// Same checkout_url humans share: agents ask with Accept: application/json (no browser Sec-Fetch).
+const resource = intent.checkout_url;
+console.log(`→ GET checkout_url (unified x402 entry)`);
 
 // 2. The agent asks for the resource and is told the price.
-const challengeRes = await fetch(resource);
+const challengeRes = await fetch(resource, {
+  headers: { Accept: "application/json" },
+  redirect: "manual",
+});
 const challenge = await challengeRes.json();
 
 if (challengeRes.status !== 402) {

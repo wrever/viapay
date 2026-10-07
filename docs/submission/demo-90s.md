@@ -10,9 +10,9 @@
 ## Guión
 
 1. **0–15s** — “Pasarela Stellar: un cobro, humano o agente, un hash; split 3 patas.”
-2. **15–35s** — Cobros: monto + revendedor → crear → copiar link humano + link agente x402.
-3. **35–60s** — Abrir `/pay` → Freighter → Firmar → recibo on-chain + hash en stellar.expert.
-4. **60–80s** — `node examples/agent-pay.mjs` (o `x402_url`) → 402 → liquidación → succeeded.
+2. **15–35s** — Cobros: monto + revendedor → crear → **un** link (`checkout_url`).
+3. **35–60s** — Abrir ese link en el browser (redirect a `/pay`) → Freighter → recibo + hash.
+4. **60–80s** — Mismo link con agente / `examples/agent-pay.mjs` → 402 → liquidación.
 5. **80–90s** — Panel Historial. Cierre: “No somos otro protocolo; somos el checkout.”
 
 ## Frases prohibidas

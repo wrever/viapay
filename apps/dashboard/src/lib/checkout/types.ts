@@ -25,8 +25,12 @@ export type CheckoutIntent = {
   treasury_wallet?: string;
   /** Same shape as x402 `viapay.breakdown`. */
   breakdown?: PayoutShare[];
-  /** GET /v1/x402/:id?client_secret=… — same payment_intent for agents. */
+  /** Unified share link (402 for agents; browsers redirect here → pay_url). */
+  checkout_url?: string;
+  /** Alias of checkout_url. */
   x402_url?: string;
+  /** Direct hosted `/pay` UI. */
+  pay_url?: string;
   sep7_tx?: string | null;
   stellar?: {
     network?: "testnet" | "mainnet" | "local" | string;

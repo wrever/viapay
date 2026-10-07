@@ -9,7 +9,7 @@ Base URL local: `http://localhost:3001`. Auth del comercio: `Authorization: Bear
 ## 1. Link de cobro (no-dev)
 
 1. Dashboard → crear cobro (monto, asset, descripción opcional).
-2. Copiar `checkout_url`.
+2. Copiar `checkout_url` (unificado: humano o agente).
 3. El cliente abre el checkout hosted, ve **solo el total**, paga con wallet o QR.
 4. Opcional: `success_url` / `cancel_url` para volver a tu sitio.
 
@@ -37,11 +37,11 @@ curl -s -X POST http://localhost:3001/v1/payment_intents \
   }'
 ```
 
-Respuesta útil: `id`, `client_secret`, `checkout_url`, `fee_amount`, `net_amount`, `reseller_amount`, `external_user_id`, `metadata`.
+Respuesta útil: `id`, `client_secret`, `checkout_url` (gateway `/v1/x402/…`), `pay_url` (UI `/pay` directa), `fee_amount`, `net_amount`, `reseller_amount`, `external_user_id`, `metadata`.
 
 `external_user_id` (aliases: `externalUserId`, `customer_id`, `customerId`, `customer_ref`) es **tu** id de cliente — no es un usuario ViaPay. Opcional `metadata` (objeto JSON, ~4KB).
 
-Redirige al cliente a `checkout_url`. Cuando pague, ViaPay puede redirigir a `success_url` con `payment_intent` y `tx_hash` en la query.
+Redirige al cliente a `checkout_url`. En el navegador ViaPay hace 302 a `pay_url` (hosted). Un agente que haga GET al mismo URL con `Accept: application/json` recibe 402. Tras pagar, redirect a `success_url` con `payment_intent` y `tx_hash`.
 
 ### Con split de marketplace (ej. Hubby 7%)
 

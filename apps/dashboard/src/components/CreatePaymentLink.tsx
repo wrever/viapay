@@ -67,8 +67,7 @@ export function CreatePaymentLink({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUrl, setLastUrl] = useState<string | null>(null);
-  const [lastX402, setLastX402] = useState<string | null>(null);
-  const [copied, setCopied] = useState<"checkout" | "x402" | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const resellerBps = resellerOpen ? (pctToBps(resellerPct) ?? 0) : 0;
   const addressValid = isValidStellarPubkey(resellerAddress.trim());
@@ -169,7 +168,7 @@ export function CreatePaymentLink({
     }
     setBusy(true);
     setError(null);
-    setCopied(null);
+    setCopied(false);
     try {
       const normalized = Number(amount.trim().replace(",", ".")).toFixed(7);
       const res = await fetch(`${API}/v1/payment_intents`, {
@@ -194,9 +193,6 @@ export function CreatePaymentLink({
       if (!res.ok) throw new Error(body.error ?? t.errCreate);
       onPaymentCreated(body as DashboardPayment);
       setLastUrl(body.checkout_url as string);
-      setLastX402(
-        typeof body.x402_url === "string" ? (body.x402_url as string) : null,
-      );
     } catch (err) {
       setError(err instanceof Error ? err.message : t.errGeneric);
     } finally {
@@ -204,10 +200,10 @@ export function CreatePaymentLink({
     }
   }
 
-  async function copy(url: string, kind: "checkout" | "x402") {
+  async function copy(url: string) {
     await navigator.clipboard.writeText(url);
-    setCopied(kind);
-    window.setTimeout(() => setCopied(null), 1800);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
   }
 
   return (
@@ -388,8 +384,8 @@ export function CreatePaymentLink({
             <p className="success-strip__label">{t.readyCopy}</p>
             <p className="success-strip__url perf">{lastUrl}</p>
             <div className="success-strip__actions">
-              <Button type="button" onClick={() => copy(lastUrl, "checkout")}>
-                {copied === "checkout" ? (
+              <Button type="button" onClick={() => copy(lastUrl)}>
+                {copied ? (
                   <>
                     <Check className="h-4 w-4" /> {t.copied}
                   </>
@@ -405,29 +401,6 @@ export function CreatePaymentLink({
                 </a>
               </Button>
             </div>
-            {lastX402 && (
-              <div className="success-strip__agent">
-                <p className="success-strip__label">{t.readyAgent}</p>
-                <p className="success-strip__url perf">{lastX402}</p>
-                <div className="success-strip__actions">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => copy(lastX402, "x402")}
-                  >
-                    {copied === "x402" ? (
-                      <>
-                        <Check className="h-4 w-4" /> {t.copied}
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4" /> {t.copyAgentLink}
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

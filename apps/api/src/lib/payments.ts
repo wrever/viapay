@@ -95,10 +95,16 @@ export function getCheckoutBaseUrl(): string {
   ).replace(/\/$/, "");
 }
 
-export function buildCheckoutUrl(id: string, clientSecret: string): string {
+/** Direct hosted checkout UI (Freighter / QR). Prefer sharing `checkout_url` instead. */
+export function buildPayUrl(id: string, clientSecret: string): string {
   const url = new URL(`${getCheckoutBaseUrl()}/pay/${id}`);
   url.searchParams.set("cs", clientSecret);
   return url.toString();
+}
+
+/** @deprecated Use buildPayUrl — kept for call sites that meant the hosted page. */
+export function buildCheckoutUrl(id: string, clientSecret: string): string {
+  return buildPayUrl(id, clientSecret);
 }
 
 export function getApiPublicUrl(): string {
@@ -109,7 +115,10 @@ export function getApiPublicUrl(): string {
   ).replace(/\/$/, "");
 }
 
-/** Same payment_intent, settled by an agent via HTTP 402. */
+/**
+ * Unified share link: browser navigations redirect to hosted `/pay`,
+ * agents (JSON / no Sec-Fetch document) get HTTP 402 on the same URL.
+ */
 export function buildX402Url(id: string, clientSecret: string): string {
   const url = new URL(`${getApiPublicUrl()}/v1/x402/${id}`);
   url.searchParams.set("client_secret", clientSecret);
@@ -117,6 +126,8 @@ export function buildX402Url(id: string, clientSecret: string): string {
 }
 
 export function serializePaymentIntent(row: PaymentIntentRow) {
+  const payUrl = buildPayUrl(row.id, row.client_secret);
+  const shareUrl = buildX402Url(row.id, row.client_secret);
   return {
     id: row.id,
     object: "payment_intent" as const,
@@ -134,8 +145,12 @@ export function serializePaymentIntent(row: PaymentIntentRow) {
     external_user_id: row.external_user_id,
     metadata: row.metadata,
     client_secret: row.client_secret,
-    checkout_url: buildCheckoutUrl(row.id, row.client_secret),
-    x402_url: buildX402Url(row.id, row.client_secret),
+    /** One link for humans and agents (API gateway → 402 or redirect to pay_url). */
+    checkout_url: shareUrl,
+    /** Alias of checkout_url (same unified entry). */
+    x402_url: shareUrl,
+    /** Direct hosted UI if you already know the payer is human. */
+    pay_url: payUrl,
     success_url: row.success_url,
     cancel_url: row.cancel_url,
     expires_at: row.expires_at,

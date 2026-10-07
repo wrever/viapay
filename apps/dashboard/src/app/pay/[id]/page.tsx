@@ -57,8 +57,9 @@ export default async function PayPage({
             amount: intent.amount,
             asset: intent.asset,
             status: intent.status,
+            checkout_url: intent.checkout_url ?? x402Url,
+            pay_url: intent.pay_url ?? undefined,
             x402_url: x402Url,
-            checkout_url: intent.checkout_url ?? undefined,
           }),
         }}
       />

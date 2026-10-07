@@ -1,7 +1,9 @@
 import { z } from "zod";
+import { prefersBrowserNavigation } from "@/lib/accept";
 import { reconcileCheckoutPayment, submitCheckoutXdr } from "@/lib/chain";
 import { ensureDb, jsonError } from "@/lib/http";
 import {
+  buildPayUrl,
   getPaymentIntentPublic,
   serializePaymentIntent,
   type PaymentIntentRow,
@@ -68,12 +70,22 @@ function challengeResponse(row: PaymentIntentRow) {
   });
 }
 
-/** Unpaid → 402 with the payment terms. Paid → 200 with the payment intent. */
+/**
+ * Unified entry for the shared checkout link:
+ * - Browser navigation → 302 to hosted `/pay` (human Freighter/QR).
+ * - Agent / API client → 402 challenge (or 200 if already paid).
+ */
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     ensureDb();
     const { id } = await ctx.params;
-    const loaded = await loadIntent(id, clientSecretFrom(req));
+    const secret = clientSecretFrom(req);
+
+    if (prefersBrowserNavigation(req)) {
+      return Response.redirect(buildPayUrl(id, secret), 302);
+    }
+
+    const loaded = await loadIntent(id, secret);
     let row = loaded;
     try {
       row = await reconcileCheckoutPayment(loaded);
