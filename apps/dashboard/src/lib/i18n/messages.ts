@@ -193,6 +193,14 @@ export type Messages = {
   trustlinesNeedWallet: string;
   trustlinesUsdt0Placeholder: string;
   trustlinesSoon: string;
+  treasurySameWalletWarn: string;
+  anchorTitle: string;
+  anchorBody: string;
+  anchorHonest: string;
+  anchorDiscover: string;
+  anchorOpen: string;
+  anchorNeedKey: string;
+  anchorDiscoverFail: string;
 };
 
 const es: Messages = {
@@ -420,6 +428,17 @@ const es: Messages = {
   trustlinesUsdt0Placeholder:
     "Issuer / contrato testnet confiable aún no definido. Próximamente.",
   trustlinesSoon: "Pronto",
+  treasurySameWalletWarn:
+    "Esta G… es la tesorería de fees de ViaPay. Cambiá la wallet del comercio a otra cuenta para que el split se vea correcto en la demo.",
+  anchorTitle: "Cash out (SEP-24 testnet)",
+  anchorBody:
+    "Descubrí el SDF Test Anchor (SEP-10/24) para el camino de retiro USDC → fiat de prueba.",
+  anchorHonest:
+    "Honestidad: la transferencia al anchor es testnet; el payout fiat está simulado. No es offramp bancario real.",
+  anchorDiscover: "Descubrir anchor",
+  anchorOpen: "Abrir test anchor",
+  anchorNeedKey: "Necesitás una API key de sesión para descubrir el anchor.",
+  anchorDiscoverFail: "No se pudo leer el stellar.toml del anchor",
 };
 
 const en: Messages = {
@@ -645,6 +664,17 @@ const en: Messages = {
   trustlinesUsdt0Placeholder:
     "Reliable testnet issuer / contract not defined yet. Coming soon.",
   trustlinesSoon: "Soon",
+  treasurySameWalletWarn:
+    "This G… is ViaPay’s fee treasury. Set the merchant wallet to a different account so the split is clear in the demo.",
+  anchorTitle: "Cash out (SEP-24 testnet)",
+  anchorBody:
+    "Discover the SDF Test Anchor (SEP-10/24) for a USDC → test fiat withdrawal path.",
+  anchorHonest:
+    "Honesty: the transfer to the anchor is testnet; fiat payout is simulated. Not a real bank offramp.",
+  anchorDiscover: "Discover anchor",
+  anchorOpen: "Open test anchor",
+  anchorNeedKey: "You need a session API key to discover the anchor.",
+  anchorDiscoverFail: "Could not read the anchor stellar.toml",
 };
 
 const pt: Messages = {
@@ -873,6 +903,17 @@ const pt: Messages = {
   trustlinesUsdt0Placeholder:
     "Issuer / contrato testnet confiável ainda não definido. Em breve.",
   trustlinesSoon: "Em breve",
+  treasurySameWalletWarn:
+    "Esta G… é a tesouraria de fees da ViaPay. Troque a carteira do comércio por outra conta para o split ficar claro na demo.",
+  anchorTitle: "Cash out (SEP-24 testnet)",
+  anchorBody:
+    "Descubra o SDF Test Anchor (SEP-10/24) para o caminho USDC → fiat de teste.",
+  anchorHonest:
+    "Honestidade: a transferência ao anchor é testnet; o payout fiat é simulado. Não é offramp bancário real.",
+  anchorDiscover: "Descobrir anchor",
+  anchorOpen: "Abrir test anchor",
+  anchorNeedKey: "Você precisa de uma API key de sessão para descobrir o anchor.",
+  anchorDiscoverFail: "Não foi possível ler o stellar.toml do anchor",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

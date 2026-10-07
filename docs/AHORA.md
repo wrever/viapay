@@ -20,6 +20,12 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 - Pulir copy y CTAs hacia demo en testnet.
 - Path Soroban en checkout cuando `PAYMENT_ROUTER_CONTRACT_ID` está configurado.
 
+## Excepción hackathon (esta semana)
+
+- Paquete jurado: [`WIN_PLAN.md`](./WIN_PLAN.md) + [`submission/`](./submission/).
+- **1 pago mainnet** de prueba (evidencia) permitido; no “ops mainnet” de producto.
+- SEP-1 toml + SEP-24 test anchor demo + path SEP-55 CI.
+
 ## No hacer ahora
 
-Email desde el producto · embed sin redirect · plugins Shopify/Woo · mainnet ops.
+Email desde el producto · embed sin redirect · plugins Shopify/Woo · clonar Reflector/Local402.

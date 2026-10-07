@@ -10,6 +10,11 @@ import { API } from "@/lib/config";
 import { useLocale } from "@/lib/i18n";
 import { FiatCurrencySelect } from "@/components/FiatCurrencySelect";
 import { TrustlinesSection } from "@/components/TrustlinesSection";
+import { AnchorCashOut } from "@/components/AnchorCashOut";
+
+/** Official ViaPay fee treasury (testnet). Merchant destination should be a different G…. */
+const VIAPAY_TREASURY =
+  "GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5";
 
 function maskKey(key: string): string {
   if (key.length <= 16) return `${key.slice(0, 8)}…`;
@@ -175,6 +180,11 @@ const link = await via.createPaymentLink({
               {t.integrationNoWallet}
             </p>
           )}
+          {currentWallet === VIAPAY_TREASURY && (
+            <p className="tone tone--warning text-sm" role="status">
+              {t.treasurySameWalletWarn}
+            </p>
+          )}
           {error && (
             <p className="tone tone--warning text-sm" role="alert">
               {error}
@@ -200,6 +210,8 @@ const link = await via.createPaymentLink({
           merchantWallet={currentWallet}
           onActivated={onTrustlineActivated}
         />
+
+        <AnchorCashOut apiKey={apiKey} />
 
         <div className="grid gap-2">
           <Label>{t.integrationKeyLabel}</Label>

@@ -11,5 +11,7 @@
 | [`02-ARCHITECTURE.md`](./02-ARCHITECTURE.md) | Diagrama y decisiones |
 | [`openapi.yaml`](./openapi.yaml) | Contrato OpenAPI de la API |
 | [`HACKATHON.md`](./HACKATHON.md) | Paquete para jurado / demo |
+| [`WIN_PLAN.md`](./WIN_PLAN.md) | Plan victoria General Track |
+| [`submission/`](./submission/) | SEPs, demo 90s, evidence, competitors |
 
-Sitio: `/docs` en la landing (`apps/web`, puerto `:3003`).
+Sitio prod: `https://viapay.vercel.app/docs` (dashboard).

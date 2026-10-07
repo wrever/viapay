@@ -1,0 +1,50 @@
+# SEP-55 path: reproducible wasm artifact for contracts/payment-router.
+# Next: attest + register on Stellar Lab as Verified Build (see docs/submission/SEPS.md).
+
+name: payment-router verified build
+
+on:
+  push:
+    paths:
+      - "contracts/payment-router/**"
+      - ".github/workflows/payment-router-verified-build.yml"
+  pull_request:
+    paths:
+      - "contracts/payment-router/**"
+  workflow_dispatch:
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts/payment-router
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (wasm target)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contracts/payment-router
+
+      - name: Build release wasm
+        run: |
+          cargo build --target wasm32v1-none --release
+          WASM=$(ls target/wasm32v1-none/release/*.wasm | head -1)
+          echo "WASM=$WASM" >> "$GITHUB_ENV"
+          sha256sum "$WASM" | tee wasm.sha256
+          cp "$WASM" payment_router.wasm
+
+      - name: Upload wasm + hash
+        uses: actions/upload-artifact@v4
+        with:
+          name: payment-router-wasm
+          path: |
+            contracts/payment-router/payment_router.wasm
+            contracts/payment-router/wasm.sha256
+          if-no-files-found: error

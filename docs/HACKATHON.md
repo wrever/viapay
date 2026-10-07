@@ -18,7 +18,7 @@ Un comercio que vende en cripto termina con tres problemas que no son suyos:
 
 Un único objeto `payment_intent` con dos puertas:
 
-- **Checkout hosted** (`:3004`) para humanos: wallet (Freighter, Lobstr, xBull, …) o QR SEP-7.
+- **Checkout hosted** (`https://viapay.vercel.app/pay/…`) para humanos: wallet (Freighter, Lobstr, xBull, …) o QR SEP-7.
 - **`GET /v1/x402/:id`** para agentes: responde `402 Payment Required` con los requisitos de pago, el agente firma y liquida con el header `X-PAYMENT`.
 
 Las dos puertas llaman al mismo `prepare` / `submit`, así que el reparto y la verificación son idénticos. ViaPay nunca tiene las llaves del pagador ni recibe el dinero del comercio: construye la transacción, la verifica y la empuja a Horizon.
