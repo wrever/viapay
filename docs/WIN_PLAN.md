@@ -1,36 +1,43 @@
 # ViaPay — plan de victoria (General Track)
 
-Actualizado: 2026-10-06. Honestidad primero: pelear **top-3 / mención**; oro solo con mainnet + SEP-55 + demo impecable frente a Local402/Honorarios.
+Actualizado: 2026-10-07. Honestidad: pelear **top-3 / mención**; oro solo con **mainnet + SEP-55 + demo 90s** frente a Local402/Honorarios.
 
-## Ángulo
+## Ángulo (no negociar)
 
-Mismo `payment_intent` → humano (Freighter/QR) o agente (x402) → split 3 patas on-chain → hash en stellar.expert. Pasarela de cobro LATAM, no otro protocolo.
+Mismo `payment_intent` → **un `checkout_url`** → humano (Freighter) o agente (402) → split en **payment-router** → hash. Pasarela de cobro, no protocolo.
 
-## Tesorería oficial
+## Amenazas #1 a vigilar
 
-`VIAPAY_TREASURY_ADDRESS=GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5`
+Local402 · Honorarios · (agent-stack) AgentAllowance / AegisOS.  
+Detalle: [`submission/COMPETITORS.md`](./submission/COMPETITORS.md).
 
-La wallet del **comercio** demo debe ser **otra** G… (ops del usuario). Si comercio === tesorería, el panel avisa.
+## Tesorería
+
+`VIAPAY_TREASURY_ADDRESS=GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5`  
+Comercio demo **≠** esa G….
 
 ## SEPs
 
-Ver [`submission/SEPS.md`](./submission/SEPS.md). HACER: 1, 7 (pulir), 10/24 demo, 41 (ya), 55. SEP-11 stub only.
+[`submission/SEPS.md`](./submission/SEPS.md). Vivo: 1, 41, 10/24 demo, router enforce. Pendiente ops: SEP-55 workflow en `.github`, 1 mainnet.
 
-## Fases
+## Sprint (ejecutar en orden)
 
-| Fase | Qué | Estado |
+| Prio | Qué | Estado |
 |---|---|---|
-| P0 | Tesorería documentada + docs submission | en curso |
-| P1 | Evidence txs + video 90s | pendiente ops |
-| P2 | SEP-1 toml + SEP-24 test anchor UI | en curso |
-| P3 | SEP-55 CI + 1 mainnet | CI en curso; mainnet pendiente keys |
+| P0 | Link unificado + router obligatorio onchain + recibo | **hecho** |
+| P1 | Evidence: 1 tx Freighter router + 1 tx agente (llenar index) | **bloqueado en ops / keys** |
+| P2 | Demo 90s cero fallos + one-pager jurado | guión listo; ensayar |
+| P3 | SEP-55 CI en repo + Verified Build | plantilla; falta PAT workflow |
+| P4 | 1 pago mainnet evidencia | keys usuario |
 
 ## Probabilidad (honesta)
 
-- Solo testnet + demo: oro ~10%, top-3 ~25%
-- + SEP-1/24: oro ~15%, top-3 ~35%
-- + mainnet + SEP-55: oro ~25–40%, top-3 ~50%
+| Escenario | Oro | Top-3 |
+|---|---|---|
+| Solo testnet + demo | ~8% | ~25% |
+| + evidence router/agente fresca + video | ~15% | ~35% |
+| + mainnet + SEP-55 | ~25–40% | ~50% |
 
 ## NO hacer
 
-Plugins ecommerce, clonar Reflector/Local402, KYC SEP-11 real, @username registry, más features fuera del pitch.
+Plugins ecommerce · clonar Reflector/Local402 · KYC SEP-11 · @username · features fuera del pitch · decir mainnet sin hash.

@@ -76,6 +76,9 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const warning = receiveWarning(intent, t);
   const localeTag = LOCALE_TAG[locale];
   const legs = useMemo(() => legsFromIntent(intent), [intent]);
+  const routerMode =
+    intent.settlement === "router" ||
+    Boolean(intent.contract_id ?? intent.stellar?.payment_router);
 
   const sep7 = useMemo(() => {
     if (intent.sep7_tx) return intent.sep7_tx;
@@ -87,9 +90,14 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
       memo: intent.id,
     });
   }, [intent]);
-  const splitReady = Boolean(intent.sep7_tx);
+  const splitReady = Boolean(intent.sep7_tx) && !routerMode;
 
   useEffect(() => {
+    if (routerMode && method === "qr") setMethod("wallet");
+  }, [routerMode, method]);
+
+  useEffect(() => {
+    if (routerMode) return;
     let cancelled = false;
     (async () => {
       try {
@@ -107,7 +115,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
     return () => {
       cancelled = true;
     };
-  }, [sep7]);
+  }, [sep7, routerMode]);
 
   function redirectIfNeeded(next: {
     success_url?: string | null;
@@ -275,8 +283,13 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
             <span className="brand-lockup">
               <Logo variant="horizontal" width={104} />
             </span>
-            <span className="pay-chip">
-              {network === "mainnet" ? "Stellar" : `Stellar ${network}`}
+            <span className="pay-chip-row">
+              <span className="pay-chip">
+                {network === "mainnet" ? "Stellar" : `Stellar ${network}`}
+              </span>
+              {routerMode && (
+                <span className="pay-chip pay-chip--router">{t.routerChip}</span>
+              )}
             </span>
           </div>
 
@@ -447,81 +460,99 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                 </div>
               ) : (
                 <div className="mt-5 space-y-4">
-                  <div
-                    className="mx-auto w-fit rounded-[var(--r-lg)] p-3"
-                    style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border)",
-                    }}
-                  >
-                    {qrDataUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={qrDataUrl}
-                        alt={t.qrAlt}
-                        width={240}
-                        height={240}
-                        className="block"
-                      />
-                    ) : (
+                  {routerMode ? (
+                    <>
+                      <p className="pay-notice">{t.qrRouterOnly}</p>
+                      <button
+                        type="button"
+                        className="act act--primary"
+                        onClick={() => setMethod("wallet")}
+                      >
+                        <Wallet className="h-4 w-4" aria-hidden="true" />
+                        {t.walletTab}
+                      </button>
+                    </>
+                  ) : (
+                    <>
                       <div
-                        className="flex h-[240px] w-[240px] items-center justify-center text-sm"
+                        className="mx-auto w-fit rounded-[var(--r-lg)] p-3"
+                        style={{
+                          background: "#ffffff",
+                          border: "1px solid var(--border)",
+                        }}
+                      >
+                        {qrDataUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={qrDataUrl}
+                            alt={t.qrAlt}
+                            width={240}
+                            height={240}
+                            className="block"
+                          />
+                        ) : (
+                          <div
+                            className="flex h-[240px] w-[240px] items-center justify-center text-sm"
+                            style={{ color: "var(--text-2)" }}
+                          >
+                            {t.qrGenerating}
+                          </div>
+                        )}
+                      </div>
+                      <p
+                        className="text-center text-sm"
                         style={{ color: "var(--text-2)" }}
                       >
-                        {t.qrGenerating}
-                      </div>
-                    )}
-                  </div>
-                  <p
-                    className="text-center text-sm"
-                    style={{ color: "var(--text-2)" }}
-                  >
-                    {splitReady ? (
-                      t.qrReady
-                    ) : (
-                      <>
-                        {t.qrFallback}{" "}
-                        {intent.stellar?.sep7_error ?? t.qrFallbackError}
-                      </>
-                    )}
-                  </p>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => {
-                      setBusy(true);
-                      setError(null);
-                      refreshStatus()
-                        .then((next) => {
-                          if (next !== "succeeded") setError(t.notSeenYet);
-                        })
-                        .catch((e: unknown) => {
-                          setError(
-                            e instanceof Error ? e.message : t.genericError,
-                          );
-                        })
-                        .finally(() => setBusy(false));
-                    }}
-                    className="act act--primary"
-                  >
-                    {busy ? (
-                      <>
-                        <Loader2
-                          className="h-4 w-4 animate-spin"
-                          aria-hidden="true"
-                        />{" "}
-                        {t.checking}
-                      </>
-                    ) : (
-                      t.checkPayment
-                    )}
-                  </button>
-                  <p
-                    className="text-center text-xs"
-                    style={{ color: "var(--text-2)" }}
-                  >
-                    {t.qrHint}
-                  </p>
+                        {splitReady ? (
+                          t.qrReady
+                        ) : (
+                          <>
+                            {t.qrFallback}{" "}
+                            {intent.stellar?.sep7_error ?? t.qrFallbackError}
+                          </>
+                        )}
+                      </p>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          setBusy(true);
+                          setError(null);
+                          refreshStatus()
+                            .then((next) => {
+                              if (next !== "succeeded") setError(t.notSeenYet);
+                            })
+                            .catch((e: unknown) => {
+                              setError(
+                                e instanceof Error
+                                  ? e.message
+                                  : t.genericError,
+                              );
+                            })
+                            .finally(() => setBusy(false));
+                        }}
+                        className="act act--primary"
+                      >
+                        {busy ? (
+                          <>
+                            <Loader2
+                              className="h-4 w-4 animate-spin"
+                              aria-hidden="true"
+                            />{" "}
+                            {t.checking}
+                          </>
+                        ) : (
+                          t.checkPayment
+                        )}
+                      </button>
+                      <p
+                        className="text-center text-xs"
+                        style={{ color: "var(--text-2)" }}
+                      >
+                        {t.qrHint}
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
 

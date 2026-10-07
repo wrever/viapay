@@ -1,6 +1,6 @@
 # ViaPay — memoria de proyecto
 
-Actualizado: 2026-10-06 (noche). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
+Actualizado: 2026-10-07. Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
 **Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `scripts/rebuild-history.py` usa `git commit-tree` (sin hooks). Repo: https://github.com/wrever/viapay (88 commits limpios).
 

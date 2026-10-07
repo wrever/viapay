@@ -1,12 +1,42 @@
-# Counters vs campo (pitch)
+# Counters vs campo (General Track · ~42 proyectos)
 
-| Rival | Ellos | Nosotros |
+Actualizado: 2026-10-07. Meta: **top-3 / mención**. Oro solo con mainnet + SEP-55 + demo 90s impecable.
+
+## Amenaza real (cuidar)
+
+| Rival | Ellos | Nosotros (frase) |
 |---|---|---|
-| Local402 | x402 + FX CLP/UF mainnet | Checkout comercio + panel + reseller + mismo intent humano/agente |
-| Honorarios | Split fiscal freelancer | Split marketplace (fee + reseller + merchant) + hosted `/pay` |
-| Habeas / Aegis / AgentAllowance | Protocolo profundo | Producto cobro usable en 90s |
-| StellaGate | Pre-check destino | Ya: `stellar.receive` + TrustlineGate — mostrar 5s en demo |
-| SylarPay | @username + SEP-24 | Link de cobro + SDK + external_user_id (no clonar @user esta semana) |
-| Invaria / XDRParity | Tooling | UX pasarela |
+| **Local402** | x402 + FX CLP/UF **mainnet** + Reflector + verified build | Pasarela comercio: panel + split marketplace + **mismo link** humano/agente. No competimos en oracle FX. |
+| **Honorarios** | Split fiscal freelancer + mainnet proof + SEP-55 + passkeys | Split **marketplace** (fee + reseller + merchant) + hosted checkout + SDK. No somos tax product. |
+| **AgentAllowance** | Allowance on-chain para agentes (budget/revoke) | Cobro de **comercio**: el agente paga un `payment_intent`, no administra tesorería del dueño. |
+| **AegisOS** | Provenance de lo que el agente compró (post-x402) | Liquidamos el cobro; no auditamos contenido. Pitch: “nosotros cobramos, ellos prueban entrega”. |
+| **SylarPay** | @username + perfiles | Link `pi_…` + `external_user_id` + SDK. No clonamos @user esta semana. |
 
-Favoritos oro: Local402, Honorarios. Meta: top-3 / mención con evidencia + demo.
+## Solapamiento bajo (una frase si preguntan)
+
+| Rival | Counter |
+|---|---|
+| StellaGate | Ya preflight receive/trustline en checkout + TrustlineGate panel. |
+| Habeas | Protocolo clawback; nosotros pasarela cobro. |
+| Setareh / Vitrinee / OSS402 / Qerin / Axon | Compran/venden con agentes; **pueden usar ViaPay** como rail. |
+| AgentPey | Allowance/identity agente ≠ checkout comercio. |
+| XReceipt | Recibo firmado; nosotros recibo de split 3 patas + hash. |
+| Hazina / Breadline / Nkwado | Escrow/marketplace vertical; nosotros link de cobro general. |
+| PayID / Cosmos Wallet / Walletnow | Identidad/wallet infra; nosotros merchant checkout. |
+| CobraFi / Invaria / VeriFire / LCRD / Fortgate | Otro vertical (factoring, evidencia RWA, score, AML). |
+| Invaria, XDRParity, Soroban Studio, Xlm CLI | Tooling/infra; no pasarela. |
+| MycoTracker / E4C / Music / etc. | Fuera de payments. |
+
+## Favoritos oro del campo
+
+1. Local402 (mainnet + profundidad x402/FX)  
+2. Honorarios (mainnet + SEP-55 + narrativa fiscal clara)  
+3. Posible: AgentAllowance / AegisOS si el jurado premia “agent stack” puro  
+
+## Ángulo ViaPay (repetir)
+
+> Un cobro. Un link. Humano o agente. Split 3 patas en el contrato payment-router. Hash en stellar.expert. Panel para el comercio.
+
+## NO hacer para “ganar”
+
+Clonar Reflector/exact-fx · @username · KYC real · escrow Trustless como pitch · más features fuera del demo 90s.

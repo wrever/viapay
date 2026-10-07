@@ -18,7 +18,7 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 - Un solo `checkout_url` (gateway): humano → `/pay`, agente → 402. Recibo post-pago en UI.
 - Evidencia on-chain y docs de jurado al día (`HACKATHON.md`, `MEMORY.md`).
 - Pulir copy y CTAs hacia demo en testnet.
-- Path Soroban en checkout cuando `PAYMENT_ROUTER_CONTRACT_ID` está configurado.
+- Path Soroban **obligatorio** onchain; badge “Soroban router” en checkout; QR clásico off con router.
 
 ## Excepción hackathon (esta semana)
 

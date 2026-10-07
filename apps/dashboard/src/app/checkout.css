@@ -324,6 +324,14 @@
   box-shadow: var(--shadow-sm);
 }
 
+.checkout-page .pay-chip-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
 .checkout-page .pay-chip {
   display: inline-flex;
   align-items: center;
@@ -335,6 +343,12 @@
   font-family: var(--font-mono);
   font-weight: 500;
   font-size: var(--step-label);
+}
+
+.checkout-page .pay-chip--router {
+  background: color-mix(in srgb, var(--primary) 16%, var(--tint));
+  color: var(--primary);
+  font-weight: 700;
 }
 
 .checkout-page .pay-notice {

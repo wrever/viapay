@@ -9,11 +9,13 @@
 
 ## Guión
 
-1. **0–15s** — “Pasarela Stellar: un cobro, humano o agente, un hash; split 3 patas.”
-2. **15–35s** — Cobros: monto + revendedor → crear → **un** link (`checkout_url`).
-3. **35–60s** — Abrir ese link en el browser (redirect a `/pay`) → Freighter → recibo + hash.
-4. **60–80s** — Mismo link con agente / `examples/agent-pay.mjs` → 402 → liquidación.
-5. **80–90s** — Panel Historial. Cierre: “No somos otro protocolo; somos el checkout.”
+1. **0–15s** — “Pasarela: un cobro, un link, humano o agente; liquida el contrato payment-router.”
+2. **15–35s** — Cobros: monto + revendedor → crear → copiar **un** link. Chip “Soroban router” en `/pay`.
+3. **35–60s** — Browser → Freighter → Firmar → recibo + hash (invoke `pay`, no 3 ops clásicas).
+4. **60–80s** — `curl -i` al mismo link → 402; o `agent-pay.mjs` → liquidación.
+5. **80–90s** — Historial. Cierre: “No somos Local402 ni Honorarios; somos el checkout del comercio.”
+
+One-pager: [`JUDGE_ONE_PAGER.md`](./JUDGE_ONE_PAGER.md).
 
 ## Frases prohibidas
 

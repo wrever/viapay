@@ -7,8 +7,8 @@ export type Messages = {
   methodAria: string;
   walletTab: string;
   qrTab: string;
-  agentTab: string;
-  doorsHint: string;
+  routerChip: string;
+  qrRouterOnly: string;
   splitTitle: string;
   splitHint: string;
   receiptTitle: string;
@@ -104,8 +104,9 @@ const es: Messages = {
   methodAria: "Cómo pagar",
   walletTab: "Billetera",
   qrTab: "Código QR",
-  agentTab: "Agente",
-  doorsHint: "Mismo cobro · tres formas · un solo hash en Stellar",
+  routerChip: "Soroban router",
+  qrRouterOnly:
+    "Este cobro liquida por el contrato payment-router. Usá Billetera (Freighter); el QR clásico no aplica.",
   splitTitle: "En esta firma se reparte",
   splitHint: "Una transacción, varias transferencias on-chain. El % de ViaPay lo fija el servidor.",
   receiptTitle: "Recibo on-chain",
@@ -205,8 +206,9 @@ const en: Messages = {
   methodAria: "How to pay",
   walletTab: "Wallet",
   qrTab: "QR code",
-  agentTab: "Agent",
-  doorsHint: "Same charge · three ways · one Stellar hash",
+  routerChip: "Soroban router",
+  qrRouterOnly:
+    "This charge settles via the payment-router contract. Use Wallet (Freighter); classic QR does not apply.",
   splitTitle: "This signature splits to",
   splitHint: "One transaction, multiple on-chain transfers. ViaPay’s % is server-fixed.",
   receiptTitle: "On-chain receipt",
@@ -306,8 +308,9 @@ const pt: Messages = {
   methodAria: "Como pagar",
   walletTab: "Carteira",
   qrTab: "Código QR",
-  agentTab: "Agente",
-  doorsHint: "Mesma cobrança · três formas · um único hash na Stellar",
+  routerChip: "Soroban router",
+  qrRouterOnly:
+    "Esta cobrança liquida pelo contrato payment-router. Use Carteira (Freighter); o QR clássico não se aplica.",
   splitTitle: "Nesta assinatura o valor vai para",
   splitHint: "Uma transação, várias transferências on-chain. O % da ViaPay é fixo no servidor.",
   receiptTitle: "Recibo on-chain",
