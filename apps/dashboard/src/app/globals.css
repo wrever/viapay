@@ -1194,6 +1194,12 @@ code {
   gap: 0.45rem;
 }
 
+.success-strip__agent {
+  margin-top: 0.9rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+}
+
 /* Ledger rows */
 .ledger-empty {
   display: grid;

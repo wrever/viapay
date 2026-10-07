@@ -33,8 +33,10 @@ export type Messages = {
   creating: string;
   createCta: string;
   readyCopy: string;
+  readyAgent: string;
   copied: string;
   copyLink: string;
+  copyAgentLink: string;
   openCheckout: string;
   recentTitle: string;
   recentEmpty: string;
@@ -245,8 +247,10 @@ const es: Messages = {
   creating: "Creando…",
   createCta: "Crear link",
   readyCopy: "Listo — copiá y compartí:",
+  readyAgent: "Para un agente (mismo cobro, x402):",
   copied: "Copiado",
   copyLink: "Copiar link",
+  copyAgentLink: "Copiar link agente",
   openCheckout: "Abrir checkout",
   recentTitle: "Links recientes",
   recentEmpty: "Todavía no hay cobros.",
@@ -482,8 +486,10 @@ const en: Messages = {
   creating: "Creating…",
   createCta: "Create link",
   readyCopy: "Done — copy and share:",
+  readyAgent: "For an agent (same charge, x402):",
   copied: "Copied",
   copyLink: "Copy link",
+  copyAgentLink: "Copy agent link",
   openCheckout: "Open checkout",
   recentTitle: "Recent links",
   recentEmpty: "No charges yet.",
@@ -718,8 +724,10 @@ const pt: Messages = {
   creating: "Criando…",
   createCta: "Criar link",
   readyCopy: "Pronto — copie e compartilhe:",
+  readyAgent: "Para um agente (mesma cobrança, x402):",
   copied: "Copiado",
   copyLink: "Copiar link",
+  copyAgentLink: "Copiar link do agente",
   openCheckout: "Abrir checkout",
   recentTitle: "Links recentes",
   recentEmpty: "Ainda não há cobranças.",

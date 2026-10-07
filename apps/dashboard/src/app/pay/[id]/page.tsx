@@ -33,10 +33,38 @@ export default async function PayPage({
   }
 
   const intent = await res.json();
+  const x402Url =
+    typeof intent.x402_url === "string"
+      ? intent.x402_url
+      : `${API}/v1/x402/${id}?client_secret=${encodeURIComponent(cs)}`;
 
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col justify-center px-4 py-10">
-      <PayPanel intent={intent} />
-    </main>
+    <>
+      {/* Machine-readable: agents that open the human checkout discover x402 here. */}
+      <link rel="payment" href={x402Url} />
+      <link
+        rel="alternate"
+        type="application/vnd.viapay.x402+json"
+        href={x402Url}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://viapay.vercel.app/ns",
+            "@type": "PaymentIntent",
+            id: intent.id,
+            amount: intent.amount,
+            asset: intent.asset,
+            status: intent.status,
+            x402_url: x402Url,
+            checkout_url: intent.checkout_url ?? undefined,
+          }),
+        }}
+      />
+      <main className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col justify-center px-4 py-10">
+        <PayPanel intent={intent} />
+      </main>
+    </>
   );
 }

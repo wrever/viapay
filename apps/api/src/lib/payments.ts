@@ -101,6 +101,21 @@ export function buildCheckoutUrl(id: string, clientSecret: string): string {
   return url.toString();
 }
 
+export function getApiPublicUrl(): string {
+  return (
+    process.env.VIAPAY_API_PUBLIC_URL ??
+    process.env.NEXT_PUBLIC_VIAPAY_API_URL ??
+    "http://localhost:3001"
+  ).replace(/\/$/, "");
+}
+
+/** Same payment_intent, settled by an agent via HTTP 402. */
+export function buildX402Url(id: string, clientSecret: string): string {
+  const url = new URL(`${getApiPublicUrl()}/v1/x402/${id}`);
+  url.searchParams.set("client_secret", clientSecret);
+  return url.toString();
+}
+
 export function serializePaymentIntent(row: PaymentIntentRow) {
   return {
     id: row.id,
@@ -120,6 +135,7 @@ export function serializePaymentIntent(row: PaymentIntentRow) {
     metadata: row.metadata,
     client_secret: row.client_secret,
     checkout_url: buildCheckoutUrl(row.id, row.client_secret),
+    x402_url: buildX402Url(row.id, row.client_secret),
     success_url: row.success_url,
     cancel_url: row.cancel_url,
     expires_at: row.expires_at,

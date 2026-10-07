@@ -5,7 +5,7 @@ import {
 } from "@viapay/shared";
 import { getTreasuryAddress } from "./auth";
 import { publicApiUrl, stellarNetwork, usdcIssuer } from "./chain";
-import type { PaymentIntentRow } from "./payments";
+import { buildX402Url, type PaymentIntentRow } from "./payments";
 
 export type { PayoutShare };
 
@@ -36,9 +36,7 @@ export function breakdownFor(row: PaymentIntentRow): PayoutShare[] {
 }
 
 export function x402ResourceUrl(row: PaymentIntentRow): string {
-  const url = new URL(`${publicApiUrl()}/v1/x402/${row.id}`);
-  url.searchParams.set("client_secret", row.client_secret);
-  return url.toString();
+  return buildX402Url(row.id, row.client_secret);
 }
 
 /**

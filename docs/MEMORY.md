@@ -40,7 +40,7 @@ cd node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3 && npx 
 
 Pagos non-custodial en Stellar. El cliente paga en un checkout hosted. El comercio no custodia la clave del pagador. Un agente IA puede pagar lo mismo por HTTP 402 (x402).
 
-**Tesis de producto (demo):** un mismo `payment_intent` → tres puertas (billetera / QR SEP-7 / agente x402) → split hasta 3 patas on-chain → un `stellar_tx_hash`. El checkout muestra preview del reparto antes de firmar y recibo tras pagar.
+**Tesis de producto (demo):** un mismo `payment_intent` → humano (billetera / QR) o agente (x402) → split hasta 3 patas on-chain → un `stellar_tx_hash`. Checkout humano: total + tabs billetera/QR (+ recibo tras pagar). Agente: `x402_url` en create/GET intent + discovery en `/pay` (`<link rel="payment">` / JSON-LD), no tab en UI.
 
 **El reparto es de hasta tres patas, en una sola transacción:**
 
@@ -63,11 +63,11 @@ Monorepo pnpm. Puertos: dashboard (:3000, incluye checkout `/pay/[id]`), API `:3
 El camino de cobro **preferido** es Soroban `payment-router` cuando `PAYMENT_ROUTER_CONTRACT_ID` está set. Si falta, cae al split clásico multi-op.
 
 1. El dashboard crea un payment intent (`POST /v1/payment_intents`), con o sin revendedor (preview del split al crear).
-2. El checkout (`/pay/[id]`) carga `GET /v1/checkout/:id` → total + `breakdown` + `x402_url` + preflight `stellar.receive` (comercio / tesorería / revendedor). UI: preview de patas + tabs **Billetera | QR | Agente**.
+2. El checkout (`/pay/[id]`) carga `GET /v1/checkout/:id` → total + `breakdown` + `x402_url` + preflight `stellar.receive`. UI humana: tabs **Billetera | QR** (sin preview de fees ni tab agente). HTML incluye discovery x402 para bots.
 3. El checkout pide un XDR (`POST /v1/checkout/:id/prepare`):
    - **Con router:** simula `pay(...)` vía RPC (SAC SEP-41) y devuelve `settlement: "router"`.
    - **Sin router:** XDR clásico con 2–3 `payment` (+ `changeTrust` USDC si falta). `payoutLegs` arma las patas.
-4. Firma con Stellar Wallets Kit (Freighter, Lobstr, xBull, …) o, si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`, con wallet embebida Pollar. Alternativa: QR SEP-7 o agente vía tab x402 / `examples/agent-pay.mjs`.
+4. Firma con Stellar Wallets Kit (Freighter, Lobstr, xBull, …) o, si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`, con wallet embebida Pollar. Alternativa: QR SEP-7. Agente: `GET/POST /v1/x402/:id` (`x402_url` al crear cobro o discovery en `/pay`).
 5. La API verifica destinos/montos (clásico: ops; router: args de `pay`) y envía (`POST /v1/checkout/:id/submit`) → `status: succeeded` + `stellar_tx_hash`. UI de éxito = recibo de patas + link stellar.expert.
 6. El comercio consulta por id: `GET /v1/payment_intents/:id` (Bearer) o la lista. Polling, no webhooks obligatorios.
 7. SEP-7 QR sigue el path **clásico** (placeholder + callback). La reconciliación Horizon por memo también es clásica; cobros router quedan `succeeded` vía submit (o poll tras submit).
@@ -153,9 +153,9 @@ Con `PAYMENT_ROUTER_CONTRACT_ID` en la API: `prepare` / `submit` (y x402 vía su
 - **Anchor SEP-24**: descubrimiento vía `POST /v1/integrations` `{ domain }` (SDF Test Anchor por defecto en UI). Fiat payout **simulado**. `ANCHOR_HOME_DOMAIN` opcional en API para GET status.
 - **Escrow Trustless Work**: el POST existe. Sin `TRUSTLESSWORK_API_KEY` no llama a su API. Testnet: `https://beta.api.trustlesswork.com` (`/escrow/single-release/v2/deploy`). Mainnet legacy: `https://api.trustlesswork.com`.
 - **Pollar**: el checkout monta `PollarProvider` solo si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`. Sin key, el botón no aparece. Hace falta una key de `dashboard.pollar.xyz`.
-- **Swap (público en checkout + plus en panel)**: `POST /v1/swap/quote|build|send` son **públicos** (sin cuenta ViaPay); `SOROSWAP_API_KEY` solo server-side; rate-limit básico por IP. **Checkout pagador** `/pay/[id]`: tabs **Billetera | QR | Agente**; debajo del flujo, link «¿No tienes el token? Swappear» cambia `view` a swap (reemplaza el área de pago con `CheckoutSwap` + CTA «Volver a pagar»). Copy visible sin marca del agregador ni link externo (feature ViaPay). Swap no es tab ni liquida el `payment_intent`. Panel `#swap` (`SwapPanel`) usa los mismos endpoints; sin hint de API key / login ni link externo. **Prod:** `SOROSWAP_API_KEY` en Vercel `viapay-api` → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje genérico).
+- **Swap (público en checkout + plus en panel)**: `POST /v1/swap/quote|build|send` son **públicos** (sin cuenta ViaPay); `SOROSWAP_API_KEY` solo server-side; rate-limit básico por IP. **Checkout pagador** `/pay/[id]`: tabs **Billetera | QR**; debajo del flujo, link «¿No tienes el token? Swappear» cambia `view` a swap (reemplaza el área de pago con `CheckoutSwap` + CTA «Volver a pagar»). Copy visible sin marca del agregador ni link externo (feature ViaPay). Swap no es tab ni liquida el `payment_intent`. Panel `#swap` (`SwapPanel`) usa los mismos endpoints; sin hint de API key / login ni link externo. **Prod:** `SOROSWAP_API_KEY` en Vercel `viapay-api` → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje genérico).
 - **x402 con facilitator**: el endpoint propio está vivo (ver arriba), pero ViaPay liquida por su cuenta. No hay integración con un facilitator x402 ni con el esquema de auth entries de Soroban.
-- **Checkout UX split + tres puertas (2026-10-06):** preview/recibo + tab Agente en `apps/dashboard`. Deploy vía push a `main` → Vercel `web` + `viapay-api`.
+- **Checkout:** recibo post-pago sí; preview de fees y tab Agente **no** (humano limpio). Agente vía `x402_url` en API + discovery en `/pay`. Panel Cobros ofrece copiar link agente tras crear.
 
 ## Límites reales
 
@@ -186,7 +186,7 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Auth OAuth → API key (dashboard): `apps/dashboard/src/lib/link-account.ts` + callback
 - Auth OAuth → API key (API link): `apps/api/src/app/v1/auth/link/route.ts`
 - Wallets destino: `POST/GET /v1/wallets` (`apps/api/src/app/v1/wallets/route.ts`) + `IntegrationPanel`
-- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + `SplitLegsList.tsx` + `lib/checkout/breakdown.ts` + ruta `/pay/[id]`. Tabs **Billetera | QR | Agente**; swap es vista secundaria (`view: pay|swap`), no tab.
+- Checkout UI (prod en dashboard): `apps/dashboard/src/components/checkout/PayPanel.tsx` + `SplitLegsList.tsx` (solo recibo) + `lib/checkout/breakdown.ts` + `/pay/[id]` (discovery x402 en page). Tabs **Billetera | QR**; swap vista secundaria.
 - Checkout legado (local): `apps/checkout/src/components/PayPanel.tsx` (puede seguir desfasado; prod = dashboard)
 - Wallets Kit: `apps/dashboard/src/lib/checkout/wallet.ts` (y espejo en `apps/checkout`)
 - Pollar: `apps/dashboard/src/components/checkout/PollarShell.tsx`
@@ -235,7 +235,7 @@ i18n en **web, checkout y dashboard**: ES (default) → EN → PT. Detección po
 | Checkout | horizontal 104px + watermark isotipo (misma host `/pay/[id]`) |
 | Favicon / apple-icon | `icon.svg` del kit + `apple-icon.png` 180px (Next ignora SVG para apple-icon) |
 
-Checkout (pagador): **total** + preview/recibo del split (comercio / ViaPay / revendedor, % server-side) + tres puertas (billetera, QR SEP-7, agente x402 con URL del mismo `payment_intent`). GET `/v1/checkout/:id` expone `breakdown` + `x402_url`. Helper `buildPayoutBreakdown` en `@viapay/shared` (también usa x402). Estilos: `apps/dashboard/src/app/checkout.css` (`.pay-split`, `.pay-tabs--three`, `.pay-agent__*`). i18n checkout: `apps/dashboard/src/lib/checkout/messages.ts` (ES/EN/PT). El dashboard sigue mostrando preview al crear el cobro (el comercio configura el % Hubby).
+Checkout (pagador): **total** + billetera/QR; tras pagar, recibo del split. Sin preview de fees ni tab agente. `serializePaymentIntent` / GET checkout incluyen `x402_url`. Discovery en HTML de `/pay`. Helper `buildPayoutBreakdown` en `@viapay/shared`. Dashboard: preview al crear cobro + copiar link agente.
 
 ## Cómo arrancar
 
