@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, ExternalLink, Link2, Loader2 } from "lucide-react";
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  Link2,
+  Loader2,
+  Mail,
+  MessageCircle,
+} from "lucide-react";
 import {
   calcFeeSplit,
   DEFAULT_FEE_BPS,
@@ -19,6 +27,16 @@ import { API } from "@/lib/config";
 import type { DashboardPayment } from "@/lib/payment-types";
 import { useLocale } from "@/lib/i18n";
 import { FiatEquivalent } from "@/components/FiatEquivalent";
+import type { Contact } from "@/components/ContactsSection";
+
+function waMeShare(phone: string, text: string): string {
+  const digits = phone.replace(/\D/g, "");
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+function mailtoShare(email: string, subject: string, body: string): string {
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 
 function pctToBps(raw: string): number | null {
   const cleaned = raw.trim().replace(",", ".");
@@ -67,7 +85,34 @@ export function CreatePaymentLink({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUrl, setLastUrl] = useState<string | null>(null);
+  const [lastPayment, setLastPayment] = useState<DashboardPayment | null>(null);
   const [copied, setCopied] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [contactId, setContactId] = useState("");
+
+  const selectedContact = useMemo(
+    () => contacts.find((c) => c.id === contactId) ?? null,
+    [contacts, contactId],
+  );
+
+  useEffect(() => {
+    if (!apiKey) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API}/v1/contacts`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        const body = (await res.json()) as { data?: Contact[] };
+        if (!cancelled && res.ok) setContacts(body.data ?? []);
+      } catch {
+        /* optional */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiKey]);
 
   const resellerBps = resellerOpen ? (pctToBps(resellerPct) ?? 0) : 0;
   const addressValid = isValidStellarPubkey(resellerAddress.trim());
@@ -171,6 +216,20 @@ export function CreatePaymentLink({
     setCopied(false);
     try {
       const normalized = Number(amount.trim().replace(",", ".")).toFixed(7);
+      const invoice = selectedContact
+        ? {
+            contact_id: selectedContact.id,
+            recipient_name: selectedContact.display_name,
+            channel: selectedContact.phone_e164
+              ? "whatsapp"
+              : selectedContact.email
+                ? "email"
+                : "link",
+            source: "panel",
+            phone_e164: selectedContact.phone_e164,
+            email: selectedContact.email,
+          }
+        : undefined;
       const res = await fetch(`${API}/v1/payment_intents`, {
         method: "POST",
         headers: {
@@ -180,7 +239,13 @@ export function CreatePaymentLink({
         body: JSON.stringify({
           amount: normalized,
           asset,
-          description: description.trim() || undefined,
+          description:
+            description.trim() ||
+            (selectedContact
+              ? `Cobro a ${selectedContact.display_name}`
+              : undefined),
+          external_user_id: selectedContact?.id,
+          metadata: invoice ? { invoice } : undefined,
           ...(resellerBps > 0
             ? {
                 reseller_fee_bps: resellerBps,
@@ -191,7 +256,9 @@ export function CreatePaymentLink({
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? t.errCreate);
-      onPaymentCreated(body as DashboardPayment);
+      const payment = body as DashboardPayment;
+      onPaymentCreated(payment);
+      setLastPayment(payment);
       setLastUrl(body.checkout_url as string);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.errGeneric);
@@ -213,6 +280,29 @@ export function CreatePaymentLink({
       </div>
       <div className="panel__body">
         <form className="grid gap-4" onSubmit={onCreate}>
+          <div className="grid gap-2">
+            <Label htmlFor="contact">{t.invoiceContact}</Label>
+            <select
+              id="contact"
+              className="asset-select w-full"
+              value={contactId}
+              onChange={(e) => setContactId(e.target.value)}
+            >
+              <option value="">{t.invoiceNoContact}</option>
+              {contacts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.display_name}
+                  {c.phone_e164
+                    ? ` · ${c.phone_e164}`
+                    : c.email
+                      ? ` · ${c.email}`
+                      : ""}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-[var(--text-2)]">{t.invoiceContactHint}</p>
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="amount">{t.amount}</Label>
             <div className="amount-row">
@@ -383,7 +473,7 @@ export function CreatePaymentLink({
           <div className="success-strip">
             <p className="success-strip__label">{t.readyCopy}</p>
             <p className="success-strip__url perf">{lastUrl}</p>
-            <div className="success-strip__actions">
+            <div className="success-strip__actions flex flex-wrap gap-2">
               <Button type="button" onClick={() => copy(lastUrl)}>
                 {copied ? (
                   <>
@@ -395,6 +485,46 @@ export function CreatePaymentLink({
                   </>
                 )}
               </Button>
+              {selectedContact?.phone_e164 && (
+                <Button type="button" variant="default" asChild>
+                  <a
+                    href={waMeShare(
+                      selectedContact.phone_e164,
+                      t.invoiceWaText(
+                        selectedContact.display_name,
+                        lastPayment?.amount ?? amount,
+                        lastPayment?.asset ?? asset,
+                        lastUrl,
+                      ),
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <MessageCircle className="h-4 w-4" /> {t.shareWhatsApp}
+                  </a>
+                </Button>
+              )}
+              {selectedContact?.email && (
+                <Button type="button" variant="outline" asChild>
+                  <a
+                    href={mailtoShare(
+                      selectedContact.email,
+                      t.invoiceMailSubject(
+                        lastPayment?.amount ?? amount,
+                        lastPayment?.asset ?? asset,
+                      ),
+                      t.invoiceWaText(
+                        selectedContact.display_name,
+                        lastPayment?.amount ?? amount,
+                        lastPayment?.asset ?? asset,
+                        lastUrl,
+                      ),
+                    )}
+                  >
+                    <Mail className="h-4 w-4" /> {t.shareEmail}
+                  </a>
+                </Button>
+              )}
               <Button type="button" variant="outline" asChild>
                 <a href={lastUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="h-4 w-4" /> {t.openCheckout}

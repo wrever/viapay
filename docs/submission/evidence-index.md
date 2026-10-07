@@ -19,7 +19,7 @@ Red: **testnet** (salvo fila mainnet). Tesorería fees: `GDIN7HCR4PKKWS6MO57N7NF
 | payment-router testnet | `CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` |
 | wasm hash (deploy) | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
 | Liquidación onchain | **Solo router** (`assertRouterPayXdr` en submit). Clásico rechazado si hay contract id. |
-| SEP-55 | Plantilla CI en `submission/payment-router-verified-build.yml` — copiar a `.github/workflows/` con PAT `workflow` |
+| SEP-55 | Workflow en `.github/workflows/payment-router-verified-build.yml` (build+attest). Registro Lab = manual |
 
 ## Checklist jurado (antes del video)
 

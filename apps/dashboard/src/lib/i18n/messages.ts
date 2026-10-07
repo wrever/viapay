@@ -201,6 +201,49 @@ export type Messages = {
   anchorOpen: string;
   anchorNeedKey: string;
   anchorDiscoverFail: string;
+  anchorMissingEndpoints: string;
+  anchorSep10Sep24: string;
+  anchorSepRunning: string;
+  anchorSep24Fail: string;
+  anchorJwtOk: string;
+  anchorOpenInteractive: string;
+  sepsTitle: string;
+  sepsBody: string;
+  sepsLoadFail: string;
+  contactsTitle: string;
+  contactsBody: string;
+  contactsName: string;
+  contactsPhone: string;
+  contactsEmail: string;
+  contactsAdd: string;
+  contactsDelete: string;
+  contactsLoadFail: string;
+  contactsSaveFail: string;
+  waTitle: string;
+  waBody: string;
+  waNotConfigured: string;
+  waLinked: string;
+  waStep1: string;
+  waStep2: string;
+  waStep3: string;
+  waGenCode: string;
+  waSendCode: string;
+  waCodeExpires: string;
+  waStatusFail: string;
+  waCodeFail: string;
+  invoiceContact: string;
+  invoiceNoContact: string;
+  invoiceContactHint: string;
+  shareWhatsApp: string;
+  shareEmail: string;
+  invoiceWaText: (
+    name: string,
+    amount: string,
+    asset: string,
+    url: string,
+  ) => string;
+  invoiceMailSubject: (amount: string, asset: string) => string;
+  historyTo: string;
 };
 
 const es: Messages = {
@@ -440,6 +483,51 @@ const es: Messages = {
   anchorOpen: "Abrir test anchor",
   anchorNeedKey: "Necesitás una API key de sesión para descubrir el anchor.",
   anchorDiscoverFail: "No se pudo leer el stellar.toml del anchor",
+  anchorMissingEndpoints:
+    "El stellar.toml del anchor no expone WEB_AUTH ni TRANSFER_SERVER_SEP0024.",
+  anchorSep10Sep24: "SEP-10 → SEP-24 (Freighter)",
+  anchorSepRunning: "Autenticando…",
+  anchorSep24Fail: "No se pudo abrir el flujo SEP-24 interactivo",
+  anchorJwtOk: "JWT SEP-10 OK:",
+  anchorOpenInteractive: "Abrir UI interactiva del anchor",
+  sepsTitle: "SEPs Stellar (vivo)",
+  sepsBody:
+    "Matriz desde GET /v1/health: identidad, auth, cash-out demo, SAC y verified build.",
+  sepsLoadFail: "No se pudo cargar el estado de SEPs",
+  contactsTitle: "Contactos",
+  contactsBody:
+    "Agenda para invoices. Nombre + teléfono (WhatsApp) y/o email.",
+  contactsName: "Nombre",
+  contactsPhone: "Teléfono",
+  contactsEmail: "Email",
+  contactsAdd: "Agregar",
+  contactsDelete: "Eliminar contacto",
+  contactsLoadFail: "No se pudieron cargar los contactos",
+  contactsSaveFail: "No se pudo guardar el contacto",
+  waTitle: "Asistente WhatsApp",
+  waBody:
+    "Asistente propio vía Meta Cloud API. Menú 1/2/3 → mismo payment_intent / checkout Stellar que el panel.",
+  waNotConfigured:
+    "Meta WhatsApp no configurado en la API (META_WA_*). Igual podés crear cobros y compartir con wa.me desde el panel.",
+  waLinked: "Número vinculado",
+  waStep1: "Escribí al número Business de ViaPay en WhatsApp (el de Meta).",
+  waStep2: "Generá un código abajo y mandá: vincular 123456",
+  waStep3: "Menú: 1 Nuevo cobro → contacto → monto → activo → Sí",
+  waGenCode: "Generar código de vínculo",
+  waSendCode: "Enviá al bot:",
+  waCodeExpires: "Vence",
+  waStatusFail: "No se pudo leer el estado de WhatsApp",
+  waCodeFail: "No se pudo generar el código",
+  invoiceContact: "Cobrar a (opcional)",
+  invoiceNoContact: "Sin contacto — solo link",
+  invoiceContactHint:
+    "Si elegís contacto, después podés abrir WhatsApp o email con el link listo.",
+  shareWhatsApp: "Enviar por WhatsApp",
+  shareEmail: "Enviar por email",
+  invoiceWaText: (name, amount, asset, url) =>
+    `Hola ${name}, te cobran ${amount} ${asset} por ViaPay:\n${url}`,
+  invoiceMailSubject: (amount, asset) => `Cobro ViaPay ${amount} ${asset}`,
+  historyTo: "Para",
 };
 
 const en: Messages = {
@@ -677,6 +765,51 @@ const en: Messages = {
   anchorOpen: "Open test anchor",
   anchorNeedKey: "You need a session API key to discover the anchor.",
   anchorDiscoverFail: "Could not read the anchor stellar.toml",
+  anchorMissingEndpoints:
+    "The anchor stellar.toml does not expose WEB_AUTH or TRANSFER_SERVER_SEP0024.",
+  anchorSep10Sep24: "SEP-10 → SEP-24 (Freighter)",
+  anchorSepRunning: "Authenticating…",
+  anchorSep24Fail: "Could not open the SEP-24 interactive flow",
+  anchorJwtOk: "SEP-10 JWT OK:",
+  anchorOpenInteractive: "Open anchor interactive UI",
+  sepsTitle: "Stellar SEPs (live)",
+  sepsBody:
+    "Matrix from GET /v1/health: identity, auth, cash-out demo, SAC, and verified build.",
+  sepsLoadFail: "Could not load SEP status",
+  contactsTitle: "Contacts",
+  contactsBody:
+    "Address book for invoices. Name + phone (WhatsApp) and/or email.",
+  contactsName: "Name",
+  contactsPhone: "Phone",
+  contactsEmail: "Email",
+  contactsAdd: "Add",
+  contactsDelete: "Delete contact",
+  contactsLoadFail: "Could not load contacts",
+  contactsSaveFail: "Could not save contact",
+  waTitle: "WhatsApp assistant",
+  waBody:
+    "Your own assistant on Meta Cloud API. Menu 1/2/3 → same payment_intent / Stellar checkout as the panel.",
+  waNotConfigured:
+    "Meta WhatsApp is not configured on the API (META_WA_*). You can still create charges and share via wa.me from the panel.",
+  waLinked: "Linked number",
+  waStep1: "Message ViaPay’s WhatsApp Business number (from Meta).",
+  waStep2: "Generate a code below and send: vincular 123456",
+  waStep3: "Menu: 1 New charge → contact → amount → asset → Yes",
+  waGenCode: "Generate link code",
+  waSendCode: "Send to the bot:",
+  waCodeExpires: "Expires",
+  waStatusFail: "Could not load WhatsApp status",
+  waCodeFail: "Could not generate code",
+  invoiceContact: "Charge to (optional)",
+  invoiceNoContact: "No contact — link only",
+  invoiceContactHint:
+    "If you pick a contact, you can open WhatsApp or email with the link ready.",
+  shareWhatsApp: "Send via WhatsApp",
+  shareEmail: "Send via email",
+  invoiceWaText: (name, amount, asset, url) =>
+    `Hi ${name}, you are charged ${amount} ${asset} via ViaPay:\n${url}`,
+  invoiceMailSubject: (amount, asset) => `ViaPay charge ${amount} ${asset}`,
+  historyTo: "To",
 };
 
 const pt: Messages = {
@@ -917,6 +1050,51 @@ const pt: Messages = {
   anchorOpen: "Abrir test anchor",
   anchorNeedKey: "Você precisa de uma API key de sessão para descobrir o anchor.",
   anchorDiscoverFail: "Não foi possível ler o stellar.toml do anchor",
+  anchorMissingEndpoints:
+    "O stellar.toml do anchor não expõe WEB_AUTH nem TRANSFER_SERVER_SEP0024.",
+  anchorSep10Sep24: "SEP-10 → SEP-24 (Freighter)",
+  anchorSepRunning: "Autenticando…",
+  anchorSep24Fail: "Não foi possível abrir o fluxo SEP-24 interativo",
+  anchorJwtOk: "JWT SEP-10 OK:",
+  anchorOpenInteractive: "Abrir UI interativa do anchor",
+  sepsTitle: "SEPs Stellar (vivo)",
+  sepsBody:
+    "Matriz de GET /v1/health: identidade, auth, cash-out demo, SAC e verified build.",
+  sepsLoadFail: "Não foi possível carregar o status dos SEPs",
+  contactsTitle: "Contatos",
+  contactsBody:
+    "Agenda para invoices. Nome + telefone (WhatsApp) e/ou email.",
+  contactsName: "Nome",
+  contactsPhone: "Telefone",
+  contactsEmail: "Email",
+  contactsAdd: "Adicionar",
+  contactsDelete: "Excluir contato",
+  contactsLoadFail: "Não foi possível carregar os contatos",
+  contactsSaveFail: "Não foi possível salvar o contato",
+  waTitle: "Assistente WhatsApp",
+  waBody:
+    "Assistente próprio via Meta Cloud API. Menu 1/2/3 → mesmo payment_intent / checkout Stellar do painel.",
+  waNotConfigured:
+    "Meta WhatsApp não configurado na API (META_WA_*). Você ainda pode criar cobranças e compartilhar com wa.me no painel.",
+  waLinked: "Número vinculado",
+  waStep1: "Escreva para o número Business da ViaPay no WhatsApp (Meta).",
+  waStep2: "Gere um código abaixo e envie: vincular 123456",
+  waStep3: "Menu: 1 Nova cobrança → contato → valor → ativo → Sim",
+  waGenCode: "Gerar código de vínculo",
+  waSendCode: "Envie ao bot:",
+  waCodeExpires: "Expira",
+  waStatusFail: "Não foi possível ler o status do WhatsApp",
+  waCodeFail: "Não foi possível gerar o código",
+  invoiceContact: "Cobrar de (opcional)",
+  invoiceNoContact: "Sem contato — só link",
+  invoiceContactHint:
+    "Se escolher um contato, depois pode abrir WhatsApp ou email com o link pronto.",
+  shareWhatsApp: "Enviar pelo WhatsApp",
+  shareEmail: "Enviar por email",
+  invoiceWaText: (name, amount, asset, url) =>
+    `Olá ${name}, cobrança de ${amount} ${asset} via ViaPay:\n${url}`,
+  invoiceMailSubject: (amount, asset) => `Cobrança ViaPay ${amount} ${asset}`,
+  historyTo: "Para",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { es, en, pt };

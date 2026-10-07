@@ -25,6 +25,7 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 - Paquete jurado: [`WIN_PLAN.md`](./WIN_PLAN.md) + [`submission/`](./submission/).
 - **1 pago mainnet** de prueba (evidencia) permitido; no “ops mainnet” de producto.
 - SEP-1 toml + SEP-24 test anchor demo + path SEP-55 CI.
+- **Invoices por contacto + asistente WhatsApp** (Meta Cloud API, menú 1/2/3) → mismo `payment_intent` / `checkout_url`.
 
 ## No hacer ahora
 

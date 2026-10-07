@@ -6,7 +6,10 @@ import { formatBps } from "@viapay/shared";
 import { LOCALE_TAG } from "@viapay/prefs";
 import { Button } from "@/components/ui/button";
 import { PaymentStatusBadge } from "@/components/PaymentStatusBadge";
-import type { DashboardPayment } from "@/lib/payment-types";
+import {
+  invoiceRecipient,
+  type DashboardPayment,
+} from "@/lib/payment-types";
 import { useLocale } from "@/lib/i18n";
 
 const PAGE = 20;
@@ -94,6 +97,11 @@ export function PaymentHistory({
                         <span className="history-table__primary">
                           {p.description?.trim() || t.historyNoMemo}
                         </span>
+                        {invoiceRecipient(p) && (
+                          <span className="history-table__sub">
+                            {t.historyTo}: {invoiceRecipient(p)}
+                          </span>
+                        )}
                         <span className="history-table__sub perf">{p.id}</span>
                         {p.reseller_address && (
                           <span className="history-table__sub">

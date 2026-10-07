@@ -50,11 +50,15 @@ export function useStellarWallet(network: KitNetwork = "testnet") {
   }, []);
 
   const sign = useCallback(
-    async (xdr: string, networkPassphrase: string) => {
+    async (
+      xdr: string,
+      networkPassphrase: string,
+      fromAddress?: string,
+    ) => {
       const { StellarWalletsKit } = await loadKit();
       const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
         networkPassphrase,
-        address: address ?? undefined,
+        address: fromAddress ?? address ?? undefined,
       });
       return signedTxXdr;
     },

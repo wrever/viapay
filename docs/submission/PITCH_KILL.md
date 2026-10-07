@@ -17,6 +17,7 @@ De punta a cabo. Eso es lo que el ecosistema e-commerce / marketplace / agente *
 | Panel crear cobro | No | No (recibo fiscal) | **Sí** |
 | Link pagable humano | No foco | Demo walletless fiscal | **Sí `/pay`** |
 | Mismo link → agente 402 | Sí (su esquema) | No | **Sí (unificado)** |
+| Cobro desde WhatsApp (comercio) | No | No | **Sí (bot + panel)** |
 | Split marketplace (reseller) | No | No | **Sí (3 patas)** |
 | SDK + webhooks + redirect shop | No | No | **Sí** |
 | Contrato verifica el pago | Su FxPay | Su tax contract | **payment-router** |

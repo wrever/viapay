@@ -110,6 +110,45 @@ export function migrate(db = getDb()): void {
 
     create index if not exists idx_wh_account on webhook_endpoints(account_id);
     create index if not exists idx_wh_delivery_status on webhook_deliveries(status, next_attempt_at);
+
+    create table if not exists contacts (
+      id text primary key,
+      account_id text not null references accounts(id),
+      display_name text not null,
+      phone_e164 text,
+      email text,
+      notes text,
+      created_at text not null,
+      updated_at text not null
+    );
+    create index if not exists idx_contacts_account on contacts(account_id);
+
+    create table if not exists wa_links (
+      id text primary key,
+      account_id text not null references accounts(id),
+      phone_e164 text not null unique,
+      status text not null default 'active',
+      linked_at text not null,
+      created_at text not null
+    );
+    create index if not exists idx_wa_links_account on wa_links(account_id);
+
+    create table if not exists wa_link_codes (
+      id text primary key,
+      account_id text not null references accounts(id),
+      code text not null,
+      expires_at text not null,
+      created_at text not null
+    );
+    create index if not exists idx_wa_link_codes_code on wa_link_codes(code);
+
+    create table if not exists wa_sessions (
+      phone_e164 text primary key,
+      account_id text,
+      state text not null default 'idle',
+      draft text not null default '{}',
+      updated_at text not null
+    );
   `);
 
   addColumns(db, "payment_intents", {

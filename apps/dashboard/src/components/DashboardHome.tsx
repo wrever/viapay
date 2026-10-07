@@ -13,6 +13,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
+import { ContactsSection } from "@/components/ContactsSection";
+import { WhatsAppAssistantCard } from "@/components/WhatsAppAssistantCard";
 import { Logo } from "@/components/Logo";
 import { IntegrationPanel } from "@/components/IntegrationPanel";
 import { OverviewPanel } from "@/components/OverviewPanel";
@@ -368,6 +370,10 @@ export function DashboardHome({
                     <li>{t.cobrosGuide2}</li>
                     <li>{t.cobrosGuide3}</li>
                   </ol>
+                  <div className="grid gap-6 mt-6">
+                    <ContactsSection apiKey={apiKey} />
+                    <WhatsAppAssistantCard apiKey={apiKey} />
+                  </div>
                 </aside>
               </div>
             )}

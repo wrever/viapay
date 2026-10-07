@@ -335,11 +335,13 @@ export async function listPaymentIntents(accountId: string) {
     throwSb(res.error, "list payment_intents failed");
     return (res.data ?? []).map((row) => normalizeRow(row as Record<string, unknown>));
   }
-  return getDb()
-    .prepare(
-      `select * from payment_intents where account_id = ? order by created_at desc limit 100`,
-    )
-    .all(accountId) as PaymentIntentRow[];
+  return (
+    getDb()
+      .prepare(
+        `select * from payment_intents where account_id = ? order by created_at desc limit 100`,
+      )
+      .all(accountId) as Record<string, unknown>[]
+  ).map(normalizeRow);
 }
 
 export async function getPaymentIntentPublic(id: string, clientSecret: string) {

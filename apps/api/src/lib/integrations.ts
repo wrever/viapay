@@ -15,8 +15,8 @@ export function integrationStatus(): IntegrationStatus[] {
       id: "soroban",
       ready: Boolean(process.env.PAYMENT_ROUTER_CONTRACT_ID),
       detail: process.env.PAYMENT_ROUTER_CONTRACT_ID
-        ? `Contrato ${process.env.PAYMENT_ROUTER_CONTRACT_ID}`
-        : "Fuente en contracts/payment-router. El checkout sigue en pagos clásicos hasta el deploy.",
+        ? `payment-router ${process.env.PAYMENT_ROUTER_CONTRACT_ID} (SEP-41 SAC; onchain exige este contrato)`
+        : "Falta PAYMENT_ROUTER_CONTRACT_ID — onchain no liquida sin payment-router.",
     },
     {
       id: "supabase",
@@ -33,10 +33,10 @@ export function integrationStatus(): IntegrationStatus[] {
     },
     {
       id: "anchor",
-      ready: Boolean(process.env.ANCHOR_HOME_DOMAIN),
+      ready: true,
       detail: process.env.ANCHOR_HOME_DOMAIN
         ? `stellar.toml en ${process.env.ANCHOR_HOME_DOMAIN}`
-        : "On/off-ramp SEP-24: define ANCHOR_HOME_DOMAIN.",
+        : "SEP-10/24 demo: SDF Test Anchor (testanchor.stellar.org) vía panel + proxies /v1/sep10|/v1/sep24. Fiat simulado.",
     },
     {
       id: "escrow",
@@ -61,16 +61,29 @@ export function trustlessBaseUrl(): string {
     : "https://beta.api.trustlesswork.com";
 }
 
+function tomlString(text: string, key: string): string | null {
+  const re = new RegExp(`^\\s*${key}\\s*=\\s*"([^"]+)"`, "m");
+  return text.match(re)?.[1] ?? null;
+}
+
 export async function discoverAnchor(domain: string) {
-  const tomlUrl = `https://${domain.replace(/^https?:\/\//, "")}/.well-known/stellar.toml`;
+  const host = domain.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const tomlUrl = `https://${host}/.well-known/stellar.toml`;
   const res = await fetch(tomlUrl, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) {
     throw Object.assign(new Error(`No se pudo leer ${tomlUrl}`), { status: 502 });
   }
   const text = await res.text();
-  const sep24 = text.match(/TRANSFER_SERVER_SEP0024\s*=\s*"([^"]+)"/)?.[1] ?? null;
-  const sep6 = text.match(/TRANSFER_SERVER\s*=\s*"([^"]+)"/)?.[1] ?? null;
-  return { toml_url: tomlUrl, sep24, sep6 };
+  return {
+    domain: host,
+    toml_url: tomlUrl,
+    network_passphrase: tomlString(text, "NETWORK_PASSPHRASE"),
+    web_auth: tomlString(text, "WEB_AUTH_ENDPOINT"),
+    sep24: tomlString(text, "TRANSFER_SERVER_SEP0024"),
+    sep6: tomlString(text, "TRANSFER_SERVER"),
+    sep12: tomlString(text, "KYC_SERVER"),
+    signing_key: tomlString(text, "SIGNING_KEY"),
+  };
 }
 
 export async function deployEscrow(input: {

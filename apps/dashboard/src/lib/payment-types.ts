@@ -1,5 +1,14 @@
 import { parseAssetAmount } from "@viapay/shared";
 
+export type InvoiceMeta = {
+  contact_id?: string;
+  recipient_name?: string;
+  channel?: string;
+  source?: string;
+  phone_e164?: string | null;
+  email?: string | null;
+};
+
 export type DashboardPayment = {
   id: string;
   status: string;
@@ -11,10 +20,21 @@ export type DashboardPayment = {
   reseller_address?: string | null;
   asset: string;
   description: string | null;
+  external_user_id?: string | null;
+  metadata?: { invoice?: InvoiceMeta } | null;
   checkout_url: string;
   created_at: string;
   stellar_tx_hash?: string | null;
 };
+
+export function invoiceRecipient(p: DashboardPayment): string | null {
+  const inv = p.metadata?.invoice;
+  if (inv?.recipient_name) {
+    const via = inv.source === "whatsapp" ? "WhatsApp" : inv.channel ?? null;
+    return via ? `${inv.recipient_name} · ${via}` : inv.recipient_name;
+  }
+  return null;
+}
 
 export type AssetTotals = {
   asset: string;

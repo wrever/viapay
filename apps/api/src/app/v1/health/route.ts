@@ -1,17 +1,73 @@
 import { resolveViaFeeBps } from "@viapay/shared";
 import { jsonOk } from "@/lib/http";
 import { getTreasuryAddress } from "@/lib/auth";
-import { paymentRouterContractId, stellarNetwork } from "@/lib/chain";
+import {
+  paymentRouterContractId,
+  stellarNetwork,
+  usdcIssuer,
+} from "@/lib/chain";
 
+/** Public readiness + Stellar SEP surface for demos / agents. */
 export async function GET() {
+  const network = stellarNetwork();
+  const router = paymentRouterContractId();
+  const mode =
+    process.env.STELLAR_MODE === "simulated" ? "simulated" : "onchain";
+  const onchainRouter = mode === "onchain" && Boolean(router);
+
   return jsonOk({
     ok: true,
     product: "ViaPay",
     env: process.env.NODE_ENV ?? "local",
     fee_bps: resolveViaFeeBps(process.env.FEE_BPS),
     treasury: getTreasuryAddress(),
-    network: stellarNetwork(),
-    mode: process.env.STELLAR_MODE === "simulated" ? "simulated" : "onchain",
-    payment_router: paymentRouterContractId(),
+    network,
+    mode,
+    payment_router: router,
+    usdc_issuer: usdcIssuer(),
+    stellar_toml: "https://viapay.vercel.app/.well-known/stellar.toml",
+    seps: {
+      "SEP-1": {
+        status: "live",
+        url: "https://viapay.vercel.app/.well-known/stellar.toml",
+      },
+      "SEP-7": {
+        status: onchainRouter ? "classic_disabled_use_wallet" : "live",
+        note: onchainRouter
+          ? "Checkout settles via payment-router; use Freighter, not classic SEP-7 QR."
+          : "Classic multi-op SEP-7 when router unset.",
+      },
+      "SEP-10": {
+        status: "demo",
+        note: "SDF Test Anchor WEB_AUTH via panel cash-out.",
+      },
+      "SEP-24": {
+        status: "demo",
+        note: "SDF Test Anchor interactive withdraw; fiat simulated.",
+        home_domain:
+          process.env.ANCHOR_HOME_DOMAIN ?? "testanchor.stellar.org",
+      },
+      "SEP-11": { status: "skip", note: "No KYC product this week." },
+      "SEP-41": {
+        status: "live",
+        note: "USDC + native SAC through payment-router pay().",
+        usdc_issuer: usdcIssuer(),
+      },
+      "SEP-55": {
+        status: "ci",
+        note: "GitHub Actions builds + attests payment-router wasm (Verified Build registration pending).",
+      },
+    },
+    whatsapp: {
+      provider: "meta_cloud_api",
+      configured: Boolean(
+        process.env.META_WA_ACCESS_TOKEN &&
+          process.env.META_WA_PHONE_NUMBER_ID &&
+          process.env.META_WA_VERIFY_TOKEN &&
+          process.env.META_APP_SECRET,
+      ),
+      webhook: `${process.env.VIAPAY_API_PUBLIC_URL?.replace(/\/$/, "") ?? "https://viapay-api.vercel.app"}/v1/whatsapp/webhook`,
+      note: "Meta WhatsApp Cloud API assistant; panel share wa.me works without Meta envs.",
+    },
   });
 }

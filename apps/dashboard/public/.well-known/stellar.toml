@@ -1,25 +1,47 @@
 # ViaPay — SEP-0001
 # https://viapay.vercel.app/.well-known/stellar.toml
+VERSION = "2.0.0"
 
 NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 HORIZON_URL = "https://horizon-testnet.stellar.org"
+# Demo cash-out uses SDF Test Anchor (SEP-10 + SEP-24). Fiat is simulated.
 WEB_AUTH_ENDPOINT = "https://testanchor.stellar.org/auth"
 TRANSFER_SERVER_SEP0024 = "https://testanchor.stellar.org/sep24"
+TRANSFER_SERVER = "https://testanchor.stellar.org/sep6"
+KYC_SERVER = "https://testanchor.stellar.org/sep12"
 
-[[DOCUMENTATION]]
+ACCOUNTS = [
+  "GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5",
+]
+
+[DOCUMENTATION]
 ORG_NAME = "ViaPay"
 ORG_URL = "https://viapay.vercel.app"
-ORG_DESCRIPTION = "Hosted Stellar checkout: payment links, 3-way fee split, and x402 for agents."
+ORG_DESCRIPTION = "Complete Stellar checkout: hosted payment links, marketplace fee split via payment-router (SEP-41 SAC), and x402 for AI agents. One link for humans and agents."
 ORG_OFFICIAL_EMAIL = "hello@viapay.app"
+ORG_SUPPORT_EMAIL = "hello@viapay.app"
 
-[[ACCOUNTS]]
-# Platform fee treasury (testnet). Merchant destination wallets are per-account in the API.
-GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5
-
-[PRINCIPALS]
+[[PRINCIPALS]]
 name = "ViaPay"
 email = "hello@viapay.app"
 
-# API (not a SEP field; for humans / agents discovering the product)
-# VIA_PAY_API = "https://viapay-api.vercel.app"
-# DOCS = "https://viapay.vercel.app/docs"
+[[CURRENCIES]]
+code = "native"
+status = "test"
+display_decimals = 7
+desc = "XLM — native asset. Checkout settles via Soroban payment-router (SAC)."
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+status = "test"
+display_decimals = 7
+is_asset_anchored = false
+anchor_asset_type = "crypto"
+desc = "Circle USDC on Stellar testnet (SEP-41 SAC). Requires trustline on merchant and treasury."
+
+# Product discovery (informational)
+# API = https://viapay-api.vercel.app
+# CHECKOUT = https://viapay.vercel.app
+# DOCS = https://viapay.vercel.app/docs
+# PAYMENT_ROUTER_TESTNET = CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT

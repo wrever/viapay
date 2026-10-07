@@ -4,10 +4,10 @@ Esto **no** se trabaja en la fase de demo/hackathon actual. Vive aquí para no m
 
 ## Diferido a propósito
 
-### Correo / mensajería desde el producto
-Enviar el link de cobro por email, WhatsApp o SMS desde el dashboard.
-Hoy: el comercio **copia el link** y lo pega donde quiera.
-Motivo del defer: implica proveedores, plantillas, dominio, deliverability y compliance. Es capa de infra, no del riel de pago.
+### Correo / plantillas WhatsApp HSM / SMS
+Envío automático Resend/Postmark y plantillas HSM para iniciar conversación fuera de la ventana 24h.
+Hoy (AHORA): asistente WhatsApp **propio vía Meta Cloud API** (menú cobros) + share `wa.me` / `mailto` desde el panel.
+Motivo del defer: plantillas aprobadas, deliverability email y SMS.
 
 ### Ecommerce integrado sin redirección (devs)
 Checkout embebido / iframe / SDK de UI in-page dentro del sitio del comercio.

@@ -11,6 +11,7 @@ import { useLocale } from "@/lib/i18n";
 import { FiatCurrencySelect } from "@/components/FiatCurrencySelect";
 import { TrustlinesSection } from "@/components/TrustlinesSection";
 import { AnchorCashOut } from "@/components/AnchorCashOut";
+import { StellarSepsStatus } from "@/components/StellarSepsStatus";
 
 /** Official ViaPay fee treasury (testnet). Merchant destination should be a different G…. */
 const VIAPAY_TREASURY =
@@ -210,6 +211,8 @@ const link = await via.createPaymentLink({
           merchantWallet={currentWallet}
           onActivated={onTrustlineActivated}
         />
+
+        <StellarSepsStatus />
 
         <AnchorCashOut apiKey={apiKey} />
 

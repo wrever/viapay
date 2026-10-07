@@ -19,7 +19,7 @@ Comercio demo **≠** esa G….
 
 ## SEPs
 
-[`submission/SEPS.md`](./submission/SEPS.md). Vivo: 1, 41, 10/24 demo, router enforce. Pendiente ops: SEP-55 workflow en `.github`, 1 mainnet.
+[`submission/SEPS.md`](./submission/SEPS.md). Vivo: 1, 41, 10/24 demo (proxies+UI), router enforce, health `seps`, workflow SEP-55 en `.github`. Pendiente ops: registrar Verified Build en Lab + 1 mainnet (vos).
 
 ## Sprint (ejecutar en orden)
 
