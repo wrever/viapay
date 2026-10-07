@@ -10,7 +10,7 @@ Red: **testnet** (salvo fila mainnet). Tesorería fees: `GDIN7HCR4PKKWS6MO57N7NF
 | 4 | Pay USDC (router) | USDC | _pending_ | Trustlines comercio + tesorería |
 | 5 | x402 agent pay (mismo checkout_url) | XLM | _pending_ | `Accept: application/json` → 402 → submit router |
 | 6 | Trustline USDC comercio | USDC | _pending_ | Panel Integración → Activar |
-| 7 | Mainnet mínimo | USDC/XLM | _pending keys_ | 1 tx real — bloquea narrativa “mainnet” |
+| 7 | Mainnet mínimo (router + pay) | XLM | _pending fondeo_ | Runbook: [`MAINNET_ONE_SHOT.md`](./MAINNET_ONE_SHOT.md) · script `scripts/mainnet-one-shot.sh` |
 
 ## Contrato
 

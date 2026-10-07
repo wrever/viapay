@@ -145,6 +145,7 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 | contract id (testnet) | `CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` |
 | tx del deploy | `7f0d1f0a4e9090e86f17eecb438544e8e178d632fc0ac5c91fdfc712b4c7f159` |
 | hash del wasm | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
+| mainnet | pendiente fondeo deployer · [`submission/MAINNET_ONE_SHOT.md`](./submission/MAINNET_ONE_SHOT.md) · **prod Vercel sigue testnet** |
 
 Onchain + `PAYMENT_ROUTER_CONTRACT_ID`: `prepare` / `submit` / x402 solo router; un XDR clásico se rechaza. SEP-7 clásico desactivado si hay router. Reconcile Horizon por memo sigue siendo path clásico (no marca cobros router). Código: `requirePaymentRouterContractId`, `buildRouterPayXdr`, `assertRouterPayXdr`, `submitVerifiedRouter`.
 

@@ -28,7 +28,7 @@ pub fn pay(
 | hash del wasm | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
 | soroban-sdk | 27 · Stellar CLI 23.2.1 · target `wasm32v1-none` |
 
-**El checkout no invoca este contrato.** El camino vivo son operaciones clásicas de pago en una transacción de Horizon, verificadas server-side antes de enviarlas. El contrato está desplegado para demostrar que el mismo reparto corre on-chain; conectarlo a `prepare` es trabajo pendiente, y hasta entonces ViaPay no dice que su checkout sea Soroban.
+**Checkout onchain:** con `PAYMENT_ROUTER_CONTRACT_ID`, `prepare`/`submit` invocan este contrato (`assertRouterPayXdr`). Testnet id abajo. Mainnet one-shot: `docs/submission/MAINNET_ONE_SHOT.md` (no flippear Vercel a mainnet).
 
 ## Build y deploy
 

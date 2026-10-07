@@ -28,7 +28,7 @@ Comercio demo **≠** esa G….
 | P1 | Evidence: 1 tx Freighter router + 1 tx agente (llenar index) | **bloqueado en ops / keys** |
 | P2 | Demo 90s cero fallos + one-pager jurado | guión listo; ensayar |
 | P3 | SEP-55 CI en repo + Verified Build | plantilla; falta PAT workflow |
-| P4 | 1 pago mainnet evidencia | keys usuario |
+| P4 | 1 pago mainnet evidencia | **bloqueado:** fondear `GCKAC7MN…` + `GB4NPG6Y…` · ver [`MAINNET_ONE_SHOT.md`](./submission/MAINNET_ONE_SHOT.md) |
 
 ## Probabilidad (honesta)
 
