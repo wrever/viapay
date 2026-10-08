@@ -137,10 +137,22 @@ export function HomePage({
               <a href={`${apiUrl}/v1/health`}>{t.foot.api}</a>
               <a href="mailto:hello@viapay.dev">{t.foot.support}</a>
             </div>
+
+            <div className="foot__col">
+              <p className="foot__label">{t.foot.legal}</p>
+              <a href="/privacy">{t.foot.privacy}</a>
+              <a href="/terms">{t.foot.terms}</a>
+              <a href="/data-deletion">{t.foot.dataDeletion}</a>
+            </div>
           </div>
 
           <div className="foot__bottom">
             <p className="foot__rights">{t.foot.rights}</p>
+            <nav className="foot__legal-inline" aria-label={t.foot.legal}>
+              <a href="/privacy">{t.foot.privacy}</a>
+              <a href="/terms">{t.foot.terms}</a>
+              <a href="/data-deletion">{t.foot.dataDeletion}</a>
+            </nav>
           </div>
         </div>
       </footer>

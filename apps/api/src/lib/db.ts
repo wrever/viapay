@@ -149,6 +149,13 @@ export function migrate(db = getDb()): void {
       draft text not null default '{}',
       updated_at text not null
     );
+
+    create table if not exists wa_inbound_dedup (
+      message_id text primary key,
+      phone_e164 text,
+      phone_number_id text,
+      created_at text not null
+    );
   `);
 
   addColumns(db, "payment_intents", {

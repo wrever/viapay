@@ -284,6 +284,12 @@ export function DocsPage({ loginHref }: { loginHref: string }) {
               {d.seeModes}
             </Link>
           </div>
+
+          <nav className="docs__legal" aria-label={t.foot.legal}>
+            <Link href="/privacy">{t.foot.privacy}</Link>
+            <Link href="/terms">{t.foot.terms}</Link>
+            <Link href="/data-deletion">{t.foot.dataDeletion}</Link>
+          </nav>
         </main>
 
         <aside className="docs-toc" aria-label={d.onThisPage}>

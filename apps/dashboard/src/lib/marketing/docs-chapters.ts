@@ -20,12 +20,13 @@ export const DOC_CHAPTERS_ES: DocChapter[] = [
     paragraphs: [
       "ViaPay es un checkout hosted más una API. Creás un cobro (payment intent), compartís el link o redirigís desde tu tienda, y el cliente paga con wallet Stellar o QR SEP-7. Un agente de IA puede pagar el mismo cobro por HTTP 402 (x402).",
       "Hoy el producto corre en testnet de Stellar. El camino de cobro por defecto es clásico (varias operaciones de pago en una sola transacción), no un contrato Soroban por cada cobro.",
-      "Sitio único: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, panel `/app`). Local: panel+landing `:3000`. API `:3001`. Checkout hosted (backend): `:3004` / prod aparte — UI ViaPay-branded; la API canónica no cambia.",
+      "Sitio único: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, panel `/app`, checkout `/pay/[id]`, legal `/privacy` `/terms` `/data-deletion`). Local: panel+landing `:3000`. API `:3001`.",
     ],
     bullets: [
       "Sin custodia: ViaPay no guarda la clave del pagador.",
       "El pagador ve solo el total en el checkout; el desglose vive en el panel y en la API.",
-      "Lo diferido a propósito (email, embed ecommerce, plugins Woo/Shopify) no está documentado aquí: ver docs/FUTURO.md en el repo.",
+      "Legal: política de privacidad, términos y eliminación de datos (Meta / WhatsApp).",
+      "Invoices: contactos + WhatsApp (NL) + email Resend. Diferido: HSM/SMS, embed, plugins — docs/FUTURO.md.",
     ],
   },
   {
@@ -223,12 +224,13 @@ export const DOC_CHAPTERS_EN: DocChapter[] = [
     paragraphs: [
       "ViaPay is a hosted checkout plus an API. You create a payment intent, share the link or redirect from your store, and the customer pays with a Stellar wallet or SEP-7 QR. An AI agent can pay the same charge over HTTP 402 (x402).",
       "Today the product runs on Stellar testnet. The default path is classic multi-op payments in one transaction—not a Soroban contract per charge.",
-      "Single site: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, panel `/app`). Local: panel+landing `:3000`. API `:3001`. Hosted checkout (backend): `:3004` / separate prod host — ViaPay-branded UI; canonical API host unchanged.",
+      "Single site: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, panel `/app`, checkout `/pay/[id]`, legal `/privacy` `/terms` `/data-deletion`). Local: panel+landing `:3000`. API `:3001`.",
     ],
     bullets: [
       "Non-custodial: ViaPay never holds the payer’s secret key.",
       "Checkout shows total only; fee breakdown lives in the dashboard and API.",
-      "Deferred work (email, ecommerce embed, Woo/Shopify plugins) is intentionally out of scope here—see docs/FUTURO.md.",
+      "Legal: privacy policy, terms of service, and data-deletion instructions (Meta / WhatsApp).",
+      "Invoices: contacts + WhatsApp (NL) + Resend email. Deferred: HSM/SMS, embed, plugins — docs/FUTURO.md.",
     ],
   },
   {
@@ -426,12 +428,13 @@ export const DOC_CHAPTERS_PT: DocChapter[] = [
     paragraphs: [
       "ViaPay é um checkout hospedado mais uma API. Você cria um payment intent, compartilha o link ou redireciona da sua loja, e o cliente paga com wallet Stellar ou QR SEP-7. Um agente de IA pode pagar a mesma cobrança via HTTP 402 (x402).",
       "Hoje o produto roda na testnet Stellar. O caminho padrão é clássico (várias ops de pagamento numa só tx), não um contrato Soroban por cobrança.",
-      "Site único: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, painel `/app`). Local: painel+landing `:3000`. API `:3001`. Checkout hosted (backend): `:3004` / prod separado — UI com marca ViaPay; a API canônica não muda.",
+      "Site único: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, painel `/app`, checkout `/pay/[id]`, legal `/privacy` `/terms` `/data-deletion`). Local: painel+landing `:3000`. API `:3001`.",
     ],
     bullets: [
       "Sem custódia: a ViaPay não guarda a chave do pagador.",
       "No checkout o pagador vê só o total; o detalhe fica no painel e na API.",
-      "O diferido (email, embed ecommerce, plugins Woo/Shopify) fica de fora de propósito—ver docs/FUTURO.md.",
+      "Legal: privacidade, termos e eliminação de dados (Meta / WhatsApp).",
+      "Invoices: contatos + WhatsApp (NL) + email Resend. Diferido: HSM/SMS, embed, plugins — docs/FUTURO.md.",
     ],
   },
   {

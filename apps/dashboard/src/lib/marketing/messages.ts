@@ -105,12 +105,16 @@ export type Messages = {
     product: string;
     developers: string;
     company: string;
+    legal: string;
     panel: string;
     docs: string;
     api: string;
     modes: string;
     redirect: string;
     support: string;
+    privacy: string;
+    terms: string;
+    dataDeletion: string;
     rights: string;
   };
   docs: {
@@ -260,12 +264,16 @@ const es: Messages = {
     product: "Producto",
     developers: "Desarrolladores",
     company: "Empresa",
+    legal: "Legal",
     panel: "Panel",
     docs: "Documentación",
     api: "Estado del servicio",
     modes: "Modos de uso",
     redirect: "Redirect ecommerce",
     support: "Soporte",
+    privacy: "Privacidad",
+    terms: "Términos",
+    dataDeletion: "Eliminación de datos",
     rights: "© 2026 ViaPay. Todos los derechos reservados.",
   },
   docs: {
@@ -415,12 +423,16 @@ const en: Messages = {
     product: "Product",
     developers: "Developers",
     company: "Company",
+    legal: "Legal",
     panel: "Dashboard",
     docs: "Documentation",
     api: "Service status",
     modes: "Modes",
     redirect: "Ecommerce redirect",
     support: "Support",
+    privacy: "Privacy",
+    terms: "Terms",
+    dataDeletion: "Data deletion",
     rights: "© 2026 ViaPay. All rights reserved.",
   },
   docs: {
@@ -570,12 +582,16 @@ const pt: Messages = {
     product: "Produto",
     developers: "Desenvolvedores",
     company: "Empresa",
+    legal: "Legal",
     panel: "Painel",
     docs: "Documentação",
     api: "Status do serviço",
     modes: "Modos de uso",
     redirect: "Redirect ecommerce",
     support: "Suporte",
+    privacy: "Privacidade",
+    terms: "Termos",
+    dataDeletion: "Eliminação de dados",
     rights: "© 2026 ViaPay. Todos os direitos reservados.",
   },
   docs: {

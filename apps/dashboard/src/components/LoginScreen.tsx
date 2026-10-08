@@ -130,6 +130,12 @@ export function LoginScreen({
           </div>
         </div>
       </div>
+
+      <nav className="gate__legal" aria-label="Legal">
+        <Link href="/privacy">{t.footerPrivacy}</Link>
+        <Link href="/terms">{t.footerTerms}</Link>
+        <Link href="/data-deletion">{t.footerDataDeletion}</Link>
+      </nav>
     </main>
   );
 }

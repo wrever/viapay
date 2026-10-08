@@ -1,16 +1,18 @@
 # ViaPay — memoria de proyecto
 
-Actualizado: 2026-10-07 (WhatsApp invoices). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
+Actualizado: 2026-10-08 (docs + footer legales). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
 **Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `scripts/rebuild-history.py` usa `git commit-tree` (sin hooks). Repo: https://github.com/wrever/viapay (88 commits limpios).
 
-**Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (email, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar.
+**Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (HSM/SMS, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar. Email invoices **ya no es FUTURO**: Resend cableado (falta pegar `RESEND_API_KEY` en Vercel).
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`, **checkout pagador `/pay/[id]`**). Supabase Site URL debe ser exactamente esa. Local panel+landing+checkout: `:3000`. **No mandar comercios ni pagadores a otro frontend** (`apps/web` es legado local; `apps/checkout` es legado/local — prod es el dashboard). `checkout_url` unificado = `https://viapay-api.vercel.app/v1/x402/…` (navegador → 302 a `/pay`; agente → 402). UI humana directa: `pay_url` = `https://viapay.vercel.app/pay/…` (`VIAPAY_CHECKOUT_URL`). Links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, campana notificaciones, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#swap` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | **Swap** (plus, opcional) | Integración | Notificaciones. **Wallet de destino hard-mandatory:** sin `merchant_wallet` el panel fuerza Integración, bloquea el resto de tabs (nav locked), banner + **modal no descartable** con form G… (cierra solo al guardar vía `POST /v1/wallets`), y desbloquea al guardar. API también rechaza `POST /v1/payment_intents` sin wallet. **Trustline comercio:** zona primaria en **Integración** (`TrustlinesSection`: XLM “no requiere”, USDC Circle testnet Activar/Activa vía Freighter + `/v1/wallets/trustline/*`, USDT0 placeholder disabled). Gate residual: si elige USDC en Cobros (o post-guardar wallet) y Horizon dice que no puede recibir → **TrustlineGateModal** (no dismissible hasta activar o confirmar “solo XLM”); si ya tiene trustline, no se bloquea. Cobros default **XLM**. Checkout distingue fallo **comercio** vs **tesorería** vs **revendedor** (no culpa falsa al comercio cuando falla fee→tesorería). Resumen = cards (hoy/mes/todo) + conversión + últimos pagos + hints fiat aprox. Estadísticas = desglose por estado + por activo (+ ≈ fiat). Cobros = form + contacto opcional + equivalencia crypto→fiat + share WhatsApp/email (`wa.me`/`mailto`) + agenda contactos + **asistente WhatsApp** (Meta Cloud API, vincular código, menú 1/2/3). Historial = solo pagos `succeeded` (+ destinatario invoice). Integración = wallet + moneda local preferida (`viapay-fiat`, default CLP) + API key secreta (`sk_…`; sin publishable aún) + snippets curl/SDK + `external_user_id` para clientes del comercio + poll. Notificaciones = poll API, sin UX de webhooks. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin tour/onboarding multi-paso (videos después). Sin copy de marketing en el intro.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`, **checkout pagador `/pay/[id]`**, legal `/privacy` `/terms` `/data-deletion` para Meta App Review). Supabase Site URL debe ser exactamente esa. Local panel+landing+checkout: `:3000`. **No mandar comercios ni pagadores a otro frontend** (`apps/web` es legado local; `apps/checkout` es legado/local — prod es el dashboard). `checkout_url` unificado = `https://viapay-api.vercel.app/v1/x402/…` (navegador → 302 a `/pay`; agente → 402). UI humana directa: `pay_url` = `https://viapay.vercel.app/pay/…` (`VIAPAY_CHECKOUT_URL`). Links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, campana notificaciones, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#swap` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | **Swap** (plus, opcional) | Integración | Notificaciones. **Wallet de destino hard-mandatory:** sin `merchant_wallet` el panel fuerza Integración, bloquea el resto de tabs (nav locked), banner + **modal no descartable** con form G… (cierra solo al guardar vía `POST /v1/wallets`), y desbloquea al guardar. API también rechaza `POST /v1/payment_intents` sin wallet. **Trustline comercio:** zona primaria en **Integración** (`TrustlinesSection`: XLM “no requiere”, USDC Circle testnet Activar/Activa vía Freighter + `/v1/wallets/trustline/*`, USDT0 placeholder disabled). Gate residual: si elige USDC en Cobros (o post-guardar wallet) y Horizon dice que no puede recibir → **TrustlineGateModal** (no dismissible hasta activar o confirmar “solo XLM”); si ya tiene trustline, no se bloquea. Cobros default **XLM**. Checkout distingue fallo **comercio** vs **tesorería** vs **revendedor** (no culpa falsa al comercio cuando falla fee→tesorería). Resumen = cards (hoy/mes/todo) + conversión + últimos pagos + hints fiat aprox. Estadísticas = desglose por estado + por activo (+ ≈ fiat). Cobros = form + contacto opcional + equivalencia crypto→fiat + share WhatsApp (`wa.me`) / email (**Resend** si hay key, si no `mailto`) + agenda contactos + **asistente WhatsApp** (Meta Cloud API: vínculo, NL `cobro 20 xlm a juanito`, menú 1/2/3, deliver WA|email|link). Historial = solo pagos `succeeded` (+ destinatario invoice). Integración = wallet + moneda local preferida (`viapay-fiat`, default CLP) + API key secreta (`sk_…`; sin publishable aún) + snippets curl/SDK + `external_user_id` para clientes del comercio + poll. Notificaciones = poll API, sin UX de webhooks. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin tour/onboarding multi-paso (videos después). Sin copy de marketing en el intro.
 
-**Prod Vercel (vivo, 2026-10-06):**
+**Prod Vercel (vivo, 2026-10-08):**
 - Sitio/panel/checkout: https://viapay.vercel.app (proyecto Vercel `web`, Root = `apps/dashboard`). Envs: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`.
-- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** JSON público (`ok`, `mode`, `payment_router`). Alias team: https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. `VIAPAY_API_PUBLIC_URL` = misma canónica. `VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`. Supabase service role en el entorno (Postgres compartido). `PAYMENT_ROUTER_CONTRACT_ID=CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` en prod → prepare/submit invoca Soroban; health expone ese id en `payment_router` (null = path clásico). `SOROSWAP_API_KEY` = Secret (Sensitive) Production+Preview → `/v1/rates` + `/v1/swap` (`configured: true`).
+- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** JSON público (`ok`, `mode`, `payment_router`, **`whatsapp`**, **`email`**). Alias team: https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. `VIAPAY_API_PUBLIC_URL` = misma canónica. `VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`. Supabase service role en el entorno (Postgres compartido). `PAYMENT_ROUTER_CONTRACT_ID=CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` en prod → prepare/submit invoca Soroban; health expone ese id en `payment_router` (null = path clásico). `SOROSWAP_API_KEY` = Secret (Sensitive) Production+Preview → `/v1/rates` + `/v1/swap` (`configured: true`).
+- Meta WA en **viapay-api** (presentes): `META_WA_ACCESS_TOKEN`, `META_WA_PHONE_NUMBER_ID` (= prod `1384802108045403`, display `+56 9 8494 1552`), `META_WA_VERIFY_TOKEN` (`viapay_wa_verify_2026`), `META_APP_SECRET`, `META_WA_SKIP_SIGNATURE`, `META_GRAPH_VERSION`, `META_WA_APP_LIVE=0` (poner `1` cuando Meta publique la app). Webhook URL: `https://viapay-api.vercel.app/v1/whatsapp/webhook`.
+- Resend: **código listo**; falta `RESEND_API_KEY` (+ opcional `RESEND_FROM_EMAIL`) en Vercel → hasta entonces email = mailto fallback. Health `email.configured: false` hasta pegar key.
 - Checkout legado `viapay-checkout` puede seguir desplegado pero **no es la URL de producto**; no crear más apps Vercel de UI.
 - Proyectos Vercel UI no canónicos: `dashboard` (Root `.`; fallaba “No Next.js version detected”) y `viapay-dashboard` (Ready, duplicado). **Git desconectado** de ambos respecto a `wrever/viapay` (2026-10-05) para cortar notificaciones de deploy; prod UI = solo `web`.
 - **Deployment Protection:** `ssoProtection` / `passwordProtection` = **null** en `viapay-api` (backend público; sin redirect 302 a Vercel SSO). Previews de `web` pueden seguir con SSO; el dominio `viapay.vercel.app` es alcanzable.
@@ -20,7 +22,7 @@ Actualizado: 2026-10-07 (WhatsApp invoices). Lee esto antes de explorar el repo.
 ## Supabase (ViaPay)
 
 - Proyecto `fcbdahduqesuotujqbez` · MCP `user-supabase-viapay`.
-- Tablas en Postgres (RLS on): `accounts`, `api_keys`, `wallets`, `payment_intents` (+ `external_user_id`, `metadata`), `contacts`, `wa_links`, `wa_link_codes`, `wa_sessions`, `webhook_endpoints`, `webhook_events`, `webhook_deliveries`. SQL en `supabase/migrations/`.
+- Tablas en Postgres (RLS on): `accounts`, `api_keys`, `wallets`, `payment_intents` (+ `external_user_id`, `metadata`), `contacts`, `wa_links`, `wa_link_codes`, `wa_sessions`, `wa_inbound_dedup` (idempotencia wamid Meta), `webhook_endpoints`, `webhook_events`, `webhook_deliveries`. SQL en `supabase/migrations/` (última WA: `20261008_wa_inbound_dedup.sql`).
 - **API → Postgres:** si `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (o `SUPABASE_SECRET_KEY`) están en el entorno de `@viapay/api`, auth Bearer, payment_intents, wallets y webhooks usan Supabase (mismo Postgres que OAuth). Sin esas env, la API sigue en SQLite local (`VIAPAY_DATABASE_PATH`).
 - OAuth del panel (`link-account.ts`) ya escribe en Postgres. Al login: reutiliza API key activa (no inserta duplicados); si no hay cookie con la clave, rota (revoke + mint). Revoca keys activas extras.
 - Sin wallet de destino el comercio **no usa el panel**: solo Integración usable hasta guardar G…; resto de nav bloqueado; banner + **modal no descartable** (sin Escape/backdrop/X/localStorage; solo cierra al `POST /v1/wallets` exitoso, con form G… embebido). API rechaza `POST /v1/payment_intents` sin wallet.
@@ -123,11 +125,30 @@ Tesorería por defecto: `GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT
 | POST | `/v1/auth/link` | cambia un access token de Supabase por una API key de ViaPay |
 | GET/POST | `/v1/contacts` | agenda del comercio (nombre + phone/email) |
 | PATCH/DELETE | `/v1/contacts/:id` | editar / borrar contacto |
-| GET | `/v1/whatsapp/status` | Meta Cloud API configured + teléfono vinculado |
+| POST | `/v1/payment_intents/:id/send_email` | invoice por Resend (`to` opcional; requiere `RESEND_API_KEY`) |
+| GET | `/v1/whatsapp/status` | Meta configured + `app_live` + teléfono vinculado + webhook_url |
 | POST | `/v1/whatsapp/link-code` | código 6 dígitos (10 min) para `vincular` en WhatsApp |
-| GET/POST | `/v1/whatsapp/webhook` | Meta Cloud API: verify challenge + inbound → menú cobros. Firma `X-Hub-Signature-256` |
+| GET/POST | `/v1/whatsapp/webhook` | Meta Cloud API: verify + inbound → bot cobros. Firma `X-Hub-Signature-256` (o skip) |
 
 Auth del comercio: `Authorization: Bearer sk_test_…`. CORS abierto en `/v1/*`.
+
+## Invoices WhatsApp + email (estado 2026-10-08)
+
+**Producto listo en código** (API + panel). Demo inbound real **bloqueada por Meta** hasta app Live/publicada.
+
+| Pieza | Estado |
+|---|---|
+| Número Cloud API prod | `+56 9 8494 1552` · phone_number_id `1384802108045403` · WABA prod `2613430062506895` (ViaPay-wsp) |
+| Webhook app | URL + verify token OK; campo **`messages` suscrito** |
+| App Meta | En revisión / sin publicar. Aviso naranja: *sin publicar no se entrega dato de producción* (ni a admins/testers). Eventos que llegan hoy son del **número test** Meta (`15556355001` / pnid `1301835263021465` / entry `1410305890623359`) — statuses, no inbound del comercio |
+| Bot lógica | NL `cobro 20 xlm a juanito` → confirm → estado `deliver` (1 WhatsApp Graph o fallback `wa.me`, 2 Resend/`mailto`, 3 solo link). Menú 1/2/3. Sin vínculo → onboarding `/login` + `vincular ######`. **Pagador no necesita cuenta** |
+| Robustez webhook | Dedup `wa_inbound_dedup`, ignora pnid ≠ prod, nudge no-texto, mark-read, no reenvía errores Graph crudos, health diagnostics |
+| Panel | `WhatsAppAssistantCard` + aviso “pendiente Live” mientras `META_WA_APP_LIVE≠1`; Cobros envía email vía API |
+| Resend | Código + ruta send_email; **key pendiente** en Vercel |
+| Legales Meta | `/privacy` `/terms` `/data-deletion` (ES/EN/PT) en dashboard |
+| Al Live | (1) Meta publica app (2) `META_WA_APP_LIVE=1` (3) token permanente OK (4) sacar skip firma si App Secret real (5) pegar `RESEND_API_KEY` (6) probar `hola` → payload con pnid `1384802108045403` + `messages[].text` |
+
+Código: `apps/api/src/lib/whatsapp/*`, `apps/api/src/lib/email/resend.ts`, `apps/dashboard/src/components/WhatsAppAssistantCard.tsx`, `CreatePaymentLink.tsx`, legales en `apps/dashboard/src/app/{privacy,terms,data-deletion}/` + `lib/marketing/legal.ts`.
 
 ## Webhooks
 
@@ -176,13 +197,17 @@ Onchain + `PAYMENT_ROUTER_CONTRACT_ID`: `prepare` / `submit` / x402 solo router;
 
 ## SQLite
 
-Archivo `data/viapay.db` (`VIAPAY_DATABASE_PATH`). Tablas en `apps/api/src/lib/db.ts`: `accounts`, `api_keys`, `wallets`, `payment_intents`, `webhook_endpoints` (secreto en claro, `whsec_…`), `webhook_events`, `webhook_deliveries`. El seed local no se commitea: `data/seed.local.json`.
+Archivo `data/viapay.db` (`VIAPAY_DATABASE_PATH`). Tablas en `apps/api/src/lib/db.ts`: `accounts`, `api_keys`, `wallets`, `payment_intents`, `contacts`, `wa_links`, `wa_link_codes`, `wa_sessions`, `wa_inbound_dedup`, `webhook_endpoints` (secreto en claro, `whsec_…`), `webhook_events`, `webhook_deliveries`. El seed local no se commitea: `data/seed.local.json`.
 
 `payment_intents` lleva `reseller_fee_bps`, `reseller_amount`, `reseller_address`, `external_user_id` y `metadata` (JSON text). Las bases viejas se migran solas con `addColumns` al arrancar (sqlite no tiene `add column if not exists`).
 
 ## Variables
 
 Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELLAR_NETWORK=testnet`, `USDC_ISSUER`, `VIAPAY_TREASURY_ADDRESS`, `VIAPAY_API_PUBLIC_URL`. `FEE_BPS` es opcional: si falta o trae basura, `resolveViaFeeBps` cae a 100 (1%). Opcionales que activan integraciones y no deben fingirse: `NEXT_PUBLIC_SUPABASE_*` + `SUPABASE_*`, `PAYMENT_ROUTER_CONTRACT_ID`, `ANCHOR_HOME_DOMAIN`, `TRUSTLESSWORK_API_KEY`, `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`, `SOROSWAP_API_KEY` (solo API / proyecto Vercel **viapay-api**; opcional `SOROSWAP_API_URL`).
+
+WhatsApp (solo **viapay-api**): `META_WA_ACCESS_TOKEN`, `META_WA_PHONE_NUMBER_ID`, `META_WA_VERIFY_TOKEN`, `META_APP_SECRET`; opcionales `META_GRAPH_VERSION`, `META_WA_SKIP_SIGNATURE=1`, `META_WA_APP_LIVE=1` (tras publicar app Meta).
+
+Email (solo **viapay-api**): `RESEND_API_KEY`, opcional `RESEND_FROM_EMAIL` (dominio verificado; dev puede usar `onboarding@resend.dev`).
 
 ## Dónde está el código
 
@@ -207,7 +232,7 @@ Plantilla: `.env.example`. Obligatorias en local: `STELLAR_MODE=onchain`, `STELL
 - Integración (wallet + trustlines + SEPs matrix + cash-out SEP-10/24 + API key + snippets): `IntegrationPanel.tsx` + `TrustlinesSection.tsx` + `StellarSepsStatus.tsx` + `AnchorCashOut.tsx` + `lib/sep10.ts`
 - Proxies SEP: `apps/api/src/app/v1/sep10/*`, `apps/api/src/app/v1/sep24/withdraw`
 - SEP-1 toml: `apps/dashboard/public/.well-known/stellar.toml`; SEP-55 CI: `.github/workflows/payment-router-verified-build.yml`
-- Contactos + WhatsApp: `apps/api/src/lib/contacts.ts`, `apps/api/src/lib/whatsapp/meta.ts` + `handlers.ts`, panel `ContactsSection` + `WhatsAppAssistantCard`. Envs Meta en **viapay-api**: `META_WA_ACCESS_TOKEN`, `META_WA_PHONE_NUMBER_ID`, `META_WA_VERIFY_TOKEN`, `META_APP_SECRET`. Webhook `GET/POST /v1/whatsapp/webhook`. Sin Meta: panel share `wa.me`/`mailto` igual funciona. Sin Twilio.
+- Contactos + WhatsApp + email: ver sección **Invoices WhatsApp + email** arriba. Código: `contacts.ts`, `whatsapp/{meta,handlers,store,parse-charge}.ts`, `email/resend.ts`, `WhatsAppAssistantCard`, `CreatePaymentLink`, legales `lib/marketing/legal.ts`.
 - Tipo readiness del panel: `apps/dashboard/src/lib/readiness.ts`
 - SDK: `packages/sdk/src/index.ts` — `createPaymentLink` (camelCase + `externalUserId`), `createCheckout`, `getPaymentLink`, `parseX402Challenge`, `encodePaymentHeader`, `verifyWebhook` con `crypto.subtle`. README: `packages/sdk/README.md`
 - Demo de agente x402: `examples/agent-pay.mjs`

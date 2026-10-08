@@ -4,7 +4,7 @@
 
 - Proyecto: `fcbdahduqesuotujqbez`
 - URL: `https://fcbdahduqesuotujqbez.supabase.co`
-- Schema aplicado: `accounts`, `api_keys`, `wallets`, `payment_intents`, `webhook_*` (ver `supabase/migrations/`).
+- Schema aplicado: `accounts`, `api_keys`, `wallets`, `payment_intents`, `contacts`, `wa_*` (links, codes, sessions, inbound_dedup), `webhook_*` (ver `supabase/migrations/`).
 - OAuth: ya conectado en el dashboard de Supabase.
 - MCP Cursor: `user-supabase-viapay`.
 
@@ -32,7 +32,7 @@ Redirect OAuth en Supabase Auth → URL configuration (obligatorio):
 - Redirect URLs: `https://viapay.vercel.app/auth/callback`
 - Si Site URL queda en `http://localhost:3000`, Google/GitHub te tiran al localhost con `?code=`
 
-Todo el producto (landing, docs, login, panel, **checkout pagador**) vive en **https://viapay.vercel.app** (`apps/dashboard`). Checkout: `/pay/[id]?cs=…`.
+Todo el producto (landing, docs, login, panel, **checkout pagador**, **legal**) vive en **https://viapay.vercel.app** (`apps/dashboard`). Checkout: `/pay/[id]?cs=…`. Legal: `/privacy`, `/terms`, `/data-deletion` (Meta App Review / WhatsApp).
 
 ## Vercel — env públicas (sitio / dashboard = proyecto `web`)
 
@@ -63,6 +63,15 @@ STELLAR_MODE=onchain
 STELLAR_NETWORK=testnet
 VIAPAY_TREASURY_ADDRESS=GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5
 USDC_ISSUER=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+# WhatsApp Meta Cloud API (ver MEMORY / .env.example)
+# META_WA_ACCESS_TOKEN=…
+# META_WA_PHONE_NUMBER_ID=1384802108045403
+# META_WA_VERIFY_TOKEN=viapay_wa_verify_2026
+# META_APP_SECRET=…
+# META_WA_APP_LIVE=0
+# Email invoices
+# RESEND_API_KEY=re_…
+# RESEND_FROM_EMAIL=ViaPay <cobros@tudominio.com>
 ```
 
 Local helper (gitignored): `.env.supabase.local` — cópialo a tus `.env` de apps, no lo subas.
@@ -71,7 +80,7 @@ Local helper (gitignored): `.env.supabase.local` — cópialo a tus `.env` de ap
 
 | App | Root Directory | URL |
 |---|---|---|
-| Sitio (landing `/`, docs `/docs`, login `/login`, panel `/app`, checkout `/pay/[id]`) | `apps/dashboard` (proyecto Vercel `web`) | `https://viapay.vercel.app` |
+| Sitio (landing, docs, login, panel, checkout `/pay`, legal `/privacy` `/terms` `/data-deletion`) | `apps/dashboard` (proyecto Vercel `web`) | `https://viapay.vercel.app` |
 | API | `apps/api` | `https://viapay-api.vercel.app` |
 
 `apps/checkout` sigue en el monorepo para local/legado; **prod ya no usa** `viapay-checkout-*.vercel.app` como URL de producto. No crear más proyectos Vercel de UI.

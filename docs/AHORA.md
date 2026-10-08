@@ -10,6 +10,7 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 4. **Pagos agénticos** — mismo `payment_intent` por HTTP 402 (`/v1/x402/:id`); demo `examples/agent-pay.mjs`.
 5. **Webhooks firmados** — `payment_intent.succeeded` + `ViaPay-Signature`.
 6. **Landing** — un solo bloque con modos de uso (link simple, split marketplace, agente).
+7. **Invoices** — contactos + asistente WhatsApp (NL + deliver) + email Resend (key pendiente) + páginas legales Meta.
 
 ## Mejoras de esta fase (sin tocar FUTURO)
 
@@ -25,8 +26,9 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 - Paquete jurado: [`WIN_PLAN.md`](./WIN_PLAN.md) + [`submission/`](./submission/).
 - **1 pago mainnet** de prueba (evidencia) permitido; no “ops mainnet” de producto.
 - SEP-1 toml + SEP-24 test anchor demo + path SEP-55 CI.
-- **Invoices por contacto + asistente WhatsApp** (Meta Cloud API, menú 1/2/3) → mismo `payment_intent` / `checkout_url`.
+- **Invoices por contacto + asistente WhatsApp** (Meta Cloud API, NL `cobro 20 xlm a juanito`, deliver WA/email) → mismo `payment_intent` / `checkout_url`.
+- **Email invoices Resend** — `POST /v1/payment_intents/:id/send_email` + opción 2 en el chat (sin key → mailto).
 
 ## No hacer ahora
 
-Email desde el producto · embed sin redirect · plugins Shopify/Woo · clonar Reflector/Local402.
+Plantillas HSM / SMS · embed sin redirect · plugins Shopify/Woo · clonar Reflector/Local402.

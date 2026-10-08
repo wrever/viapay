@@ -444,6 +444,11 @@ export function DashboardHome({
 
           <footer className="dash-foot">
             <p>{t.footerNetwork(network, fee)}</p>
+            <nav className="dash-foot__legal" aria-label="Legal">
+              <a href="/privacy">{t.footerPrivacy}</a>
+              <a href="/terms">{t.footerTerms}</a>
+              <a href="/data-deletion">{t.footerDataDeletion}</a>
+            </nav>
           </footer>
         </main>
       </div>

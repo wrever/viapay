@@ -76,6 +76,19 @@ export async function listContacts(accountId: string): Promise<ContactRow[]> {
   return rows.map(mapRow);
 }
 
+/** Case-insensitive name match; exact first, then includes. */
+export async function findContactsByName(
+  accountId: string,
+  nameQuery: string,
+): Promise<ContactRow[]> {
+  const q = nameQuery.trim().toLowerCase();
+  if (!q) return [];
+  const all = await listContacts(accountId);
+  const exact = all.filter((c) => c.display_name.trim().toLowerCase() === q);
+  if (exact.length > 0) return exact;
+  return all.filter((c) => c.display_name.toLowerCase().includes(q));
+}
+
 export async function getContact(
   accountId: string,
   id: string,

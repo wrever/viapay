@@ -9,7 +9,8 @@ export type WaSessionState =
   | "pick_contact"
   | "amount"
   | "asset"
-  | "confirm";
+  | "confirm"
+  | "deliver";
 
 export type WaDraft = {
   contact_id?: string;
@@ -18,6 +19,12 @@ export type WaDraft = {
   contact_email?: string | null;
   amount?: string;
   asset?: "XLM" | "USDC";
+  /** NL disambiguation query */
+  contact_query?: string;
+  /** After charge created — delivery chooser */
+  payment_intent_id?: string;
+  checkout_url?: string;
+  share_text?: string;
 };
 
 export type WaSession = {
@@ -288,33 +295,17 @@ export async function saveSession(
   const updated_at = new Date().toISOString();
   const draftJson = JSON.stringify(patch.draft ?? {});
   if (usesSupabase()) {
-    const existing = await getSupabaseAdmin()
-      .from("wa_sessions")
-      .select("phone_e164")
-      .eq("phone_e164", phoneE164)
-      .maybeSingle();
-    throwSb(existing.error, "wa_session check failed");
-    if (existing.data) {
-      const upd = await getSupabaseAdmin()
-        .from("wa_sessions")
-        .update({
-          account_id: patch.account_id ?? null,
-          state: patch.state,
-          draft: draftJson,
-          updated_at,
-        })
-        .eq("phone_e164", phoneE164);
-      throwSb(upd.error, "wa_session update failed");
-    } else {
-      const ins = await getSupabaseAdmin().from("wa_sessions").insert({
+    const upsert = await getSupabaseAdmin().from("wa_sessions").upsert(
+      {
         phone_e164: phoneE164,
         account_id: patch.account_id ?? null,
         state: patch.state,
         draft: draftJson,
         updated_at,
-      });
-      throwSb(ins.error, "wa_session insert failed");
-    }
+      },
+      { onConflict: "phone_e164" },
+    );
+    throwSb(upsert.error, "wa_session upsert failed");
     return;
   }
   getDb()
@@ -386,6 +377,54 @@ export async function authContextForAccount(
     merchantWallet: wallet?.address ?? null,
     accountName: acct.name,
   };
+}
+
+/**
+ * Claim a Meta wamid for processing. Returns false if already seen (retry).
+ * Empty ids are treated as always-new (no dedup).
+ */
+export async function claimInboundMessage(input: {
+  messageId: string;
+  phoneE164: string;
+  phoneNumberId: string | null;
+}): Promise<boolean> {
+  const messageId = input.messageId.trim();
+  if (!messageId) return true;
+  const created = new Date().toISOString();
+
+  if (usesSupabase()) {
+    const ins = await getSupabaseAdmin().from("wa_inbound_dedup").insert({
+      message_id: messageId,
+      phone_e164: input.phoneE164,
+      phone_number_id: input.phoneNumberId,
+      created_at: created,
+    });
+    if (ins.error) {
+      // 23505 unique_violation → already processed
+      if (ins.error.code === "23505") return false;
+      throwSb(ins.error, "wa_inbound_dedup insert failed");
+    }
+    return true;
+  }
+
+  try {
+    getDb()
+      .prepare(
+        `insert into wa_inbound_dedup (message_id, phone_e164, phone_number_id, created_at)
+         values (?, ?, ?, ?)`,
+      )
+      .run(
+        messageId,
+        input.phoneE164,
+        input.phoneNumberId,
+        created,
+      );
+    return true;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/UNIQUE|unique/i.test(msg)) return false;
+    throw e;
+  }
 }
 
 export function parseVincularCode(body: string): string | null {

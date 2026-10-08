@@ -1,13 +1,13 @@
 # ViaPay — plan a futuro (infra pesada)
 
-Esto **no** se trabaja en la fase de demo/hackathon actual. Vive aquí para no mezclarlo con lo que hay que mostrar ya.
+Esto **no** se trabaja en la fase de demo/hackathon actual. Vive aquí para no mezclarlo con lo que hay que mostrar ya. Legal público (`/privacy`, `/terms`, `/data-deletion`) y email Resend ya están en AHORA — no aquí.
 
 ## Diferido a propósito
 
-### Correo / plantillas WhatsApp HSM / SMS
-Envío automático Resend/Postmark y plantillas HSM para iniciar conversación fuera de la ventana 24h.
-Hoy (AHORA): asistente WhatsApp **propio vía Meta Cloud API** (menú cobros) + share `wa.me` / `mailto` desde el panel.
-Motivo del defer: plantillas aprobadas, deliverability email y SMS.
+### Plantillas WhatsApp HSM / SMS
+Plantillas HSM para iniciar conversación fuera de la ventana 24h + SMS.
+Hoy (AHORA): asistente WhatsApp Cloud API + share `wa.me`; email de invoices vía **Resend** (`RESEND_API_KEY`, fallback mailto).
+Motivo del defer restante: HSM aprobadas y SMS.
 
 ### Ecommerce integrado sin redirección (devs)
 Checkout embebido / iframe / SDK de UI in-page dentro del sitio del comercio.

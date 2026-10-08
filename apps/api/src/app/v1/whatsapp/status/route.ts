@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, requireAuth } from "@/lib/http";
 import { getLinkForAccount } from "@/lib/whatsapp/store";
 import {
+  metaAppLive,
   metaPhoneNumberId,
   metaWhatsAppConfigured,
 } from "@/lib/whatsapp/meta";
@@ -13,6 +14,7 @@ export async function GET(req: Request) {
     return jsonOk({
       provider: "meta_cloud_api",
       configured: metaWhatsAppConfigured(),
+      app_live: metaAppLive(),
       phone_number_id: metaWhatsAppConfigured() ? metaPhoneNumberId() : null,
       linked_phone: link?.phone_e164 ?? null,
       linked_at: link?.linked_at ?? null,

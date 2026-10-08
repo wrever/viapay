@@ -8,6 +8,9 @@ export type Messages = {
   mastheadTitle: (name: string) => string;
   missingKey: string;
   footerNetwork: (network: string, fee: string) => string;
+  footerPrivacy: string;
+  footerTerms: string;
+  footerDataDeletion: string;
   loginBack: string;
   loginTagline: string;
   loginTitle: string;
@@ -222,6 +225,7 @@ export type Messages = {
   waTitle: string;
   waBody: string;
   waNotConfigured: string;
+  waPendingLive: string;
   waLinked: string;
   waStep1: string;
   waStep2: string;
@@ -236,6 +240,9 @@ export type Messages = {
   invoiceContactHint: string;
   shareWhatsApp: string;
   shareEmail: string;
+  emailSent: string;
+  emailFail: string;
+  emailMailtoFallback: string;
   invoiceWaText: (
     name: string,
     amount: string,
@@ -254,6 +261,9 @@ const es: Messages = {
   mastheadTitle: (name) => `Hola, ${name}`,
   missingKey: "Tu sesión no tiene clave de API. Cerrá sesión y volvé a entrar con Google o GitHub.",
   footerNetwork: (network, fee) => `Red ${network} · fee ViaPay ${fee}`,
+  footerPrivacy: "Privacidad",
+  footerTerms: "Términos",
+  footerDataDeletion: "Eliminación de datos",
   loginBack: "Volver",
   loginTagline: "Cobra en Stellar con un link. Sin código.",
   loginTitle: "Entrar al panel",
@@ -506,13 +516,15 @@ const es: Messages = {
   contactsSaveFail: "No se pudo guardar el contacto",
   waTitle: "Asistente WhatsApp",
   waBody:
-    "Asistente propio vía Meta Cloud API. Menú 1/2/3 → mismo payment_intent / checkout Stellar que el panel.",
+    "Asistente comercio vía Meta Cloud API. Atajo: cobro 20 xlm a juanito → confirmás → enviás por WhatsApp o email. El pagador no necesita cuenta.",
   waNotConfigured:
     "Meta WhatsApp no configurado en la API (META_WA_*). Igual podés crear cobros y compartir con wa.me desde el panel.",
+  waPendingLive:
+    "Meta aún no entrega mensajes reales al webhook hasta que la app esté publicada (Live). Mientras tanto usá compartir con wa.me; el vínculo y el menú quedan listos para cuando Live active.",
   waLinked: "Número vinculado",
-  waStep1: "Escribí al número Business de ViaPay en WhatsApp (el de Meta).",
+  waStep1: "Escribí al número Business (+56 9 8494 1552). Sin vínculo te guía a crear cuenta de comercio.",
   waStep2: "Generá un código abajo y mandá: vincular 123456",
-  waStep3: "Menú: 1 Nuevo cobro → contacto → monto → activo → Sí",
+  waStep3: "Atajo cobro 20 xlm a nombre → Sí → 1 WhatsApp / 2 Email",
   waGenCode: "Generar código de vínculo",
   waSendCode: "Enviá al bot:",
   waCodeExpires: "Vence",
@@ -524,6 +536,9 @@ const es: Messages = {
     "Si elegís contacto, después podés abrir WhatsApp o email con el link listo.",
   shareWhatsApp: "Enviar por WhatsApp",
   shareEmail: "Enviar por email",
+  emailSent: "Email enviado con Resend.",
+  emailFail: "No se pudo enviar el email.",
+  emailMailtoFallback: "Resend no disponible — abrí el correo en tu cliente.",
   invoiceWaText: (name, amount, asset, url) =>
     `Hola ${name}, te cobran ${amount} ${asset} por ViaPay:\n${url}`,
   invoiceMailSubject: (amount, asset) => `Cobro ViaPay ${amount} ${asset}`,
@@ -538,6 +553,9 @@ const en: Messages = {
   mastheadTitle: (name) => `Hi, ${name}`,
   missingKey: "Your session has no API key. Sign out and sign in again with Google or GitHub.",
   footerNetwork: (network, fee) => `Network ${network} · ViaPay fee ${fee}`,
+  footerPrivacy: "Privacy",
+  footerTerms: "Terms",
+  footerDataDeletion: "Data deletion",
   loginBack: "Back",
   loginTagline: "Get paid on Stellar with a link. No code.",
   loginTitle: "Open the dashboard",
@@ -788,13 +806,15 @@ const en: Messages = {
   contactsSaveFail: "Could not save contact",
   waTitle: "WhatsApp assistant",
   waBody:
-    "Your own assistant on Meta Cloud API. Menu 1/2/3 → same payment_intent / Stellar checkout as the panel.",
+    "Merchant assistant on Meta Cloud API. Shortcut: cobro 20 xlm a juanito → confirm → send via WhatsApp or email. Payers don’t need an account.",
   waNotConfigured:
     "Meta WhatsApp is not configured on the API (META_WA_*). You can still create charges and share via wa.me from the panel.",
+  waPendingLive:
+    "Meta will not deliver real inbound webhooks until the app is Live/published. Use wa.me share for now; linking + menu are ready for when Live lands.",
   waLinked: "Linked number",
-  waStep1: "Message ViaPay’s WhatsApp Business number (from Meta).",
+  waStep1: "Message the Business number (+56 9 8494 1552). Unlinked numbers get merchant signup guidance.",
   waStep2: "Generate a code below and send: vincular 123456",
-  waStep3: "Menu: 1 New charge → contact → amount → asset → Yes",
+  waStep3: "Shortcut cobro 20 xlm a name → Yes → 1 WhatsApp / 2 Email",
   waGenCode: "Generate link code",
   waSendCode: "Send to the bot:",
   waCodeExpires: "Expires",
@@ -806,6 +826,9 @@ const en: Messages = {
     "If you pick a contact, you can open WhatsApp or email with the link ready.",
   shareWhatsApp: "Send via WhatsApp",
   shareEmail: "Send via email",
+  emailSent: "Email sent with Resend.",
+  emailFail: "Could not send the email.",
+  emailMailtoFallback: "Resend unavailable — opened your mail client.",
   invoiceWaText: (name, amount, asset, url) =>
     `Hi ${name}, you are charged ${amount} ${asset} via ViaPay:\n${url}`,
   invoiceMailSubject: (amount, asset) => `ViaPay charge ${amount} ${asset}`,
@@ -820,6 +843,9 @@ const pt: Messages = {
   mastheadTitle: (name) => `Olá, ${name}`,
   missingKey: "Sua sessão não tem API key. Saia e entre de novo com Google ou GitHub.",
   footerNetwork: (network, fee) => `Rede ${network} · taxa ViaPay ${fee}`,
+  footerPrivacy: "Privacidade",
+  footerTerms: "Termos",
+  footerDataDeletion: "Eliminação de dados",
   loginBack: "Voltar",
   loginTagline: "Cobre na Stellar com um link. Sem código.",
   loginTitle: "Entrar no painel",
@@ -1073,13 +1099,15 @@ const pt: Messages = {
   contactsSaveFail: "Não foi possível salvar o contato",
   waTitle: "Assistente WhatsApp",
   waBody:
-    "Assistente próprio via Meta Cloud API. Menu 1/2/3 → mesmo payment_intent / checkout Stellar do painel.",
+    "Assistente do comércio via Meta Cloud API. Atalho: cobro 20 xlm a juanito → confirma → envia por WhatsApp ou email. Quem paga não precisa de conta.",
   waNotConfigured:
     "Meta WhatsApp não configurado na API (META_WA_*). Você ainda pode criar cobranças e compartilhar com wa.me no painel.",
+  waPendingLive:
+    "A Meta só entrega webhooks reais quando o app estiver publicado (Live). Enquanto isso use wa.me; vínculo e menu ficam prontos para quando o Live ativar.",
   waLinked: "Número vinculado",
-  waStep1: "Escreva para o número Business da ViaPay no WhatsApp (Meta).",
+  waStep1: "Escreva para o número Business (+56 9 8494 1552). Sem vínculo, o bot guia o cadastro do comércio.",
   waStep2: "Gere um código abaixo e envie: vincular 123456",
-  waStep3: "Menu: 1 Nova cobrança → contato → valor → ativo → Sim",
+  waStep3: "Atalho cobro 20 xlm a nome → Sim → 1 WhatsApp / 2 Email",
   waGenCode: "Gerar código de vínculo",
   waSendCode: "Envie ao bot:",
   waCodeExpires: "Expira",
@@ -1091,6 +1119,9 @@ const pt: Messages = {
     "Se escolher um contato, depois pode abrir WhatsApp ou email com o link pronto.",
   shareWhatsApp: "Enviar pelo WhatsApp",
   shareEmail: "Enviar por email",
+  emailSent: "Email enviado com Resend.",
+  emailFail: "Não foi possível enviar o email.",
+  emailMailtoFallback: "Resend indisponível — abriu o cliente de email.",
   invoiceWaText: (name, amount, asset, url) =>
     `Olá ${name}, cobrança de ${amount} ${asset} via ViaPay:\n${url}`,
   invoiceMailSubject: (amount, asset) => `Cobrança ViaPay ${amount} ${asset}`,

@@ -6,6 +6,8 @@ import {
   stellarNetwork,
   usdcIssuer,
 } from "@/lib/chain";
+import { metaWhatsAppDiagnostics } from "@/lib/whatsapp/meta";
+import { emailDiagnostics } from "@/lib/email/resend";
 
 /** Public readiness + Stellar SEP surface for demos / agents. */
 export async function GET() {
@@ -58,16 +60,7 @@ export async function GET() {
         note: "GitHub Actions builds + attests payment-router wasm (Verified Build registration pending).",
       },
     },
-    whatsapp: {
-      provider: "meta_cloud_api",
-      configured: Boolean(
-        process.env.META_WA_ACCESS_TOKEN &&
-          process.env.META_WA_PHONE_NUMBER_ID &&
-          process.env.META_WA_VERIFY_TOKEN &&
-          process.env.META_APP_SECRET,
-      ),
-      webhook: `${process.env.VIAPAY_API_PUBLIC_URL?.replace(/\/$/, "") ?? "https://viapay-api.vercel.app"}/v1/whatsapp/webhook`,
-      note: "Meta WhatsApp Cloud API assistant; panel share wa.me works without Meta envs.",
-    },
+    whatsapp: metaWhatsAppDiagnostics(),
+    email: emailDiagnostics(),
   });
 }

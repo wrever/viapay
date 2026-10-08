@@ -87,6 +87,8 @@ export function CreatePaymentLink({
   const [lastUrl, setLastUrl] = useState<string | null>(null);
   const [lastPayment, setLastPayment] = useState<DashboardPayment | null>(null);
   const [copied, setCopied] = useState(false);
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailNote, setEmailNote] = useState<string | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [contactId, setContactId] = useState("");
 
@@ -504,26 +506,90 @@ export function CreatePaymentLink({
                   </a>
                 </Button>
               )}
-              {selectedContact?.email && (
-                <Button type="button" variant="outline" asChild>
-                  <a
-                    href={mailtoShare(
-                      selectedContact.email,
-                      t.invoiceMailSubject(
-                        lastPayment?.amount ?? amount,
-                        lastPayment?.asset ?? asset,
-                      ),
-                      t.invoiceWaText(
-                        selectedContact.display_name,
-                        lastPayment?.amount ?? amount,
-                        lastPayment?.asset ?? asset,
-                        lastUrl,
-                      ),
-                    )}
-                  >
-                    <Mail className="h-4 w-4" /> {t.shareEmail}
-                  </a>
+              {selectedContact?.email && lastPayment && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={emailBusy || !apiKey}
+                  onClick={() => {
+                    void (async () => {
+                      if (!apiKey || !lastPayment) return;
+                      setEmailBusy(true);
+                      setEmailNote(null);
+                      try {
+                        const res = await fetch(
+                          `${API}/v1/payment_intents/${lastPayment.id}/send_email`,
+                          {
+                            method: "POST",
+                            headers: {
+                              Authorization: `Bearer ${apiKey}`,
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              to: selectedContact.email,
+                            }),
+                          },
+                        );
+                        const body = (await res.json()) as {
+                          error?: string;
+                          to?: string;
+                        };
+                        if (res.ok) {
+                          setEmailNote(t.emailSent);
+                          return;
+                        }
+                        // Fallback mailto if Resend not configured / failed
+                        window.location.href = mailtoShare(
+                          selectedContact.email!,
+                          t.invoiceMailSubject(
+                            lastPayment.amount,
+                            lastPayment.asset,
+                          ),
+                          t.invoiceWaText(
+                            selectedContact.display_name,
+                            lastPayment.amount,
+                            lastPayment.asset,
+                            lastUrl!,
+                          ),
+                        );
+                        if (res.status === 503) {
+                          setEmailNote(t.emailMailtoFallback);
+                        } else {
+                          setEmailNote(body.error ?? t.emailFail);
+                        }
+                      } catch {
+                        window.location.href = mailtoShare(
+                          selectedContact.email!,
+                          t.invoiceMailSubject(
+                            lastPayment.amount,
+                            lastPayment.asset,
+                          ),
+                          t.invoiceWaText(
+                            selectedContact.display_name,
+                            lastPayment.amount,
+                            lastPayment.asset,
+                            lastUrl!,
+                          ),
+                        );
+                        setEmailNote(t.emailMailtoFallback);
+                      } finally {
+                        setEmailBusy(false);
+                      }
+                    })();
+                  }}
+                >
+                  {emailBusy ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Mail className="h-4 w-4" />
+                  )}{" "}
+                  {t.shareEmail}
                 </Button>
+              )}
+              {emailNote && (
+                <p className="text-xs text-[var(--text-2)] w-full" role="status">
+                  {emailNote}
+                </p>
               )}
               <Button type="button" variant="outline" asChild>
                 <a href={lastUrl} target="_blank" rel="noreferrer">

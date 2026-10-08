@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { handleWhatsAppInbound } from "@/lib/whatsapp/handlers";
+import { claimInboundMessage } from "@/lib/whatsapp/store";
 import {
+  isConfiguredPhoneNumberId,
+  markMetaWhatsAppRead,
+  metaSkipSignature,
   metaWhatsAppConfigured,
+  parseMetaInboundNonTexts,
   parseMetaInboundTexts,
   sendMetaWhatsAppText,
   validateMetaSignature,
@@ -45,8 +50,12 @@ export async function POST(req: Request) {
 
   const rawBody = await req.text();
   const signature = req.headers.get("x-hub-signature-256");
-  const skipSig = process.env.META_WA_SKIP_SIGNATURE === "1";
+  const skipSig = metaSkipSignature();
   if (!skipSig && !validateMetaSignature(rawBody, signature)) {
+    console.error("[whatsapp] signature rejected", {
+      hasHeader: Boolean(signature),
+      skipSig,
+    });
     return NextResponse.json({ error: "firma Meta inválida" }, { status: 403 });
   }
 
@@ -57,14 +66,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const messages = parseMetaInboundTexts(payload);
-  console.log(
-    "[whatsapp] inbound",
-    messages.map((m) => ({ from: m.fromPhone, body: m.body.slice(0, 40), pnid: m.phoneNumberId })),
+  const texts = parseMetaInboundTexts(payload).filter((m) =>
+    isConfiguredPhoneNumberId(m.phoneNumberId),
   );
-  // Always 200 quickly so Meta does not retry; send replies via Graph.
-  for (const msg of messages) {
+  const nonTexts = parseMetaInboundNonTexts(payload).filter((m) =>
+    isConfiguredPhoneNumberId(m.phoneNumberId),
+  );
+
+  console.log("[whatsapp] inbound", {
+    skipSig,
+    textCount: texts.length,
+    nonTextCount: nonTexts.length,
+    messages: texts.map((m) => ({
+      from: m.fromPhone,
+      body: m.body.slice(0, 40),
+      pnid: m.phoneNumberId,
+      id: m.messageId.slice(0, 24),
+    })),
+  });
+
+  // Always 200 quickly so Meta does not retry forever; send replies via Graph.
+  for (const msg of texts) {
+    const claimed = await claimInboundMessage({
+      messageId: msg.messageId,
+      phoneE164: msg.fromPhone,
+      phoneNumberId: msg.phoneNumberId,
+    });
+    if (!claimed) {
+      console.log("[whatsapp] duplicate skipped", msg.messageId.slice(0, 32));
+      continue;
+    }
+
     const replyFrom = msg.phoneNumberId;
+    void markMetaWhatsAppRead({
+      messageId: msg.messageId,
+      phoneNumberId: replyFrom,
+    });
+
     try {
       const reply = await handleWhatsAppInbound({
         fromPhone: msg.fromPhone,
@@ -75,18 +113,51 @@ export async function POST(req: Request) {
         body: reply,
         phoneNumberId: replyFrom,
       });
+      console.log("[whatsapp] reply sent", {
+        to: msg.fromPhone,
+        pnid: replyFrom,
+      });
     } catch (e) {
       const err =
         e instanceof Error ? e.message : "Error interno ViaPay WhatsApp";
+      console.error("[whatsapp] reply failed", {
+        to: msg.fromPhone,
+        pnid: replyFrom,
+        err,
+      });
       try {
         await sendMetaWhatsAppText({
           toPhoneE164: msg.fromPhone,
-          body: err,
+          body: "Hubo un problema procesando tu mensaje. Reintentá en un momento o usá el panel ViaPay.",
           phoneNumberId: replyFrom,
         });
-      } catch {
-        /* swallow secondary send errors */
+      } catch (sendErr) {
+        console.error(
+          "[whatsapp] error-notify send failed",
+          sendErr instanceof Error ? sendErr.message : sendErr,
+        );
       }
+    }
+  }
+
+  for (const msg of nonTexts) {
+    const claimed = await claimInboundMessage({
+      messageId: msg.messageId,
+      phoneE164: msg.fromPhone,
+      phoneNumberId: msg.phoneNumberId,
+    });
+    if (!claimed) continue;
+    try {
+      await sendMetaWhatsAppText({
+        toPhoneE164: msg.fromPhone,
+        body: "Por ahora el asistente solo entiende texto. Escribí 0 para el menú.",
+        phoneNumberId: msg.phoneNumberId,
+      });
+    } catch (e) {
+      console.error(
+        "[whatsapp] non-text nudge failed",
+        e instanceof Error ? e.message : e,
+      );
     }
   }
 

@@ -8,6 +8,7 @@ import { useLocale } from "@/lib/i18n";
 
 type WaStatus = {
   configured: boolean;
+  app_live?: boolean;
   linked_phone: string | null;
   webhook_url?: string;
   from?: string | null;
@@ -77,6 +78,11 @@ export function WhatsAppAssistantCard({ apiKey }: { apiKey: string | null }) {
       {status && !status.configured && (
         <p className="tone tone--warning text-sm" role="status">
           {t.waNotConfigured}
+        </p>
+      )}
+      {status?.configured && status.app_live !== true && (
+        <p className="tone tone--warning text-sm" role="status">
+          {t.waPendingLive}
         </p>
       )}
       {status?.linked_phone && (

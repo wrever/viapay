@@ -1324,11 +1324,31 @@ code {
 }
 
 .dash-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  justify-content: space-between;
+  align-items: baseline;
   margin-top: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
   font-size: 0.75rem;
   color: var(--text-2);
+}
+
+.dash-foot__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.9rem;
+}
+
+.dash-foot__legal a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.dash-foot__legal a:hover {
+  color: var(--primary);
 }
 
 /* Login gate */
@@ -1470,6 +1490,24 @@ code {
   line-height: 1.4;
   color: var(--text-2);
   text-wrap: balance;
+}
+
+.gate__legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem 1.1rem;
+  margin-top: 1.75rem;
+  font-size: 0.75rem;
+}
+
+.gate__legal a {
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.gate__legal a:hover {
+  color: var(--primary);
 }
 
 @keyframes dash-in {
