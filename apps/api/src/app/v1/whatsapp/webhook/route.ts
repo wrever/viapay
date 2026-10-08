@@ -58,8 +58,13 @@ export async function POST(req: Request) {
   }
 
   const messages = parseMetaInboundTexts(payload);
+  console.log(
+    "[whatsapp] inbound",
+    messages.map((m) => ({ from: m.fromPhone, body: m.body.slice(0, 40), pnid: m.phoneNumberId })),
+  );
   // Always 200 quickly so Meta does not retry; send replies via Graph.
   for (const msg of messages) {
+    const replyFrom = msg.phoneNumberId;
     try {
       const reply = await handleWhatsAppInbound({
         fromPhone: msg.fromPhone,
@@ -68,6 +73,7 @@ export async function POST(req: Request) {
       await sendMetaWhatsAppText({
         toPhoneE164: msg.fromPhone,
         body: reply,
+        phoneNumberId: replyFrom,
       });
     } catch (e) {
       const err =
@@ -76,6 +82,7 @@ export async function POST(req: Request) {
         await sendMetaWhatsAppText({
           toPhoneE164: msg.fromPhone,
           body: err,
+          phoneNumberId: replyFrom,
         });
       } catch {
         /* swallow secondary send errors */

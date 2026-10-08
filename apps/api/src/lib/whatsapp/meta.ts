@@ -71,6 +71,8 @@ export type MetaInboundText = {
   fromPhone: string;
   body: string;
   messageId: string;
+  /** Phone number ID that received the message — must be used to reply. */
+  phoneNumberId: string | null;
 };
 
 type MetaWebhookPayload = {
@@ -78,6 +80,7 @@ type MetaWebhookPayload = {
   entry?: Array<{
     changes?: Array<{
       value?: {
+        metadata?: { phone_number_id?: string; display_phone_number?: string };
         messages?: Array<{
           from?: string;
           id?: string;
@@ -96,6 +99,8 @@ export function parseMetaInboundTexts(payload: unknown): MetaInboundText[] {
   const out: MetaInboundText[] = [];
   for (const entry of data.entry ?? []) {
     for (const change of entry.changes ?? []) {
+      const phoneNumberId =
+        change.value?.metadata?.phone_number_id?.trim() || null;
       for (const msg of change.value?.messages ?? []) {
         if (msg.type !== "text" || !msg.text?.body || !msg.from) continue;
         const fromPhone = normalizeMetaWaPhone(msg.from);
@@ -104,6 +109,7 @@ export function parseMetaInboundTexts(payload: unknown): MetaInboundText[] {
           fromPhone,
           body: msg.text.body,
           messageId: msg.id ?? "",
+          phoneNumberId,
         });
       }
     }
@@ -115,9 +121,12 @@ export function parseMetaInboundTexts(payload: unknown): MetaInboundText[] {
 export async function sendMetaWhatsAppText(input: {
   toPhoneE164: string;
   body: string;
+  /** Prefer the inbound metadata phone_number_id (test vs prod). */
+  phoneNumberId?: string | null;
 }): Promise<void> {
   const token = process.env.META_WA_ACCESS_TOKEN;
-  const phoneNumberId = process.env.META_WA_PHONE_NUMBER_ID;
+  const phoneNumberId =
+    input.phoneNumberId?.trim() || process.env.META_WA_PHONE_NUMBER_ID;
   if (!token || !phoneNumberId) {
     throw Object.assign(new Error("META WhatsApp no configurado"), {
       status: 503,
