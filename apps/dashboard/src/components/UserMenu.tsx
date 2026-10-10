@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, LogOut, Settings, User, Wallet } from "lucide-react";
 import { profileInitials } from "@/lib/profile-initials";
 import { useLocale } from "@/lib/i18n";
@@ -9,16 +9,19 @@ export function UserMenu({
   name,
   email,
   onGoProfile,
+  onGoSettings,
   onGoIntegracion,
 }: {
   name: string;
   email: string;
   onGoProfile: () => void;
+  onGoSettings?: () => void;
   onGoIntegracion: () => void;
 }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const menuId = useId();
   const mark = profileInitials(name, email);
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export function UserMenu({
         aria-label={t.profileMenuAria}
         aria-expanded={open}
         aria-haspopup="menu"
+        aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
       >
         <span className="user-menu__avatar" aria-hidden>
@@ -58,7 +62,7 @@ export function UserMenu({
       </button>
 
       {open && (
-        <div className="user-menu__panel" role="menu">
+        <div className="user-menu__panel" role="menu" id={menuId}>
           <div className="user-menu__head">
             <p className="user-menu__head-name">{name}</p>
             <p className="user-menu__head-email">{email}</p>
@@ -82,7 +86,7 @@ export function UserMenu({
             role="menuitem"
             onClick={() => {
               setOpen(false);
-              onGoProfile();
+              (onGoSettings ?? onGoProfile)();
             }}
           >
             <Settings className="size-3.5" aria-hidden />
