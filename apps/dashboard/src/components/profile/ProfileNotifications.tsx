@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/lib/account-types";
-import { API } from "@/lib/config";
+import { patchAccountProfile } from "@/lib/me-client";
 import { useLocale } from "@/lib/i18n";
+import { useClearFlash } from "./useClearFlash";
 
 export function ProfileNotifications({
   apiKey,
@@ -20,7 +21,7 @@ export function ProfileNotifications({
   const [waPaid, setWaPaid] = useState(profile.notify_wa_paid);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ok, setOk] = useState(false);
+  const [ok, setOk] = useClearFlash();
   const dirty =
     emailPaid !== profile.notify_email_paid ||
     waPaid !== profile.notify_wa_paid;
@@ -35,25 +36,11 @@ export function ProfileNotifications({
     setError(null);
     setOk(false);
     try {
-      const res = await fetch(`${API}/v1/me`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          notify_email_paid: emailPaid,
-          notify_wa_paid: waPaid,
-        }),
+      const account = await patchAccountProfile(apiKey, {
+        notify_email_paid: emailPaid,
+        notify_wa_paid: waPaid,
       });
-      const data = (await res.json()) as {
-        account?: AccountProfile;
-        error?: string;
-      };
-      if (!res.ok || !data.account) {
-        throw new Error(data.error || t.profileSaveError);
-      }
-      onUpdated(data.account);
+      onUpdated(account);
       setOk(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.profileSaveError);
