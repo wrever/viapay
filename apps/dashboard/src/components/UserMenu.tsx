@@ -1,21 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut, User, Wallet } from "lucide-react";
+import { ChevronDown, LogOut, Settings, User, Wallet } from "lucide-react";
+import { profileInitials } from "@/lib/profile-initials";
 import { useLocale } from "@/lib/i18n";
-
-function initials(name: string, email: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0]![0]!}${parts[1]![0]!}`.toUpperCase();
-  }
-  if (parts[0] && parts[0].length >= 2) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  const e = email.trim();
-  if (e.length >= 2) return e.slice(0, 2).toUpperCase();
-  return "VP";
-}
 
 export function UserMenu({
   name,
@@ -31,7 +19,7 @@ export function UserMenu({
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const mark = initials(name, email);
+  const mark = profileInitials(name, email);
 
   useEffect(() => {
     if (!open) return;
@@ -87,6 +75,18 @@ export function UserMenu({
           >
             <User className="size-3.5" aria-hidden />
             {t.profileMenuProfile}
+          </button>
+          <button
+            type="button"
+            className="user-menu__item"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onGoProfile();
+            }}
+          >
+            <Settings className="size-3.5" aria-hidden />
+            {t.profileMenuSettings}
           </button>
           <button
             type="button"
