@@ -10,6 +10,7 @@ import {
   History,
   LayoutDashboard,
   PlusCircle,
+  UserRound,
   Users,
   Wallet,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import { NetworkToggle } from "@/components/NetworkToggle";
 import { OverviewPanel } from "@/components/OverviewPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
+import { ProfilePanel } from "@/components/profile/ProfilePanel";
 import { SwapPanel } from "@/components/SwapPanel";
 import { TrustlineGateModal } from "@/components/TrustlineGateModal";
 import { UserMenu } from "@/components/UserMenu";
@@ -48,10 +50,15 @@ const SECTIONS = [
   "swap",
   "integracion",
   "notificaciones",
+  "perfil",
 ] as const;
 type DashSection = (typeof SECTIONS)[number];
 const DEFAULT_SECTION: DashSection = "resumen";
 const WALLET_REQUIRED_SECTION: DashSection = "integracion";
+const OPEN_WHEN_LOCKED: ReadonlySet<DashSection> = new Set([
+  "integracion",
+  "perfil",
+]);
 
 function parseSection(raw: string | null | undefined): DashSection | null {
   const value = (raw ?? "").replace(/^#/, "").toLowerCase().trim();
@@ -101,7 +108,8 @@ export function DashboardHome({
   const { t } = useLocale();
   const fee = formatBps(feeBps);
   const network = readiness?.network ?? "testnet";
-  const firstName = sessionName.split(/\s+/)[0] || sessionName;
+  const [displayName, setDisplayName] = useState(sessionName);
+  const firstName = displayName.split(/\s+/)[0] || displayName;
   const [payments, setPayments] = useState(initialPayments);
   const [section, setSection] = useState<DashSection>(DEFAULT_SECTION);
   const [chargeNetwork, setChargeNetwork] = useState<"testnet" | "mainnet">(
@@ -234,12 +242,12 @@ export function DashboardHome({
     const sync = () => {
       const fromUrl = readSectionFromLocation();
       if (Boolean(apiKey) && !merchantWalletRef.current) {
-        if (fromUrl !== WALLET_REQUIRED_SECTION) {
+        if (!OPEN_WHEN_LOCKED.has(fromUrl)) {
           setSection(WALLET_REQUIRED_SECTION);
           writeSectionToLocation(WALLET_REQUIRED_SECTION);
           return;
         }
-        setSection(WALLET_REQUIRED_SECTION);
+        setSection(fromUrl);
         return;
       }
       setSection(fromUrl);
@@ -254,7 +262,7 @@ export function DashboardHome({
 
   useEffect(() => {
     if (!walletLocked) return;
-    if (section !== WALLET_REQUIRED_SECTION) {
+    if (!OPEN_WHEN_LOCKED.has(section)) {
       setSection(WALLET_REQUIRED_SECTION);
       writeSectionToLocation(WALLET_REQUIRED_SECTION);
     }
@@ -262,7 +270,7 @@ export function DashboardHome({
 
   const go = useCallback(
     (next: DashSection) => {
-      if (walletLocked && next !== WALLET_REQUIRED_SECTION) {
+      if (walletLocked && !OPEN_WHEN_LOCKED.has(next)) {
         setSection(WALLET_REQUIRED_SECTION);
         writeSectionToLocation(WALLET_REQUIRED_SECTION);
         setNoticesOpen(false);
@@ -323,6 +331,7 @@ export function DashboardHome({
     { id: "swap", label: t.navSwap, icon: ArrowLeftRight },
     { id: "integracion", label: t.navIntegracion, icon: Wallet },
     { id: "notificaciones", label: t.navNotificaciones, icon: Bell },
+    { id: "perfil", label: t.navPerfil, icon: UserRound },
   ];
 
   return (
@@ -394,9 +403,9 @@ export function DashboardHome({
             </div>
             <SiteControls />
             <UserMenu
-              name={sessionName}
+              name={displayName}
               email={sessionEmail}
-              onGoProfile={() => go(WALLET_REQUIRED_SECTION)}
+              onGoProfile={() => go("perfil")}
               onGoIntegracion={() => go(WALLET_REQUIRED_SECTION)}
             />
           </div>
@@ -407,7 +416,7 @@ export function DashboardHome({
         <nav className="dash-nav" aria-label={t.navAria}>
           <ul className="dash-nav__list">
             {navItems.map(({ id, label, icon: Icon }) => {
-              const locked = walletLocked && id !== WALLET_REQUIRED_SECTION;
+              const locked = walletLocked && !OPEN_WHEN_LOCKED.has(id);
               const active = section === id;
               return (
                 <li key={id}>
@@ -549,6 +558,17 @@ export function DashboardHome({
                   <p className="section-empty__body">{t.missingKey}</p>
                 </div>
               ))}
+
+            {section === "perfil" && (
+              <ProfilePanel
+                apiKey={apiKey}
+                sessionName={displayName}
+                sessionEmail={sessionEmail}
+                onGoWallet={() => go(WALLET_REQUIRED_SECTION)}
+                onGoNotices={() => go("notificaciones")}
+                onNameChange={setDisplayName}
+              />
+            )}
 
             {section === "notificaciones" && !walletLocked && (
               <section className="panel panel--notices">
