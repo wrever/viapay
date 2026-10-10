@@ -15,3 +15,4 @@ export { ProfileSection } from "./ProfileSection";
 export { ProfileStatusBadge } from "./ProfileStatusBadge";
 export { ProfileWalletChip } from "./ProfileWalletChip";
 export { scrollToProfileAnchor } from "./scrollToProfileAnchor";
+export { ProfileSaveBar } from "./ProfileSaveBar";
