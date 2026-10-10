@@ -11,3 +11,7 @@ export { ProfileAccountMeta } from "./ProfileAccountMeta";
 export { ProfileScrollNav } from "./ProfileScrollNav";
 export { ProfileLoading } from "./ProfileLoading";
 export { ProfileEmptyKey } from "./ProfileEmptyKey";
+export { ProfileSection } from "./ProfileSection";
+export { ProfileStatusBadge } from "./ProfileStatusBadge";
+export { ProfileWalletChip } from "./ProfileWalletChip";
+export { scrollToProfileAnchor } from "./scrollToProfileAnchor";
