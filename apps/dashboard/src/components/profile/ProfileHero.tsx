@@ -16,7 +16,7 @@ export function ProfileHero({
   const mark = profileInitials(name, email);
 
   return (
-    <div className="profile-hero">
+    <div className="profile-hero" data-testid="profile-hero">
       <span className="profile-hero__avatar" aria-hidden>
         {mark}
       </span>

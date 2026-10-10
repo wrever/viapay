@@ -77,7 +77,11 @@ export function ProfilePanel({
   }
 
   return (
-    <section className="panel panel--profile" id="perfil">
+    <section
+      className="panel panel--profile"
+      id="perfil"
+      data-testid="profile-panel"
+    >
       <div className="panel__head">
         <h2 className="panel-title">{t.profileTitle}</h2>
         <p>{t.profileDesc}</p>
