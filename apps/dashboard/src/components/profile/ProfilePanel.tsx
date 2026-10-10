@@ -11,6 +11,7 @@ import { ProfileEmptyKey } from "./ProfileEmptyKey";
 import { ProfileHero } from "./ProfileHero";
 import { ProfileIdentity } from "./ProfileIdentity";
 import { ProfileLoading } from "./ProfileLoading";
+import { ProfileMobileHint } from "./ProfileMobileHint";
 import { ProfileNotifications } from "./ProfileNotifications";
 import { ProfilePassword } from "./ProfilePassword";
 import { ProfilePreferences } from "./ProfilePreferences";
@@ -87,6 +88,7 @@ export function ProfilePanel({
           onGoWallet={onGoWallet}
         />
         <ProfileScrollNav />
+        <ProfileMobileHint />
 
         {loading ? <ProfileLoading /> : null}
         {error ? (
