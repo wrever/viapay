@@ -8,6 +8,72 @@ export type Messages = {
   profileMenuAria: string;
   profileMenuProfile: string;
   profileMenuWallet: string;
+  profileMenuSettings: string;
+  profileTitle: string;
+  profileDesc: string;
+  profileHeroHint: string;
+  profileLoading: string;
+  profileLoadError: string;
+  profileIdentityTitle: string;
+  profileIdentityDesc: string;
+  profileNameLabel: string;
+  profileBusinessLabel: string;
+  profileBusinessPlaceholder: string;
+  profileEmailLabel: string;
+  profileEmailHint: string;
+  profilePhoneLabel: string;
+  profilePhoneHint: string;
+  profileSave: string;
+  profileSaving: string;
+  profileSaveOk: string;
+  profileSaveError: string;
+  profilePrefsTitle: string;
+  profilePrefsDesc: string;
+  profileLocaleLabel: string;
+  profileThemeLabel: string;
+  profileThemeLight: string;
+  profileThemeDark: string;
+  profileFiatLabel: string;
+  profileFiatHint: string;
+  profileNotifyTitle: string;
+  profileNotifyDesc: string;
+  profileNotifyEmail: string;
+  profileNotifyEmailHint: string;
+  profileNotifyWa: string;
+  profileNotifyWaHint: string;
+  profileSecurityTitle: string;
+  profileSecurityDesc: string;
+  profileSecurityLogin: string;
+  profileSecurityAuthEmail: string;
+  profileSecurityUnknown: string;
+  profileSecurityOauthNote: string;
+  profileProviderLabel: (provider: string) => string;
+  profilePasswordTitle: string;
+  profilePasswordDesc: string;
+  profilePasswordNew: string;
+  profilePasswordConfirm: string;
+  profilePasswordSave: string;
+  profilePasswordOk: string;
+  profilePasswordError: string;
+  profilePasswordTooShort: string;
+  profilePasswordMismatch: string;
+  profilePasswordNoAuth: string;
+  profileShortcutsTitle: string;
+  profileShortcutsDesc: string;
+  profileShortcutWallet: string;
+  profileShortcutWalletEmpty: string;
+  profileShortcutKey: string;
+  profileShortcutKeyHint: string;
+  profileShortcutNotices: string;
+  profileShortcutNoticesHint: string;
+  profileDangerTitle: string;
+  profileDangerDesc: string;
+  profileMetaTitle: string;
+  profileMetaDesc: string;
+  profileMetaId: string;
+  profileMetaStatus: string;
+  profileMetaCreated: string;
+  profileMetaUpdated: string;
   mastheadTitle: (name: string) => string;
   missingKey: string;
   footerNetwork: (network: string, fee: string) => string;
@@ -126,6 +192,7 @@ export type Messages = {
   navSwap: string;
   navIntegracion: string;
   navNotificaciones: string;
+  navPerfil: string;
   cobrosGuideTitle: string;
   cobrosGuide1: string;
   cobrosGuide2: string;
@@ -330,8 +397,83 @@ const es: Messages = {
   homeAria: "ViaPay, inicio",
   signOut: "Cerrar sesión",
   profileMenuAria: "Menú de cuenta",
-  profileMenuProfile: "Perfil e integración",
+  profileMenuProfile: "Mi perfil",
   profileMenuWallet: "Billetera de destino",
+  profileMenuSettings: "Configuración",
+  profileTitle: "Perfil y configuración",
+  profileDesc:
+    "Datos de tu cuenta, preferencias del panel, avisos y seguridad.",
+  profileHeroHint: "Así te ve el panel cuando cobrás y gestionás ViaPay.",
+  profileLoading: "Cargando perfil…",
+  profileLoadError: "No se pudo cargar el perfil.",
+  profileIdentityTitle: "Identidad",
+  profileIdentityDesc: "Nombre visible, negocio y contacto del comercio.",
+  profileNameLabel: "Nombre",
+  profileBusinessLabel: "Nombre del negocio",
+  profileBusinessPlaceholder: "Opcional — ej. Café Aurora",
+  profileEmailLabel: "Email de la cuenta",
+  profileEmailHint: "El email viene del login OAuth y no se cambia aquí.",
+  profilePhoneLabel: "Teléfono",
+  profilePhoneHint: "Formato internacional E.164, ej. +56912345678.",
+  profileSave: "Guardar cambios",
+  profileSaving: "Guardando…",
+  profileSaveOk: "Guardado.",
+  profileSaveError: "No se pudo guardar.",
+  profilePrefsTitle: "Preferencias del panel",
+  profilePrefsDesc: "Idioma, tema y moneda local de referencia (en este dispositivo).",
+  profileLocaleLabel: "Idioma",
+  profileThemeLabel: "Tema",
+  profileThemeLight: "Claro",
+  profileThemeDark: "Oscuro",
+  profileFiatLabel: "Moneda local",
+  profileFiatHint: "Se usa para equivalencias ≈ en cobros y resumen.",
+  profileNotifyTitle: "Avisos al comercio",
+  profileNotifyDesc: "Qué canal preferís cuando un cobro se paga.",
+  profileNotifyEmail: "Email al cobrar",
+  profileNotifyEmailHint: "Avisar al email de la cuenta cuando un pago sale Paid.",
+  profileNotifyWa: "WhatsApp al cobrar",
+  profileNotifyWaHint: "Si tenés WhatsApp vinculado, avisar ahí también.",
+  profileSecurityTitle: "Seguridad",
+  profileSecurityDesc: "Cómo entrás a ViaPay hoy.",
+  profileSecurityLogin: "Método de acceso",
+  profileSecurityAuthEmail: "Email autenticado",
+  profileSecurityUnknown: "Sesión activa",
+  profileSecurityOauthNote:
+    "ViaPay usa Google o GitHub. Podés agregar una contraseña abajo para otro factor de acceso al mismo email.",
+  profileProviderLabel: (provider) => {
+    const p = provider.toLowerCase();
+    if (p === "google") return "Google";
+    if (p === "github") return "GitHub";
+    if (p === "email") return "Email";
+    return provider;
+  },
+  profilePasswordTitle: "Contraseña",
+  profilePasswordDesc:
+    "Opcional: definí o cambiá una contraseña en Supabase Auth para este email (además del OAuth).",
+  profilePasswordNew: "Nueva contraseña",
+  profilePasswordConfirm: "Confirmar contraseña",
+  profilePasswordSave: "Actualizar contraseña",
+  profilePasswordOk: "Contraseña actualizada.",
+  profilePasswordError: "No se pudo actualizar la contraseña.",
+  profilePasswordTooShort: "Mínimo 8 caracteres.",
+  profilePasswordMismatch: "Las contraseñas no coinciden.",
+  profilePasswordNoAuth: "Auth no está configurado en este entorno.",
+  profileShortcutsTitle: "Atajos de cuenta",
+  profileShortcutsDesc: "Ir a billetera, API key o notificaciones.",
+  profileShortcutWallet: "Billetera de destino",
+  profileShortcutWalletEmpty: "Todavía no configurada",
+  profileShortcutKey: "API key e integración",
+  profileShortcutKeyHint: "Snippets, trustlines y SEPs",
+  profileShortcutNotices: "Notificaciones",
+  profileShortcutNoticesHint: "Feed de actividad y webhooks",
+  profileDangerTitle: "Sesión",
+  profileDangerDesc: "Cerrar sesión borra las cookies del panel en este navegador.",
+  profileMetaTitle: "Cuenta ViaPay",
+  profileMetaDesc: "Identificadores y fechas de la cuenta comercio.",
+  profileMetaId: "Account ID",
+  profileMetaStatus: "Estado",
+  profileMetaCreated: "Creada",
+  profileMetaUpdated: "Actualizada",
   mastheadTitle: (name) => `Hola, ${name}`,
   missingKey: "Tu sesión no tiene clave de API. Cerrá sesión y volvé a entrar con Google o GitHub.",
   footerNetwork: (network, fee) => `Red ${network} · fee ViaPay ${fee}`,
@@ -476,6 +618,7 @@ const es: Messages = {
   navSwap: "Swap",
   navIntegracion: "Integración",
   navNotificaciones: "Notificaciones",
+  navPerfil: "Perfil",
   cobrosGuideTitle: "Cómo cobrar",
   cobrosGuide1: "Creá el link con el monto y, si aplica, la comisión del revendedor.",
   cobrosGuide2: "Compartí el checkout ViaPay. El cliente firma en su wallet (Freighter, Lobstr, …).",
@@ -711,8 +854,82 @@ const en: Messages = {
   homeAria: "ViaPay, home",
   signOut: "Sign out",
   profileMenuAria: "Account menu",
-  profileMenuProfile: "Profile & integration",
+  profileMenuProfile: "My profile",
   profileMenuWallet: "Destination wallet",
+  profileMenuSettings: "Settings",
+  profileTitle: "Profile & settings",
+  profileDesc: "Account details, panel preferences, alerts, and security.",
+  profileHeroHint: "How the panel shows you while you charge and manage ViaPay.",
+  profileLoading: "Loading profile…",
+  profileLoadError: "Could not load profile.",
+  profileIdentityTitle: "Identity",
+  profileIdentityDesc: "Visible name, business, and merchant contact.",
+  profileNameLabel: "Name",
+  profileBusinessLabel: "Business name",
+  profileBusinessPlaceholder: "Optional — e.g. Aurora Café",
+  profileEmailLabel: "Account email",
+  profileEmailHint: "Email comes from OAuth login and can’t be changed here.",
+  profilePhoneLabel: "Phone",
+  profilePhoneHint: "International E.164 format, e.g. +56912345678.",
+  profileSave: "Save changes",
+  profileSaving: "Saving…",
+  profileSaveOk: "Saved.",
+  profileSaveError: "Could not save.",
+  profilePrefsTitle: "Panel preferences",
+  profilePrefsDesc: "Language, theme, and local reference currency (this device).",
+  profileLocaleLabel: "Language",
+  profileThemeLabel: "Theme",
+  profileThemeLight: "Light",
+  profileThemeDark: "Dark",
+  profileFiatLabel: "Local currency",
+  profileFiatHint: "Used for ≈ equivalents in charges and overview.",
+  profileNotifyTitle: "Merchant alerts",
+  profileNotifyDesc: "Preferred channel when a charge is paid.",
+  profileNotifyEmail: "Email on paid",
+  profileNotifyEmailHint: "Email the account when a payment becomes Paid.",
+  profileNotifyWa: "WhatsApp on paid",
+  profileNotifyWaHint: "If WhatsApp is linked, notify there too.",
+  profileSecurityTitle: "Security",
+  profileSecurityDesc: "How you sign in to ViaPay today.",
+  profileSecurityLogin: "Sign-in method",
+  profileSecurityAuthEmail: "Authenticated email",
+  profileSecurityUnknown: "Active session",
+  profileSecurityOauthNote:
+    "ViaPay uses Google or GitHub. You can add a password below as another way into the same email.",
+  profileProviderLabel: (provider) => {
+    const p = provider.toLowerCase();
+    if (p === "google") return "Google";
+    if (p === "github") return "GitHub";
+    if (p === "email") return "Email";
+    return provider;
+  },
+  profilePasswordTitle: "Password",
+  profilePasswordDesc:
+    "Optional: set or change a Supabase Auth password for this email (in addition to OAuth).",
+  profilePasswordNew: "New password",
+  profilePasswordConfirm: "Confirm password",
+  profilePasswordSave: "Update password",
+  profilePasswordOk: "Password updated.",
+  profilePasswordError: "Could not update password.",
+  profilePasswordTooShort: "At least 8 characters.",
+  profilePasswordMismatch: "Passwords do not match.",
+  profilePasswordNoAuth: "Auth is not configured in this environment.",
+  profileShortcutsTitle: "Account shortcuts",
+  profileShortcutsDesc: "Jump to wallet, API key, or notifications.",
+  profileShortcutWallet: "Destination wallet",
+  profileShortcutWalletEmpty: "Not configured yet",
+  profileShortcutKey: "API key & integration",
+  profileShortcutKeyHint: "Snippets, trustlines, and SEPs",
+  profileShortcutNotices: "Notifications",
+  profileShortcutNoticesHint: "Activity feed and webhooks",
+  profileDangerTitle: "Session",
+  profileDangerDesc: "Signing out clears panel cookies in this browser.",
+  profileMetaTitle: "ViaPay account",
+  profileMetaDesc: "Merchant account identifiers and dates.",
+  profileMetaId: "Account ID",
+  profileMetaStatus: "Status",
+  profileMetaCreated: "Created",
+  profileMetaUpdated: "Updated",
   mastheadTitle: (name) => `Hi, ${name}`,
   missingKey: "Your session has no API key. Sign out and sign in again with Google or GitHub.",
   footerNetwork: (network, fee) => `Network ${network} · ViaPay fee ${fee}`,
@@ -854,6 +1071,7 @@ const en: Messages = {
   navSwap: "Swap",
   navIntegracion: "Integration",
   navNotificaciones: "Notifications",
+  navPerfil: "Profile",
   cobrosGuideTitle: "How to get paid",
   cobrosGuide1: "Create the link with the amount and optional reseller fee.",
   cobrosGuide2: "Share the ViaPay checkout. The customer signs in their wallet (Freighter, Lobstr, …).",
@@ -1089,8 +1307,82 @@ const pt: Messages = {
   homeAria: "ViaPay, início",
   signOut: "Sair",
   profileMenuAria: "Menu da conta",
-  profileMenuProfile: "Perfil e integração",
+  profileMenuProfile: "Meu perfil",
   profileMenuWallet: "Carteira de destino",
+  profileMenuSettings: "Configurações",
+  profileTitle: "Perfil e configurações",
+  profileDesc: "Dados da conta, preferências do painel, avisos e segurança.",
+  profileHeroHint: "Assim o painel mostra você ao cobrar e gerir o ViaPay.",
+  profileLoading: "Carregando perfil…",
+  profileLoadError: "Não foi possível carregar o perfil.",
+  profileIdentityTitle: "Identidade",
+  profileIdentityDesc: "Nome visível, negócio e contato do comércio.",
+  profileNameLabel: "Nome",
+  profileBusinessLabel: "Nome do negócio",
+  profileBusinessPlaceholder: "Opcional — ex. Café Aurora",
+  profileEmailLabel: "Email da conta",
+  profileEmailHint: "O email vem do login OAuth e não muda aqui.",
+  profilePhoneLabel: "Telefone",
+  profilePhoneHint: "Formato internacional E.164, ex. +56912345678.",
+  profileSave: "Salvar alterações",
+  profileSaving: "Salvando…",
+  profileSaveOk: "Salvo.",
+  profileSaveError: "Não foi possível salvar.",
+  profilePrefsTitle: "Preferências do painel",
+  profilePrefsDesc: "Idioma, tema e moeda local de referência (neste dispositivo).",
+  profileLocaleLabel: "Idioma",
+  profileThemeLabel: "Tema",
+  profileThemeLight: "Claro",
+  profileThemeDark: "Escuro",
+  profileFiatLabel: "Moeda local",
+  profileFiatHint: "Usada para equivalências ≈ em cobranças e resumo.",
+  profileNotifyTitle: "Avisos ao comércio",
+  profileNotifyDesc: "Canal preferido quando uma cobrança é paga.",
+  profileNotifyEmail: "Email ao pagar",
+  profileNotifyEmailHint: "Avisar o email da conta quando um pagamento fica Paid.",
+  profileNotifyWa: "WhatsApp ao pagar",
+  profileNotifyWaHint: "Se o WhatsApp estiver vinculado, avisar também lá.",
+  profileSecurityTitle: "Segurança",
+  profileSecurityDesc: "Como você entra no ViaPay hoje.",
+  profileSecurityLogin: "Método de acesso",
+  profileSecurityAuthEmail: "Email autenticado",
+  profileSecurityUnknown: "Sessão ativa",
+  profileSecurityOauthNote:
+    "ViaPay usa Google ou GitHub. Você pode adicionar uma senha abaixo como outro fator no mesmo email.",
+  profileProviderLabel: (provider) => {
+    const p = provider.toLowerCase();
+    if (p === "google") return "Google";
+    if (p === "github") return "GitHub";
+    if (p === "email") return "Email";
+    return provider;
+  },
+  profilePasswordTitle: "Senha",
+  profilePasswordDesc:
+    "Opcional: defina ou altere uma senha no Supabase Auth para este email (além do OAuth).",
+  profilePasswordNew: "Nova senha",
+  profilePasswordConfirm: "Confirmar senha",
+  profilePasswordSave: "Atualizar senha",
+  profilePasswordOk: "Senha atualizada.",
+  profilePasswordError: "Não foi possível atualizar a senha.",
+  profilePasswordTooShort: "Mínimo 8 caracteres.",
+  profilePasswordMismatch: "As senhas não coincidem.",
+  profilePasswordNoAuth: "Auth não está configurado neste ambiente.",
+  profileShortcutsTitle: "Atalhos da conta",
+  profileShortcutsDesc: "Ir à carteira, API key ou notificações.",
+  profileShortcutWallet: "Carteira de destino",
+  profileShortcutWalletEmpty: "Ainda não configurada",
+  profileShortcutKey: "API key e integração",
+  profileShortcutKeyHint: "Snippets, trustlines e SEPs",
+  profileShortcutNotices: "Notificações",
+  profileShortcutNoticesHint: "Feed de atividade e webhooks",
+  profileDangerTitle: "Sessão",
+  profileDangerDesc: "Sair limpa os cookies do painel neste navegador.",
+  profileMetaTitle: "Conta ViaPay",
+  profileMetaDesc: "Identificadores e datas da conta comércio.",
+  profileMetaId: "Account ID",
+  profileMetaStatus: "Status",
+  profileMetaCreated: "Criada",
+  profileMetaUpdated: "Atualizada",
   mastheadTitle: (name) => `Olá, ${name}`,
   missingKey: "Sua sessão não tem API key. Saia e entre de novo com Google ou GitHub.",
   footerNetwork: (network, fee) => `Rede ${network} · taxa ViaPay ${fee}`,
@@ -1235,6 +1527,7 @@ const pt: Messages = {
   navSwap: "Swap",
   navIntegracion: "Integração",
   navNotificaciones: "Notificações",
+  navPerfil: "Perfil",
   cobrosGuideTitle: "Como cobrar",
   cobrosGuide1: "Crie o link com o valor e, se quiser, a comissão do revendedor.",
   cobrosGuide2: "Compartilhe o checkout ViaPay. O cliente assina na wallet (Freighter, Lobstr, …).",
