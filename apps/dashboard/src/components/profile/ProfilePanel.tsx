@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/lib/account-types";
-import { API } from "@/lib/config";
+import { fetchAccountProfile } from "@/lib/me-client";
 import { useLocale } from "@/lib/i18n";
 import { ProfileAccountMeta } from "./ProfileAccountMeta";
 import { ProfileDangerZone } from "./ProfileDangerZone";
+import { ProfileEmptyKey } from "./ProfileEmptyKey";
 import { ProfileHero } from "./ProfileHero";
 import { ProfileIdentity } from "./ProfileIdentity";
 import { ProfileLoading } from "./ProfileLoading";
@@ -45,17 +46,7 @@ export function ProfilePanel({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/v1/me`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-      const data = (await res.json()) as {
-        account?: AccountProfile;
-        error?: string;
-      };
-      if (!res.ok || !data.account) {
-        throw new Error(data.error || t.profileLoadError);
-      }
-      setProfile(data.account);
+      setProfile(await fetchAccountProfile(apiKey));
     } catch (err) {
       setError(err instanceof Error ? err.message : t.profileLoadError);
       setProfile(null);
@@ -91,6 +82,9 @@ export function ProfilePanel({
           name={name}
           email={email}
           businessName={profile?.business_name}
+          status={profile?.status}
+          wallet={profile?.merchant_wallet}
+          onGoWallet={onGoWallet}
         />
         <ProfileScrollNav />
 
@@ -109,11 +103,7 @@ export function ProfilePanel({
           </div>
         ) : null}
 
-        {!apiKey ? (
-          <p className="tone tone--warning" role="status">
-            {t.missingKey}
-          </p>
-        ) : null}
+        {!apiKey ? <ProfileEmptyKey /> : null}
 
         <div className="profile-grid">
           {profile && apiKey ? (
