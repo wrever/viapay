@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Shield } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLocale } from "@/lib/i18n";
+import { ProfileProviderIcons } from "./ProfileProviderIcons";
 import { ProfileSection } from "./ProfileSection";
 
 export function ProfileSecurity() {
@@ -43,10 +44,13 @@ export function ProfileSecurity() {
       <dl className="profile-meta">
         <div>
           <dt>{t.profileSecurityLogin}</dt>
-          <dd>
-            {providers.length
-              ? providers.map((p) => t.profileProviderLabel(p)).join(" · ")
-              : t.profileSecurityUnknown}
+          <dd className="profile-meta__row">
+            <ProfileProviderIcons providers={providers} />
+            <span>
+              {providers.length
+                ? providers.map((p) => t.profileProviderLabel(p)).join(" · ")
+                : t.profileSecurityUnknown}
+            </span>
           </dd>
         </div>
         {email ? (
