@@ -89,148 +89,171 @@ export function StellarSepsStatus() {
   const mainnetIsEvidenceOnly = !mainnetFromApi;
   const mainnetPayTx = evidence?.mainnet_pay_tx ?? EVIDENCE_MAINNET_PAY;
 
-  return (
-    <div className="grid gap-2">
-      <h3 className="text-sm font-medium text-[var(--text)]">{t.sepsTitle}</h3>
-      <p className="text-sm text-[var(--text-2)]">{t.sepsBody}</p>
-      {error && (
-        <p className="tone tone--warning text-sm" role="alert">
-          {error}
-        </p>
-      )}
+  const liveCount = seps
+    ? Object.values(seps).filter((e) => e.status === "live").length
+    : 0;
 
-      <ul className="text-xs grid gap-1.5">
-        <li className="flex flex-wrap gap-x-2 gap-y-0.5 items-baseline">
-          <span className="font-semibold text-[var(--text)]">
-            {t.sepsNetworkTestnet}
-          </span>
-          <span
-            className={
-              networks?.testnet?.ready
-                ? "text-[var(--success)]"
-                : "text-[var(--text-2)]"
-            }
-          >
-            {networks?.testnet?.ready ? t.sepsReady : t.sepsNotReady}
-          </span>
-          {testnetRouter && (
+  return (
+    <details className="seps-disclosure grid gap-2">
+      <summary className="seps-disclosure__summary cursor-pointer list-none">
+        <span className="text-sm font-medium text-[var(--text)]">
+          {t.sepsTitle}
+        </span>
+        <span className="text-xs text-[var(--text-2)] block mt-0.5">
+          {t.sepsSummary(
+            liveCount || (networks?.testnet?.ready ? 1 : 0),
+            mainnetReady,
+          )}
+        </span>
+      </summary>
+
+      <div className="grid gap-2 pt-1">
+        <p className="text-sm text-[var(--text-2)]">{t.sepsBody}</p>
+        <a
+          className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
+          href="/evidence"
+        >
+          {t.sepsEvidenceLink}
+        </a>
+        {error && (
+          <p className="tone tone--warning text-sm" role="alert">
+            {error}
+          </p>
+        )}
+
+        <ul className="text-xs grid gap-1.5">
+          <li className="flex flex-wrap gap-x-2 gap-y-0.5 items-baseline">
+            <span className="font-semibold text-[var(--text)]">
+              {t.sepsNetworkTestnet}
+            </span>
+            <span
+              className={
+                networks?.testnet?.ready
+                  ? "text-[var(--success)]"
+                  : "text-[var(--text-2)]"
+              }
+            >
+              {networks?.testnet?.ready ? t.sepsReady : t.sepsNotReady}
+            </span>
+            {testnetRouter && (
+              <a
+                className="perf break-all underline underline-offset-2 text-[var(--primary)]"
+                href={expertContract("testnet", testnetRouter)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {testnetRouter}
+              </a>
+            )}
+          </li>
+          <li className="flex flex-wrap gap-x-2 gap-y-0.5 items-baseline">
+            <span className="font-semibold text-[var(--text)]">
+              {t.sepsNetworkMainnet}
+            </span>
+            <span
+              className={
+                mainnetReady ? "text-[var(--success)]" : "text-[var(--primary)]"
+              }
+            >
+              {mainnetReady
+                ? t.sepsReady
+                : mainnetIsEvidenceOnly
+                  ? t.sepsMainnetEvidence
+                  : t.sepsNotReady}
+            </span>
             <a
               className="perf break-all underline underline-offset-2 text-[var(--primary)]"
-              href={expertContract("testnet", testnetRouter)}
+              href={expertContract("mainnet", mainnetRouter)}
               target="_blank"
               rel="noreferrer"
             >
-              {testnetRouter}
+              {mainnetRouter}
             </a>
-          )}
-        </li>
-        <li className="flex flex-wrap gap-x-2 gap-y-0.5 items-baseline">
-          <span className="font-semibold text-[var(--text)]">
-            {t.sepsNetworkMainnet}
-          </span>
-          <span
-            className={
-              mainnetReady ? "text-[var(--success)]" : "text-[var(--primary)]"
-            }
-          >
-            {mainnetReady
-              ? t.sepsReady
-              : mainnetIsEvidenceOnly
-                ? t.sepsMainnetEvidence
-                : t.sepsNotReady}
-          </span>
+            {mainnetIsEvidenceOnly && (
+              <a
+                className="underline underline-offset-2 text-[var(--primary)]"
+                href={expertTx("mainnet", mainnetPayTx)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t.sepsMainnetPayTx}
+              </a>
+            )}
+          </li>
+        </ul>
+
+        {seps && (
+          <ul className="text-xs grid gap-1.5 mt-1">
+            {Object.entries(seps).map(([id, entry]) => (
+              <li key={id} className="flex flex-wrap gap-x-2 gap-y-0.5">
+                <span className="font-semibold text-[var(--text)]">{id}</span>
+                <span
+                  className={
+                    entry.status === "live"
+                      ? "text-[var(--success)]"
+                      : entry.status === "demo" || entry.status === "ci"
+                        ? "text-[var(--primary)]"
+                        : "text-[var(--text-2)]"
+                  }
+                >
+                  {entry.status}
+                </span>
+                {entry.url ? (
+                  <a
+                    className="underline underline-offset-2 text-[var(--primary)]"
+                    href={entry.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {entry.note ?? entry.url}
+                  </a>
+                ) : (
+                  entry.note && (
+                    <span className="text-[var(--text-2)] w-full sm:w-auto">
+                      {entry.note}
+                    </span>
+                  )
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="flex flex-wrap gap-3 mt-1">
           <a
-            className="perf break-all underline underline-offset-2 text-[var(--primary)]"
-            href={expertContract("mainnet", mainnetRouter)}
+            className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
+            href="https://viapay.vercel.app/.well-known/stellar.toml"
             target="_blank"
             rel="noreferrer"
           >
-            {mainnetRouter}
+            SEP-1 stellar.toml
           </a>
-          {mainnetIsEvidenceOnly && (
-            <a
-              className="underline underline-offset-2 text-[var(--primary)]"
-              href={expertTx("mainnet", mainnetPayTx)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {t.sepsMainnetPayTx}
-            </a>
-          )}
-        </li>
-      </ul>
-
-      {seps && (
-        <ul className="text-xs grid gap-1.5 mt-1">
-          {Object.entries(seps).map(([id, entry]) => (
-            <li key={id} className="flex flex-wrap gap-x-2 gap-y-0.5">
-              <span className="font-semibold text-[var(--text)]">{id}</span>
-              <span
-                className={
-                  entry.status === "live"
-                    ? "text-[var(--success)]"
-                    : entry.status === "demo" || entry.status === "ci"
-                      ? "text-[var(--primary)]"
-                      : "text-[var(--text-2)]"
-                }
-              >
-                {entry.status}
-              </span>
-              {entry.url ? (
-                <a
-                  className="underline underline-offset-2 text-[var(--primary)]"
-                  href={entry.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {entry.note ?? entry.url}
-                </a>
-              ) : (
-                entry.note && (
-                  <span className="text-[var(--text-2)] w-full sm:w-auto">
-                    {entry.note}
-                  </span>
-                )
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="flex flex-wrap gap-3 mt-1">
-        <a
-          className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
-          href="https://viapay.vercel.app/.well-known/stellar.toml"
-          target="_blank"
-          rel="noreferrer"
-        >
-          SEP-1 stellar.toml
-        </a>
-        <a
-          className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
-          href={`${API}/v1/rails`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Rails discovery
-        </a>
-        <a
-          className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
-          href={`${API}/v1/verify?network=mainnet&tx_hash=${EVIDENCE_MAINNET_PAY}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Verify mainnet pay
-        </a>
-        <a
-          className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
-          href={SEP55_ACTIONS}
-          target="_blank"
-          rel="noreferrer"
-        >
-          SEP-55 CI
-        </a>
+          <a
+            className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
+            href={`${API}/v1/rails`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Rails discovery
+          </a>
+          <a
+            className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
+            href={`${API}/v1/verify?network=mainnet&tx_hash=${EVIDENCE_MAINNET_PAY}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Verify mainnet pay
+          </a>
+          <a
+            className="text-xs underline underline-offset-2 text-[var(--primary)] w-fit"
+            href={SEP55_ACTIONS}
+            target="_blank"
+            rel="noreferrer"
+          >
+            SEP-55 CI
+          </a>
+        </div>
       </div>
-    </div>
+    </details>
   );
 }

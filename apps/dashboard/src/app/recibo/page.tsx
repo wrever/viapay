@@ -92,10 +92,18 @@ function ReciboInner() {
     setErr(null);
     setParity(null);
     setProof(null);
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), 20000);
     try {
       const [pRes, sRes] = await Promise.all([
-        fetch(`${API}/v1/parity/${pi}`, { cache: "no-store" }),
-        fetch(`${API}/v1/settle-proof/${pi}`, { cache: "no-store" }),
+        fetch(`${API}/v1/parity/${pi}`, {
+          cache: "no-store",
+          signal: ctrl.signal,
+        }),
+        fetch(`${API}/v1/settle-proof/${pi}`, {
+          cache: "no-store",
+          signal: ctrl.signal,
+        }),
       ]);
       const pBody = (await pRes.json()) as Parity;
       const sBody = (await sRes.json()) as Proof & { error?: string };
@@ -107,8 +115,15 @@ function ReciboInner() {
       if (sRes.ok) setProof(sBody);
       else setProof({ error: sBody.error || `settle-proof ${sRes.status}` });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "fetch failed");
+      const msg =
+        e instanceof Error && e.name === "AbortError"
+          ? "Timeout al comparar (20s). Reintentá."
+          : e instanceof Error
+            ? e.message
+            : "fetch failed";
+      setErr(msg);
     } finally {
+      window.clearTimeout(timer);
       setBusy(false);
     }
   }, [id]);

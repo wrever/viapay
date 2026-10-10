@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { classifyChargeDestination } from "@/lib/contacts";
 import { parseNaturalCharge } from "./parse-charge";
+import { tryParseNewContact } from "./parse-contact";
 
 describe("parseNaturalCharge", () => {
   it("parses cobro 20 xlm a juanito", () => {
@@ -79,5 +80,34 @@ describe("parseNaturalCharge", () => {
   it("rejects garbage", () => {
     assert.equal(parseNaturalCharge("hola"), null);
     assert.equal(parseNaturalCharge("1"), null);
+  });
+});
+
+describe("tryParseNewContact", () => {
+  it("parses Nuevo: pipe phone", () => {
+    const r = tryParseNewContact("Nuevo: Juanito|+56911223344");
+    assert.ok(r);
+    assert.equal(r!.display_name, "Juanito");
+    assert.equal(r!.phone_e164, "+56911223344");
+  });
+
+  it("parses Contacto: pipe email", () => {
+    const r = tryParseNewContact("Contacto: Ana|ana@tienda.com");
+    assert.ok(r);
+    assert.equal(r!.display_name, "Ana");
+    assert.equal(r!.email, "ana@tienda.com");
+  });
+
+  it("parses space-separated phone", () => {
+    const r = tryParseNewContact("Nuevo: Juan +56911223344");
+    assert.ok(r);
+    assert.equal(r!.display_name, "Juan");
+    assert.equal(r!.phone_e164, "+56911223344");
+  });
+
+  it("parses agregar contacto", () => {
+    const r = tryParseNewContact("agregar contacto Pedro|+5491112345678");
+    assert.ok(r);
+    assert.equal(r!.display_name, "Pedro");
   });
 });

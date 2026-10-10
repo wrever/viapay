@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, MessageCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,14 @@ export type Contact = {
   email: string | null;
 };
 
-export function ContactsSection({ apiKey }: { apiKey: string | null }) {
+export function ContactsSection({
+  apiKey,
+  featured = false,
+}: {
+  apiKey: string | null;
+  /** Full Contactos tab — richer empty state + WA hint. */
+  featured?: boolean;
+}) {
   const { t } = useLocale();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [name, setName] = useState("");
@@ -91,10 +98,23 @@ export function ContactsSection({ apiKey }: { apiKey: string | null }) {
   }
 
   return (
-    <div className="grid gap-3">
-      <h3 className="text-sm font-medium text-[var(--text)]">{t.contactsTitle}</h3>
-      <p className="text-sm text-[var(--text-2)]">{t.contactsBody}</p>
-      <form className="grid gap-2 sm:grid-cols-4" onSubmit={(e) => void onAdd(e)}>
+    <div className="grid gap-4">
+      {!featured && (
+        <>
+          <h3 className="text-sm font-medium text-[var(--text)]">
+            {t.contactsTitle}
+          </h3>
+          <p className="text-sm text-[var(--text-2)]">{t.contactsBody}</p>
+        </>
+      )}
+      {featured && (
+        <p className="text-sm text-[var(--text-2)]">{t.contactsBody}</p>
+      )}
+
+      <form
+        className="grid gap-2 sm:grid-cols-4"
+        onSubmit={(e) => void onAdd(e)}
+      >
         <div className="grid gap-1 sm:col-span-1">
           <Label htmlFor="ct-name">{t.contactsName}</Label>
           <Input
@@ -134,24 +154,39 @@ export function ContactsSection({ apiKey }: { apiKey: string | null }) {
           </Button>
         </div>
       </form>
+
+      {featured && (
+        <p className="contacts-wa-hint text-sm text-[var(--text-2)]">
+          <MessageCircle className="size-3.5 inline-block mr-1.5 align-[-0.1em]" aria-hidden />
+          {t.contactsWaHint}
+        </p>
+      )}
+
       {error && (
         <p className="tone tone--warning text-sm" role="alert">
           {error}
         </p>
       )}
+
+      {contacts.length === 0 && !error && (
+        <p className="text-sm text-[var(--text-2)]" role="status">
+          {t.contactsEmpty}
+        </p>
+      )}
+
       {contacts.length > 0 && (
-        <ul className="text-sm grid gap-1">
+        <ul className="contacts-list text-sm grid gap-1">
           {contacts.map((c) => (
             <li
               key={c.id}
-              className="flex flex-wrap items-center justify-between gap-2"
+              className="contacts-list__row flex flex-wrap items-center justify-between gap-2"
             >
               <span>
                 <span className="text-[var(--text)] font-medium">
                   {c.display_name}
                 </span>{" "}
                 <span className="text-[var(--text-2)] text-xs">
-                  {c.phone_e164 ?? c.email}
+                  {[c.phone_e164, c.email].filter(Boolean).join(" · ")}
                 </span>
               </span>
               <Button

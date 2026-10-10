@@ -700,53 +700,73 @@ async function createInstallmentPlan(
   });
   await persistIntent(parent, String(parentMeta.cobro_code));
 
-  for (let i = 0; i < parts.length; i++) {
-    const amt = parts[i]!;
-    const childSplit = calcFeeSplit(
-      parseAssetAmount(amt),
-      auth.feeBps,
-      input.resellerBps,
-    );
-    const childMeta: Record<string, unknown> = {
-      cobro_code: generateCobroCode(),
-      plan: {
-        kind: "installments",
-        parent_id: parentId,
-        installment_index: i + 1,
-        installment_count: input.installments,
-        schedule,
-        status: "active",
-      } satisfies PlanMeta,
-    };
-    if (parentMeta.invoice) childMeta.invoice = parentMeta.invoice;
-    // Propagate signed-link proof so next_pay_url (child) still shows verified.
-    if (typeof parentMeta.link_signature === "string") {
-      childMeta.link_signature = parentMeta.link_signature;
+  const createdChildIds: string[] = [];
+  try {
+    for (let i = 0; i < parts.length; i++) {
+      const amt = parts[i]!;
+      const childSplit = calcFeeSplit(
+        parseAssetAmount(amt),
+        auth.feeBps,
+        input.resellerBps,
+      );
+      const childMeta: Record<string, unknown> = {
+        cobro_code: generateCobroCode(),
+        plan: {
+          kind: "installments",
+          parent_id: parentId,
+          installment_index: i + 1,
+          installment_count: input.installments,
+          schedule,
+          status: "active",
+        } satisfies PlanMeta,
+      };
+      if (parentMeta.invoice) childMeta.invoice = parentMeta.invoice;
+      // Propagate signed-link proof so next_pay_url (child) still shows verified.
+      if (typeof parentMeta.link_signature === "string") {
+        childMeta.link_signature = parentMeta.link_signature;
+      }
+      if (parentMeta.link_sig && typeof parentMeta.link_sig === "object") {
+        childMeta.link_sig = parentMeta.link_sig;
+      }
+      const child = buildIntentRow({
+        id: childIds[i]!,
+        accountId: auth.accountId,
+        amountStr: amt,
+        split: childSplit,
+        resellerAddress: input.resellerBps > 0 ? input.resellerAddress : null,
+        asset: input.asset,
+        network: input.network,
+        merchantWallet: auth.merchantWallet!,
+        description:
+          input.description != null
+            ? `${input.description} · cuota ${i + 1}/${input.installments}`
+            : `Cuota ${i + 1}/${input.installments}`,
+        externalUserId: input.externalUserId,
+        metadata: childMeta,
+        successUrl: input.success_url ?? null,
+        cancelUrl: input.cancel_url ?? null,
+        expiresAt,
+        now,
+      });
+      await persistIntent(child, String(childMeta.cobro_code));
+      createdChildIds.push(child.id);
     }
-    if (parentMeta.link_sig && typeof parentMeta.link_sig === "object") {
-      childMeta.link_sig = parentMeta.link_sig;
+  } catch (e) {
+    // Best-effort: don't leave a half-built plan payable.
+    for (const cid of [parentId, ...createdChildIds]) {
+      try {
+        await updateIntentMetadataAndStatus(cid, {
+          status: "canceled",
+          metadata: {
+            ...((await getPaymentIntentById(cid))?.metadata ?? {}),
+            plan_create_failed: true,
+          },
+        });
+      } catch {
+        /* ignore cleanup errors */
+      }
     }
-    const child = buildIntentRow({
-      id: childIds[i]!,
-      accountId: auth.accountId,
-      amountStr: amt,
-      split: childSplit,
-      resellerAddress: input.resellerBps > 0 ? input.resellerAddress : null,
-      asset: input.asset,
-      network: input.network,
-      merchantWallet: auth.merchantWallet!,
-      description:
-        input.description != null
-          ? `${input.description} · cuota ${i + 1}/${input.installments}`
-          : `Cuota ${i + 1}/${input.installments}`,
-      externalUserId: input.externalUserId,
-      metadata: childMeta,
-      successUrl: input.success_url ?? null,
-      cancelUrl: input.cancel_url ?? null,
-      expiresAt,
-      now,
-    });
-    await persistIntent(child, String(childMeta.cobro_code));
+    throw e;
   }
 
   return parent;

@@ -88,6 +88,7 @@ export function CreatePaymentLink({
   hasWallet,
   merchantWallet,
   merchantUsdcReady,
+  network,
   onNeedWallet,
   onNeedUsdcTrustline,
   onPaymentCreated,
@@ -98,6 +99,8 @@ export function CreatePaymentLink({
   merchantWallet?: string | null;
   /** True when Horizon shows USDC trustline on the saved merchant wallet. */
   merchantUsdcReady: boolean | null;
+  /** Charge network from the dash-bar toggle. */
+  network: "testnet" | "mainnet";
   onNeedWallet: () => void;
   onNeedUsdcTrustline: () => void;
   onPaymentCreated: (payment: DashboardPayment) => void;
@@ -107,13 +110,17 @@ export function CreatePaymentLink({
   const [amount, setAmount] = useState("20");
   // Prefer XLM when USDC readiness is unknown/false; keep USDC selectable with gate.
   const [asset, setAsset] = useState<"USDC" | "XLM">("XLM");
-  const [network, setNetwork] = useState<"testnet" | "mainnet">("testnet");
-  const [mainnetReady, setMainnetReady] = useState(false);
   /** USDC trustline on the selected charge network (not only env default). */
   const [usdcReadyForNetwork, setUsdcReadyForNetwork] = useState<
     boolean | null
   >(null);
   const [description, setDescription] = useState("");
+  const [sendToSomeone, setSendToSomeone] = useState(false);
+  const [sendMode, setSendMode] = useState<"agenda" | "new">("new");
+  const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [saveNewContact, setSaveNewContact] = useState(true);
   const [resellerOpen, setResellerOpen] = useState(false);
   const [resellerPct, setResellerPct] = useState("");
   const [resellerAddress, setResellerAddress] = useState("");
@@ -127,7 +134,6 @@ export function CreatePaymentLink({
   const [emailNote, setEmailNote] = useState<string | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [contactId, setContactId] = useState("");
-  const [quickDest, setQuickDest] = useState("");
   const [lastShare, setLastShare] = useState<ShareTarget | null>(null);
   const [pricingMode, setPricingMode] = useState<"exact" | "exact_pay">(
     "exact",
@@ -155,14 +161,18 @@ export function CreatePaymentLink({
     return crypto;
   }, [pricingMode, amount, asset, fiat, rates]);
 
-  const quickEmail = useMemo(
-    () => (!contactId ? normalizeQuickEmail(quickDest) : null),
-    [contactId, quickDest],
+  const newEmailNorm = useMemo(
+    () => normalizeQuickEmail(newEmail),
+    [newEmail],
   );
-  const quickPhone = useMemo(
-    () => (!contactId && !quickEmail ? normalizeQuickPhone(quickDest) : null),
-    [contactId, quickDest, quickEmail],
+  const newPhoneNorm = useMemo(
+    () => normalizeQuickPhone(newPhone),
+    [newPhone],
   );
+
+  useEffect(() => {
+    if (sendToSomeone && contacts.length === 0) setSendMode("new");
+  }, [sendToSomeone, contacts.length]);
 
   useEffect(() => {
     if (!apiKey) return;
@@ -189,11 +199,9 @@ export function CreatePaymentLink({
       try {
         const res = await fetch(`${API}/v1/health`, { cache: "no-store" });
         const body = (await res.json()) as {
-          networks?: { mainnet?: { ready?: boolean } };
           treasury?: string;
         };
         if (!cancelled && res.ok) {
-          setMainnetReady(Boolean(body.networks?.mainnet?.ready));
           if (typeof body.treasury === "string") setTreasuryWallet(body.treasury);
         }
       } catch {
@@ -204,10 +212,6 @@ export function CreatePaymentLink({
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (!mainnetReady && network === "mainnet") setNetwork("testnet");
-  }, [mainnetReady, network]);
 
   const resellerBps = resellerOpen ? (pctToBps(resellerPct) ?? 0) : 0;
   const addressValid = isValidStellarPubkey(resellerAddress.trim());
@@ -346,31 +350,61 @@ export function CreatePaymentLink({
     setError(null);
     setCopied(false);
     try {
-      const shareTarget: ShareTarget | null = selectedContact
-        ? {
-            name: selectedContact.display_name,
-            phone_e164: selectedContact.phone_e164,
-            email: selectedContact.email,
-          }
-        : quickPhone
-          ? {
-              name: quickPhone,
-              phone_e164: quickPhone,
-              email: null,
-            }
-          : quickEmail
-            ? {
-                name: quickEmail.split("@")[0] || quickEmail,
-                phone_e164: null,
-                email: quickEmail,
-              }
-            : null;
-      if (quickDest.trim() && !selectedContact && !shareTarget) {
-        throw new Error(t.invoiceQuickDestHint);
+      let resolvedContactId = selectedContact?.id;
+      let shareTarget: ShareTarget | null = null;
+
+      if (sendToSomeone && sendMode === "agenda") {
+        if (!selectedContact) {
+          throw new Error(t.invoicePickContact);
+        }
+        shareTarget = {
+          name: selectedContact.display_name,
+          phone_e164: selectedContact.phone_e164,
+          email: selectedContact.email,
+        };
+      } else if (sendToSomeone && sendMode === "new") {
+        const name = newName.trim();
+        if (!name) throw new Error(t.invoiceNewNameRequired);
+        if (!newPhoneNorm && !newEmailNorm) {
+          throw new Error(t.invoiceNewDestRequired);
+        }
+        if (newPhone.trim() && !newPhoneNorm) {
+          throw new Error(t.invoiceQuickDestHint);
+        }
+        if (newEmail.trim() && !newEmailNorm) {
+          throw new Error(t.invoiceQuickDestHint);
+        }
+        shareTarget = {
+          name,
+          phone_e164: newPhoneNorm,
+          email: newEmailNorm,
+        };
+        if (saveNewContact && apiKey) {
+          const res = await fetch(`${API}/v1/contacts`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              display_name: name,
+              phone_e164: newPhoneNorm,
+              email: newEmailNorm,
+            }),
+          });
+          const body = (await res.json()) as Contact & { error?: string };
+          if (!res.ok) throw new Error(body.error ?? t.contactsSaveFail);
+          resolvedContactId = body.id;
+          setContacts((prev) => {
+            if (prev.some((c) => c.id === body.id)) return prev;
+            return [body, ...prev];
+          });
+        }
       }
+
       const invoice = shareTarget
         ? {
-            contact_id: selectedContact?.id,
+            contact_id: resolvedContactId,
             recipient_name: shareTarget.name,
             channel: shareTarget.phone_e164
               ? "whatsapp"
@@ -408,7 +442,7 @@ export function CreatePaymentLink({
         description:
           description.trim() ||
           (shareTarget ? `Cobro a ${shareTarget.name}` : undefined),
-        external_user_id: selectedContact?.id,
+        external_user_id: resolvedContactId,
         metadata: invoice ? { invoice } : undefined,
         ...(resellerBps > 0
           ? {
@@ -520,71 +554,6 @@ export function CreatePaymentLink({
       </div>
       <div className="panel__body">
         <form className="grid gap-4" onSubmit={onCreate}>
-          <div className="grid gap-2">
-            <Label htmlFor="contact">{t.invoiceContact}</Label>
-            <select
-              id="contact"
-              className="asset-select w-full"
-              value={contactId}
-              onChange={(e) => setContactId(e.target.value)}
-            >
-              <option value="">{t.invoiceNoContact}</option>
-              {contacts.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.display_name}
-                  {c.phone_e164
-                    ? ` · ${c.phone_e164}`
-                    : c.email
-                      ? ` · ${c.email}`
-                      : ""}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-[var(--text-2)]">{t.invoiceContactHint}</p>
-          </div>
-
-          {!contactId && (
-            <div className="grid gap-2">
-              <Label htmlFor="quickDest">{t.invoiceQuickDest}</Label>
-              <Input
-                id="quickDest"
-                type="text"
-                inputMode="email"
-                autoComplete="off"
-                placeholder="cliente@mail.com · +569…"
-                value={quickDest}
-                onChange={(e) => setQuickDest(e.target.value)}
-              />
-              <p className="text-xs text-[var(--text-2)]">
-                {t.invoiceQuickDestHint}
-              </p>
-            </div>
-          )}
-
-          <div className="grid gap-2">
-            <Label htmlFor="network">{t.networkLabel}</Label>
-            <select
-              id="network"
-              className="asset-select w-full"
-              value={network}
-              onChange={(e) =>
-                setNetwork(e.target.value as "testnet" | "mainnet")
-              }
-            >
-              <option value="testnet">{t.networkTestnet}</option>
-              <option value="mainnet" disabled={!mainnetReady}>
-                {t.networkMainnet}
-                {!mainnetReady ? " — …" : ""}
-              </option>
-            </select>
-            <p className="text-xs text-[var(--text-2)]">{t.networkHint}</p>
-            {!mainnetReady && (
-              <p className="text-xs text-[var(--text-2)]">
-                {t.networkMainnetUnavailable}
-              </p>
-            )}
-          </div>
-
           <div className="grid gap-2">
             <label className="flex items-start gap-2 text-sm text-[var(--text)] cursor-pointer">
               <input
@@ -843,6 +812,146 @@ export function CreatePaymentLink({
               </div>
             </dl>
           )}
+
+          <div className="disclosure" data-open={sendToSomeone}>
+            <label className="disclosure__toggle">
+              <input
+                type="checkbox"
+                checked={sendToSomeone}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setSendToSomeone(on);
+                  if (!on) {
+                    setContactId("");
+                    setNewName("");
+                    setNewPhone("");
+                    setNewEmail("");
+                  } else if (contacts.length === 0) {
+                    setSendMode("new");
+                  }
+                }}
+              />
+              <span>
+                <strong>{t.invoiceSendToggle}</strong>
+                <span>{t.invoiceSendHint}</span>
+              </span>
+            </label>
+
+            {sendToSomeone && (
+              <div className="mt-3 grid gap-3">
+                <div
+                  className="send-mode"
+                  role="group"
+                  aria-label={t.invoiceSendToggle}
+                >
+                  <button
+                    type="button"
+                    className={`send-mode__btn${sendMode === "agenda" ? " is-active" : ""}`}
+                    aria-pressed={sendMode === "agenda"}
+                    disabled={contacts.length === 0}
+                    title={
+                      contacts.length === 0
+                        ? t.invoiceAgendaEmpty
+                        : undefined
+                    }
+                    onClick={() => setSendMode("agenda")}
+                  >
+                    {t.invoiceSendAgenda}
+                  </button>
+                  <button
+                    type="button"
+                    className={`send-mode__btn${sendMode === "new" ? " is-active" : ""}`}
+                    aria-pressed={sendMode === "new"}
+                    onClick={() => {
+                      setSendMode("new");
+                      setContactId("");
+                    }}
+                  >
+                    {t.invoiceSendNew}
+                  </button>
+                </div>
+
+                {sendMode === "agenda" ? (
+                  <div className="grid gap-2">
+                    <Label htmlFor="contact">{t.invoiceContact}</Label>
+                    <select
+                      id="contact"
+                      className="asset-select w-full"
+                      value={contactId}
+                      onChange={(e) => setContactId(e.target.value)}
+                      required
+                    >
+                      <option value="">{t.invoicePickContact}</option>
+                      {contacts.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.display_name}
+                          {c.phone_e164
+                            ? ` · ${c.phone_e164}`
+                            : c.email
+                              ? ` · ${c.email}`
+                              : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="grid gap-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="new-contact-name">{t.contactsName}</Label>
+                      <Input
+                        id="new-contact-name"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="Juanito"
+                        required
+                        autoComplete="name"
+                      />
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="new-contact-phone">
+                          {t.contactsPhone}
+                        </Label>
+                        <Input
+                          id="new-contact-phone"
+                          value={newPhone}
+                          onChange={(e) => setNewPhone(e.target.value)}
+                          placeholder="+569…"
+                          inputMode="tel"
+                          autoComplete="tel"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="new-contact-email">
+                          {t.contactsEmail}
+                        </Label>
+                        <Input
+                          id="new-contact-email"
+                          type="email"
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                          placeholder="mail@…"
+                          autoComplete="email"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-[var(--text-2)]">
+                      {t.invoiceNewDestHint}
+                    </p>
+                    <label className="flex items-start gap-2 text-sm text-[var(--text)] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="mt-1"
+                        checked={saveNewContact}
+                        onChange={(e) => setSaveNewContact(e.target.checked)}
+                      />
+                      <span>{t.invoiceSaveContact}</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {error && (
             <p className="text-sm font-medium text-[var(--error)]">{error}</p>

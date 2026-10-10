@@ -117,6 +117,7 @@ export type Messages = {
   navAria: string;
   navResumen: string;
   navCobros: string;
+  navContactos: string;
   navHistorial: string;
   navEstadisticas: string;
   navSwap: string;
@@ -233,6 +234,8 @@ export type Messages = {
   anchorOpenInteractive: string;
   sepsTitle: string;
   sepsBody: string;
+  sepsSummary: (liveCount: number, mainnetReady: boolean) => string;
+  sepsEvidenceLink: string;
   sepsLoadFail: string;
   sepsNetworkTestnet: string;
   sepsNetworkMainnet: string;
@@ -244,7 +247,10 @@ export type Messages = {
   chargeNetworkBadge: (network: string) => string;
   chargeRouterBadge: string;
   contactsTitle: string;
+  contactsSectionDesc: string;
   contactsBody: string;
+  contactsWaHint: string;
+  contactsEmpty: string;
   contactsName: string;
   contactsPhone: string;
   contactsEmail: string;
@@ -260,16 +266,27 @@ export type Messages = {
   waStep1: string;
   waStep2: string;
   waStep3: string;
+  waStep4: string;
   waGenCode: string;
   waSendCode: string;
   waCodeExpires: string;
   waStatusFail: string;
   waCodeFail: string;
+  invoiceSendToggle: string;
+  invoiceSendHint: string;
+  invoiceSendAgenda: string;
+  invoiceSendNew: string;
+  invoiceAgendaEmpty: string;
+  invoicePickContact: string;
   invoiceContact: string;
   invoiceNoContact: string;
   invoiceContactHint: string;
   invoiceQuickDest: string;
   invoiceQuickDestHint: string;
+  invoiceNewNameRequired: string;
+  invoiceNewDestRequired: string;
+  invoiceNewDestHint: string;
+  invoiceSaveContact: string;
   pricingModeLabel: string;
   pricingExact: string;
   pricingExactPay: string;
@@ -307,7 +324,8 @@ const es: Messages = {
   loginBack: "Volver",
   loginTagline: "Cobra en Stellar con un link. Sin código.",
   loginTitle: "Entrar al panel",
-  loginDescOauth: "Entrá con tu cuenta de Google o GitHub para gestionar cobros.",
+  loginDescOauth:
+    "Google o GitHub. En segundos estás cobrando con Freighter.",
   loginDescLocal:
     "El acceso con Google/GitHub no está configurado en este entorno.",
   continueGoogle: "Continuar con Google",
@@ -435,6 +453,7 @@ const es: Messages = {
   navAria: "Secciones del panel",
   navResumen: "Resumen",
   navCobros: "Cobros",
+  navContactos: "Contactos",
   navHistorial: "Historial",
   navEstadisticas: "Estadísticas",
   navSwap: "Swap",
@@ -566,9 +585,14 @@ const es: Messages = {
   anchorSep24Fail: "No se pudo abrir el flujo SEP-24 interactivo",
   anchorJwtOk: "JWT SEP-10 OK:",
   anchorOpenInteractive: "Abrir UI interactiva del anchor",
-  sepsTitle: "SEPs Stellar (vivo)",
+  sepsTitle: "SEPs Stellar",
   sepsBody:
-    "Matriz desde GET /v1/health: identidad, auth, cash-out demo, SAC y verified build.",
+    "Matriz técnica para jurado / Dora (no es del día a día del comercio). Fuente: GET /v1/health.",
+  sepsSummary: (liveCount, mainnetReady) =>
+    mainnetReady
+      ? `${liveCount || "—"} live · testnet + mainnet listos · tocar para detalle`
+      : `${liveCount || "—"} live · tocar para matriz técnica`,
+  sepsEvidenceLink: "Ver evidencia pública (/evidence)",
   sepsLoadFail: "No se pudo cargar el estado de SEPs",
   sepsNetworkTestnet: "Testnet",
   sepsNetworkMainnet: "Mainnet",
@@ -581,8 +605,13 @@ const es: Messages = {
     network === "mainnet" ? "Stellar mainnet" : `Stellar ${network}`,
   chargeRouterBadge: "Soroban router",
   contactsTitle: "Contactos",
+  contactsSectionDesc:
+    "Agenda del comercio. Usalos en Cobros o cobrá por WhatsApp por nombre.",
   contactsBody:
-    "Agenda para invoices. Nombre + teléfono (WhatsApp) y/o email.",
+    "Nombre + teléfono (WhatsApp) y/o email. Sirven para invoices y el asistente WA.",
+  contactsWaHint:
+    "También desde WhatsApp: Nuevo: Juan|+569… · Contacto: Ana|mail@x.com · Nuevo: Juan +569…",
+  contactsEmpty: "Todavía no hay contactos. Agregá uno acá o por WhatsApp.",
   contactsName: "Nombre",
   contactsPhone: "Teléfono",
   contactsEmail: "Email",
@@ -601,17 +630,29 @@ const es: Messages = {
   waStep1: "Escribí al número Business (+56 9 8494 1552). Sin vínculo te guía a crear cuenta de comercio.",
   waStep2: "Generá un código abajo y mandá: vincular 123456",
   waStep3: "Atajo: cobro 20 xlm a juanito / mail@x.com / +569… → Sí → 1 WA / 2 Email",
+  waStep4:
+    "Alta contacto: Nuevo: Juan|+569… o Contacto: Ana|mail@x.com (también sin |)",
   waGenCode: "Generar código de vínculo",
   waSendCode: "Enviá al bot:",
   waCodeExpires: "Vence",
   waStatusFail: "No se pudo leer el estado de WhatsApp",
   waCodeFail: "No se pudo generar el código",
-  invoiceContact: "Cobrar a (opcional)",
-  invoiceNoContact: "Sin contacto — solo link",
-  invoiceContactHint:
-    "Agenda, o más abajo un email / WhatsApp suelto. Después mandás el link.",
-  invoiceQuickDest: "Email o WhatsApp (sin agenda)",
-  invoiceQuickDestHint: "Ej. cliente@mail.com o +56912345678 — XLM o USDC arriba.",
+  invoiceSendToggle: "Enviar a alguien",
+  invoiceSendHint:
+    "Opcional. Elegí de la agenda o agregá un contacto nuevo y le mandás el link.",
+  invoiceSendAgenda: "Agenda",
+  invoiceSendNew: "Nuevo contacto",
+  invoiceAgendaEmpty: "Todavía no hay contactos — usá Nuevo contacto",
+  invoicePickContact: "Elegí un contacto…",
+  invoiceContact: "Contacto",
+  invoiceNoContact: "Ninguno",
+  invoiceContactHint: "Agenda o contacto nuevo.",
+  invoiceQuickDest: "Email o WhatsApp",
+  invoiceQuickDestHint: "Usá un teléfono (+569…) o email válido.",
+  invoiceNewNameRequired: "Poné el nombre del contacto",
+  invoiceNewDestRequired: "Agregá teléfono o email (al menos uno)",
+  invoiceNewDestHint: "Teléfono (WhatsApp) y/o email — con uno alcanza.",
+  invoiceSaveContact: "Guardar en agenda para la próxima",
   pricingModeLabel: "Cómo cotizás",
   pricingExact: "Crypto (exact)",
   pricingExactPay: "Moneda local (exact-pay)",
@@ -647,7 +688,7 @@ const en: Messages = {
   loginBack: "Back",
   loginTagline: "Get paid on Stellar with a link. No code.",
   loginTitle: "Open the dashboard",
-  loginDescOauth: "Sign in with Google or GitHub to manage your charges.",
+  loginDescOauth: "Google or GitHub. Charging with Freighter in seconds.",
   loginDescLocal: "Google/GitHub sign-in is not configured in this environment.",
   continueGoogle: "Continue with Google",
   continueGithub: "Continue with GitHub",
@@ -773,6 +814,7 @@ const en: Messages = {
   navAria: "Dashboard sections",
   navResumen: "Overview",
   navCobros: "Charges",
+  navContactos: "Contacts",
   navHistorial: "History",
   navEstadisticas: "Statistics",
   navSwap: "Swap",
@@ -903,9 +945,14 @@ const en: Messages = {
   anchorSep24Fail: "Could not open the SEP-24 interactive flow",
   anchorJwtOk: "SEP-10 JWT OK:",
   anchorOpenInteractive: "Open anchor interactive UI",
-  sepsTitle: "Stellar SEPs (live)",
+  sepsTitle: "Stellar SEPs",
   sepsBody:
-    "Matrix from GET /v1/health: identity, auth, cash-out demo, SAC, and verified build.",
+    "Technical matrix for judges / Dora (not day-to-day merchant UI). Source: GET /v1/health.",
+  sepsSummary: (liveCount, mainnetReady) =>
+    mainnetReady
+      ? `${liveCount || "—"} live · testnet + mainnet ready · expand for detail`
+      : `${liveCount || "—"} live · expand for technical matrix`,
+  sepsEvidenceLink: "Open public evidence (/evidence)",
   sepsLoadFail: "Could not load SEP status",
   sepsNetworkTestnet: "Testnet",
   sepsNetworkMainnet: "Mainnet",
@@ -918,8 +965,13 @@ const en: Messages = {
     network === "mainnet" ? "Stellar mainnet" : `Stellar ${network}`,
   chargeRouterBadge: "Soroban router",
   contactsTitle: "Contacts",
+  contactsSectionDesc:
+    "Merchant address book. Use them in Charges or bill by name on WhatsApp.",
   contactsBody:
-    "Address book for invoices. Name + phone (WhatsApp) and/or email.",
+    "Name + phone (WhatsApp) and/or email. Used for invoices and the WA assistant.",
+  contactsWaHint:
+    "Also via WhatsApp: Nuevo: Juan|+569… · Contacto: Ana|mail@x.com · Nuevo: Juan +569…",
+  contactsEmpty: "No contacts yet. Add one here or via WhatsApp.",
   contactsName: "Name",
   contactsPhone: "Phone",
   contactsEmail: "Email",
@@ -938,17 +990,29 @@ const en: Messages = {
   waStep1: "Message the Business number (+56 9 8494 1552). Unlinked numbers get merchant signup guidance.",
   waStep2: "Generate a code below and send: vincular 123456",
   waStep3: "Shortcut: cobro 20 xlm to name / mail@x.com / +569… → Yes → 1 WA / 2 Email",
+  waStep4:
+    "Add contact: Nuevo: Juan|+569… or Contacto: Ana|mail@x.com (pipe optional)",
   waGenCode: "Generate link code",
   waSendCode: "Send to the bot:",
   waCodeExpires: "Expires",
   waStatusFail: "Could not load WhatsApp status",
   waCodeFail: "Could not generate code",
-  invoiceContact: "Charge to (optional)",
-  invoiceNoContact: "No contact — link only",
-  invoiceContactHint:
-    "Pick from your directory, or type an email / WhatsApp below.",
-  invoiceQuickDest: "Email or WhatsApp (no directory)",
-  invoiceQuickDestHint: "e.g. client@mail.com or +56912345678 — XLM or USDC above.",
+  invoiceSendToggle: "Send to someone",
+  invoiceSendHint:
+    "Optional. Pick from your directory or add a new contact and send the link.",
+  invoiceSendAgenda: "Directory",
+  invoiceSendNew: "New contact",
+  invoiceAgendaEmpty: "No contacts yet — use New contact",
+  invoicePickContact: "Pick a contact…",
+  invoiceContact: "Contact",
+  invoiceNoContact: "None",
+  invoiceContactHint: "Directory or new contact.",
+  invoiceQuickDest: "Email or WhatsApp",
+  invoiceQuickDestHint: "Use a valid phone (+569…) or email.",
+  invoiceNewNameRequired: "Enter the contact’s name",
+  invoiceNewDestRequired: "Add a phone or email (at least one)",
+  invoiceNewDestHint: "Phone (WhatsApp) and/or email — one is enough.",
+  invoiceSaveContact: "Save to directory for next time",
   pricingModeLabel: "How you quote",
   pricingExact: "Crypto (exact)",
   pricingExactPay: "Local currency (exact-pay)",
@@ -984,7 +1048,7 @@ const pt: Messages = {
   loginBack: "Voltar",
   loginTagline: "Cobre na Stellar com um link. Sem código.",
   loginTitle: "Entrar no painel",
-  loginDescOauth: "Entre com Google ou GitHub para gerenciar suas cobranças.",
+  loginDescOauth: "Google ou GitHub. Em segundos você cobra com Freighter.",
   loginDescLocal: "O acesso com Google/GitHub não está configurado neste ambiente.",
   continueGoogle: "Continuar com Google",
   continueGithub: "Continuar com GitHub",
@@ -1113,6 +1177,7 @@ const pt: Messages = {
   navAria: "Seções do painel",
   navResumen: "Resumo",
   navCobros: "Cobranças",
+  navContactos: "Contatos",
   navHistorial: "Histórico",
   navEstadisticas: "Estatísticas",
   navSwap: "Swap",
@@ -1244,9 +1309,14 @@ const pt: Messages = {
   anchorSep24Fail: "Não foi possível abrir o fluxo SEP-24 interativo",
   anchorJwtOk: "JWT SEP-10 OK:",
   anchorOpenInteractive: "Abrir UI interativa do anchor",
-  sepsTitle: "SEPs Stellar (vivo)",
+  sepsTitle: "SEPs Stellar",
   sepsBody:
-    "Matriz de GET /v1/health: identidade, auth, cash-out demo, SAC e verified build.",
+    "Matriz técnica para júri / Dora (não é o dia a dia do comércio). Fonte: GET /v1/health.",
+  sepsSummary: (liveCount, mainnetReady) =>
+    mainnetReady
+      ? `${liveCount || "—"} live · testnet + mainnet prontos · tocar para detalhe`
+      : `${liveCount || "—"} live · tocar para matriz técnica`,
+  sepsEvidenceLink: "Ver evidência pública (/evidence)",
   sepsLoadFail: "Não foi possível carregar o status dos SEPs",
   sepsNetworkTestnet: "Testnet",
   sepsNetworkMainnet: "Mainnet",
@@ -1259,8 +1329,13 @@ const pt: Messages = {
     network === "mainnet" ? "Stellar mainnet" : `Stellar ${network}`,
   chargeRouterBadge: "Soroban router",
   contactsTitle: "Contatos",
+  contactsSectionDesc:
+    "Agenda do comércio. Use em Cobranças ou cobre pelo WhatsApp pelo nome.",
   contactsBody:
-    "Agenda para invoices. Nome + telefone (WhatsApp) e/ou email.",
+    "Nome + telefone (WhatsApp) e/ou email. Servem para invoices e o assistente WA.",
+  contactsWaHint:
+    "Também no WhatsApp: Nuevo: Juan|+569… · Contacto: Ana|mail@x.com · Nuevo: Juan +569…",
+  contactsEmpty: "Ainda não há contatos. Adicione aqui ou pelo WhatsApp.",
   contactsName: "Nome",
   contactsPhone: "Telefone",
   contactsEmail: "Email",
@@ -1279,17 +1354,29 @@ const pt: Messages = {
   waStep1: "Escreva para o número Business (+56 9 8494 1552). Sem vínculo, o bot guia o cadastro do comércio.",
   waStep2: "Gere um código abaixo e envie: vincular 123456",
   waStep3: "Atalho: cobro 20 xlm a nome / mail@x.com / +569… → Sim → 1 WA / 2 Email",
+  waStep4:
+    "Alta contato: Nuevo: Juan|+569… ou Contacto: Ana|mail@x.com (também sem |)",
   waGenCode: "Gerar código de vínculo",
   waSendCode: "Envie ao bot:",
   waCodeExpires: "Expira",
   waStatusFail: "Não foi possível ler o status do WhatsApp",
   waCodeFail: "Não foi possível gerar o código",
-  invoiceContact: "Cobrar de (opcional)",
-  invoiceNoContact: "Sem contato — só link",
-  invoiceContactHint:
-    "Agenda, ou abaixo um email / WhatsApp solto. Depois envia o link.",
-  invoiceQuickDest: "Email ou WhatsApp (sem agenda)",
-  invoiceQuickDestHint: "Ex. cliente@mail.com ou +56912345678 — XLM ou USDC acima.",
+  invoiceSendToggle: "Enviar para alguém",
+  invoiceSendHint:
+    "Opcional. Escolha da agenda ou adicione um contato novo e envie o link.",
+  invoiceSendAgenda: "Agenda",
+  invoiceSendNew: "Novo contato",
+  invoiceAgendaEmpty: "Ainda não há contatos — use Novo contato",
+  invoicePickContact: "Escolha um contato…",
+  invoiceContact: "Contato",
+  invoiceNoContact: "Nenhum",
+  invoiceContactHint: "Agenda ou contato novo.",
+  invoiceQuickDest: "Email ou WhatsApp",
+  invoiceQuickDestHint: "Use um telefone (+569…) ou email válido.",
+  invoiceNewNameRequired: "Informe o nome do contato",
+  invoiceNewDestRequired: "Adicione telefone ou email (pelo menos um)",
+  invoiceNewDestHint: "Telefone (WhatsApp) e/ou email — um basta.",
+  invoiceSaveContact: "Salvar na agenda para a próxima",
   pricingModeLabel: "Como você cotiza",
   pricingExact: "Crypto (exact)",
   pricingExactPay: "Moeda local (exact-pay)",

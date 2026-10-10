@@ -60,6 +60,9 @@ export function LoginScreen({
 
   return (
     <main className="gate">
+      <div className="gate__aurora" aria-hidden="true" />
+      <div className="gate__grid" aria-hidden="true" />
+
       <header className="gate__top">
         <Link href="/" className="gate__back">
           <svg
@@ -85,7 +88,7 @@ export function LoginScreen({
       </header>
 
       <div className="gate__card">
-        <Logo variant="stacked" width={168} className="gate__logo" />
+        <Logo variant="stacked" width={196} className="gate__logo" />
         <p className="gate__tagline">{t.loginTagline}</p>
 
         <div className="gate__panel">
@@ -95,7 +98,7 @@ export function LoginScreen({
           <div className="gate__actions">
             {oauth ? (
               <>
-                <Button asChild size="lg" className="w-full gate__oauth">
+                <Button asChild size="lg" className="w-full gate__oauth gate__oauth--primary">
                   <Link href="/auth/oauth?provider=google">
                     <GoogleIcon className="gate__oauth-icon" />
                     {t.continueGoogle}
@@ -105,7 +108,7 @@ export function LoginScreen({
                   asChild
                   size="lg"
                   variant="outline"
-                  className="w-full gate__oauth"
+                  className="w-full gate__oauth gate__oauth--secondary"
                 >
                   <Link href="/auth/oauth?provider=github">
                     <GitHubIcon className="gate__oauth-icon" />

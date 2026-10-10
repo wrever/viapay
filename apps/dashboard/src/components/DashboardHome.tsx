@@ -10,6 +10,7 @@ import {
   History,
   LayoutDashboard,
   PlusCircle,
+  Users,
   Wallet,
 } from "lucide-react";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
@@ -17,6 +18,7 @@ import { ContactsSection } from "@/components/ContactsSection";
 import { WhatsAppAssistantCard } from "@/components/WhatsAppAssistantCard";
 import { Logo } from "@/components/Logo";
 import { IntegrationPanel } from "@/components/IntegrationPanel";
+import { NetworkToggle } from "@/components/NetworkToggle";
 import { OverviewPanel } from "@/components/OverviewPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
@@ -33,6 +35,7 @@ import { SiteControls, useLocale } from "@/lib/i18n";
 const SECTIONS = [
   "resumen",
   "cobros",
+  "contactos",
   "historial",
   "estadisticas",
   "swap",
@@ -92,6 +95,10 @@ export function DashboardHome({
   const firstName = sessionName.split(/\s+/)[0] || sessionName;
   const [payments, setPayments] = useState(initialPayments);
   const [section, setSection] = useState<DashSection>(DEFAULT_SECTION);
+  const [chargeNetwork, setChargeNetwork] = useState<"testnet" | "mainnet">(
+    "testnet",
+  );
+  const [mainnetReady, setMainnetReady] = useState(false);
   const [merchantWallet, setMerchantWallet] = useState<string | null>(
     readiness?.merchant_wallet ?? null,
   );
@@ -122,30 +129,36 @@ export function DashboardHome({
     }
   }, [apiKey]);
 
-  const afterWalletSaved = useCallback(
-    async (address: string) => {
-      setMerchantWallet(address);
-      setMerchantUsdcReady(null);
-      if (!apiKey) return;
+  const afterWalletSaved = useCallback((_address: string) => {
+    // Full reload so nav unlock, readiness, and Integración reflect the new wallet.
+    window.location.assign("/app?tab=integracion#integracion");
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
       try {
-        const res = await fetch(`${API}/v1/readiness`, {
-          headers: { Authorization: `Bearer ${apiKey}` },
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          setTrustlineGateOpen(true);
-          return;
+        const res = await fetch(`${API}/v1/health`, { cache: "no-store" });
+        const body = (await res.json()) as {
+          networks?: { mainnet?: { ready?: boolean } };
+        };
+        if (!cancelled && res.ok) {
+          setMainnetReady(Boolean(body.networks?.mainnet?.ready));
         }
-        const body = (await res.json()) as Readiness;
-        const ready = body.merchant?.usdc?.canReceive ?? false;
-        setMerchantUsdcReady(ready);
-        if (!ready) setTrustlineGateOpen(true);
       } catch {
-        setTrustlineGateOpen(true);
+        /* optional */
       }
-    },
-    [apiKey],
-  );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mainnetReady && chargeNetwork === "mainnet") {
+      setChargeNetwork("testnet");
+    }
+  }, [mainnetReady, chargeNetwork]);
 
   useEffect(() => {
     const initial = readSectionFromLocation();
@@ -222,6 +235,7 @@ export function DashboardHome({
   }[] = [
     { id: "resumen", label: t.navResumen, icon: LayoutDashboard },
     { id: "cobros", label: t.navCobros, icon: PlusCircle },
+    { id: "contactos", label: t.navContactos, icon: Users },
     { id: "historial", label: t.navHistorial, icon: History },
     { id: "estadisticas", label: t.navEstadisticas, icon: BarChart3 },
     { id: "swap", label: t.navSwap, icon: ArrowLeftRight },
@@ -237,6 +251,13 @@ export function DashboardHome({
             <Logo variant="horizontal" width={112} alt="" />
           </Link>
           <div className="dash-bar__user">
+            {!walletLocked && (
+              <NetworkToggle
+                value={chargeNetwork}
+                onChange={setChargeNetwork}
+                mainnetReady={mainnetReady}
+              />
+            )}
             <div className="notices-bell">
               <button
                 type="button"
@@ -318,7 +339,7 @@ export function DashboardHome({
             <div className="meta-chips" aria-label={t.panelMetaAria}>
               <span className="meta-chip">
                 <span className="meta-chip__dot" aria-hidden="true" />
-                {network}
+                {chargeNetwork}
               </span>
               <span className="meta-chip meta-chip--accent">
                 <span className="meta-chip__dot" aria-hidden="true" />
@@ -361,6 +382,7 @@ export function DashboardHome({
                   hasWallet={hasWallet}
                   merchantWallet={merchantWallet}
                   merchantUsdcReady={merchantUsdcReady}
+                  network={chargeNetwork}
                   onNeedWallet={() => go(WALLET_REQUIRED_SECTION)}
                   onNeedUsdcTrustline={() => setTrustlineGateOpen(true)}
                   onPaymentCreated={(p) => setPayments((prev) => [p, ...prev])}
@@ -373,11 +395,22 @@ export function DashboardHome({
                     <li>{t.cobrosGuide3}</li>
                   </ol>
                   <div className="grid gap-6 mt-6">
-                    <ContactsSection apiKey={apiKey} />
                     <WhatsAppAssistantCard apiKey={apiKey} />
                   </div>
                 </aside>
               </div>
+            )}
+
+            {section === "contactos" && !walletLocked && (
+              <section className="panel panel--contacts">
+                <div className="panel__head">
+                  <h2 className="panel-title">{t.contactsTitle}</h2>
+                  <p>{t.contactsSectionDesc}</p>
+                </div>
+                <div className="panel__body">
+                  <ContactsSection apiKey={apiKey} featured />
+                </div>
+              </section>
             )}
 
             {section === "historial" && !walletLocked && (

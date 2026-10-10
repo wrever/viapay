@@ -57,7 +57,7 @@ Atajos:
 0 Ayuda
 
 Vincular: vincular 123456
-Alta contacto: Nuevo: Nombre|+569… o Nuevo: Nombre|mail@x.com
+Alta contacto: Nuevo: Nombre|+569… · Contacto: Nombre|mail@x.com · Nuevo: Nombre +569…
 
 proof-or-nothing: no aceptamos capturas. Solo Paid on-chain.`;
 

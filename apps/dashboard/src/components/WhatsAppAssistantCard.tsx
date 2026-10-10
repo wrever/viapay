@@ -94,6 +94,7 @@ export function WhatsAppAssistantCard({ apiKey }: { apiKey: string | null }) {
         <li>{t.waStep1}</li>
         <li>{t.waStep2}</li>
         <li>{t.waStep3}</li>
+        <li>{t.waStep4}</li>
       </ol>
       <div className="flex flex-wrap gap-2">
         <Button

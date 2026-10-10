@@ -2,7 +2,6 @@ import { generatePrefixedId, resolveViaFeeBps } from "@viapay/shared";
 import type { AuthContext } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { getSupabaseAdmin, throwSb, usesSupabase } from "@/lib/supabase-admin";
-import { normalizePhone } from "@/lib/contacts";
 
 export type WaSessionState =
   | "idle"
@@ -440,20 +439,4 @@ export function parseVincularCode(body: string): string | null {
   return m?.[1] ?? null;
 }
 
-export function tryParseNewContact(body: string): {
-  display_name: string;
-  phone_e164?: string;
-  email?: string;
-} | null {
-  // "Nuevo: Nombre|+54911..." or "Nuevo: Nombre|mail@x.com"
-  const m = body.trim().match(/^nuevo\s*:\s*(.+)$/i);
-  if (!m) return null;
-  const parts = m[1].split("|").map((p) => p.trim()).filter(Boolean);
-  if (parts.length < 2) return null;
-  const display_name = parts[0];
-  const second = parts[1];
-  const phone = normalizePhone(second);
-  if (phone) return { display_name, phone_e164: phone };
-  if (second.includes("@")) return { display_name, email: second };
-  return null;
-}
+export { tryParseNewContact } from "./parse-contact";
