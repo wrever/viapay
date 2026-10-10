@@ -2,7 +2,7 @@
 
 Actualizado: 2026-10-10 (**panel UX**: login polish · wallet save → reload · Contactos tab · red Testnet|Mainnet en top bar · Cobros “Enviar a alguien” Agenda|Nuevo · SEPs colapsados · WA parse-contact · abonos/firma/cuotas/recibo previos). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
-**Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `git commit-tree` (sin hooks; Cursor inyecta Co-authored-by en `git commit`). Repo: https://github.com/wrever/viapay. Workflow `.github/workflows/*` queda local hasta push con scope `workflow`.
+**Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `git commit-tree` (sin hooks; Cursor inyecta Co-authored-by en `git commit`). Repo: https://github.com/wrever/viapay. Workflow `.github/workflows/*` queda **local** (push rechazado sin scope `workflow` en el token OAuth; reintentar con PAT que tenga `workflow`).
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (HSM/SMS, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar. Email invoices **ya no es FUTURO**: Resend cableado (falta pegar `RESEND_API_KEY` en Vercel).
 
