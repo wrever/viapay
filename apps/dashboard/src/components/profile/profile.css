@@ -40,6 +40,58 @@
   min-width: 0;
 }
 
+.profile-hero__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+
+.profile-status.is-active {
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.profile-hero__wallet {
+  margin-top: 0.45rem;
+}
+
+.profile-wallet-chip {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--tint) 60%, transparent);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.profile-wallet-chip.is-empty {
+  font-family: inherit;
+  color: var(--text-2);
+}
+
+.profile-wallet-chip:hover {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+
 .profile-hero__name {
   margin: 0;
   font-size: 1.2rem;
@@ -365,6 +417,18 @@
   border-radius: var(--r-lg, 1rem);
   background: color-mix(in srgb, var(--tint) 70%, var(--border));
   animation: profile-pulse 1.2s ease-in-out infinite;
+}
+
+.profile-empty-key {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.profile-seg__btn:focus-visible,
+.profile-shortcut:focus-visible,
+.profile-scroll-nav__link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 @keyframes profile-pulse {
