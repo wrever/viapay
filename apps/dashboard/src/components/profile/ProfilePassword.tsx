@@ -15,6 +15,7 @@ export function ProfilePassword() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
+  const mismatch = confirm.length > 0 && password !== confirm;
 
   async function save(e: FormEvent) {
     e.preventDefault();
@@ -85,7 +86,13 @@ export function ProfilePassword() {
             onChange={(e) => setConfirm(e.target.value)}
             minLength={8}
             required
+            aria-invalid={mismatch || undefined}
           />
+          {mismatch ? (
+            <p className="tone tone--error" role="status">
+              {t.profilePasswordMismatch}
+            </p>
+          ) : null}
         </div>
         {error ? (
           <p className="tone tone--error" role="alert">
@@ -98,7 +105,11 @@ export function ProfilePassword() {
           </p>
         ) : null}
         <div className="profile-form__actions">
-          <Button type="submit" variant="secondary" disabled={saving}>
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={saving || mismatch || password.length < 8}
+          >
             {saving ? t.profileSaving : t.profilePasswordSave}
           </Button>
         </div>
