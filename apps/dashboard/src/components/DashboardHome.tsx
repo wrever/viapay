@@ -25,6 +25,7 @@ import { OverviewPanel } from "@/components/OverviewPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
 import { ProfilePanel } from "@/components/profile";
+import { scrollToProfileAnchor } from "@/components/profile/scrollToProfileAnchor";
 import { SwapPanel } from "@/components/SwapPanel";
 import { TrustlineGateModal } from "@/components/TrustlineGateModal";
 import { UserMenu } from "@/components/UserMenu";
@@ -408,11 +409,7 @@ export function DashboardHome({
               onGoProfile={() => go("perfil")}
               onGoSettings={() => {
                 go("perfil");
-                window.requestAnimationFrame(() => {
-                  document
-                    .getElementById("profile-prefs")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                });
+                scrollToProfileAnchor("profile-prefs");
               }}
               onGoIntegracion={() => go(WALLET_REQUIRED_SECTION)}
             />
