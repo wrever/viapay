@@ -143,6 +143,20 @@
   line-height: 1.35;
 }
 
+.profile-field-hint--end {
+  text-align: right;
+}
+
+.profile-meta__rel {
+  color: var(--text-2);
+  font-size: 0.8em;
+}
+
+.profile-signout-confirm {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .profile-seg {
   display: inline-flex;
   padding: 0.2rem;
