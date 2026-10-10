@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AccountProfile } from "@/lib/account-types";
 import { API } from "@/lib/config";
 import { useLocale } from "@/lib/i18n";
+import { isValidE164, sanitizePhoneInput } from "@/lib/phone-e164";
 
 export function ProfileIdentity({
   apiKey,
@@ -24,12 +25,28 @@ export function ProfileIdentity({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
+  const dirty =
+    name.trim() !== profile.name ||
+    (businessName.trim() || "") !== (profile.business_name ?? "") ||
+    (phone.trim() || "") !== (profile.phone_e164 ?? "");
+
+  useEffect(() => {
+    setName(profile.name);
+    setBusinessName(profile.business_name ?? "");
+    setPhone(profile.phone_e164 ?? "");
+  }, [profile.id, profile.name, profile.business_name, profile.phone_e164]);
 
   async function save(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
     setOk(false);
+    const phoneTrim = phone.trim();
+    if (phoneTrim && !isValidE164(phoneTrim)) {
+      setError(t.profilePhoneHint);
+      setSaving(false);
+      return;
+    }
     try {
       const res = await fetch(`${API}/v1/me`, {
         method: "PATCH",
@@ -40,7 +57,7 @@ export function ProfileIdentity({
         body: JSON.stringify({
           name: name.trim(),
           business_name: businessName.trim() || null,
-          phone_e164: phone.trim() || null,
+          phone_e164: phoneTrim || null,
         }),
       });
       const data = (await res.json()) as {
@@ -107,25 +124,27 @@ export function ProfileIdentity({
           <Input
             id="profile-phone"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(sanitizePhoneInput(e.target.value))}
             placeholder="+56912345678"
             inputMode="tel"
             autoComplete="tel"
           />
           <p className="profile-field-hint">{t.profilePhoneHint}</p>
         </div>
-        {error ? (
-          <p className="tone tone--error" role="alert">
-            {error}
-          </p>
-        ) : null}
-        {ok ? (
-          <p className="tone tone--success" role="status">
-            {t.profileSaveOk}
-          </p>
-        ) : null}
+        <div aria-live="polite">
+          {error ? (
+            <p className="tone tone--error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          {ok ? (
+            <p className="tone tone--success" role="status">
+              {t.profileSaveOk}
+            </p>
+          ) : null}
+        </div>
         <div className="profile-form__actions">
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving || !dirty}>
             {saving ? t.profileSaving : t.profileSave}
           </Button>
         </div>
