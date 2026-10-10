@@ -1,0 +1,104 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import type { AccountProfile } from "@/lib/account-types";
+import { API } from "@/lib/config";
+import { useLocale } from "@/lib/i18n";
+
+export function ProfileNotifications({
+  apiKey,
+  profile,
+  onUpdated,
+}: {
+  apiKey: string;
+  profile: AccountProfile;
+  onUpdated: (next: AccountProfile) => void;
+}) {
+  const { t } = useLocale();
+  const [emailPaid, setEmailPaid] = useState(profile.notify_email_paid);
+  const [waPaid, setWaPaid] = useState(profile.notify_wa_paid);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [ok, setOk] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    setError(null);
+    setOk(false);
+    try {
+      const res = await fetch(`${API}/v1/me`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notify_email_paid: emailPaid,
+          notify_wa_paid: waPaid,
+        }),
+      });
+      const data = (await res.json()) as {
+        account?: AccountProfile;
+        error?: string;
+      };
+      if (!res.ok || !data.account) {
+        throw new Error(data.error || t.profileSaveError);
+      }
+      onUpdated(data.account);
+      setOk(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.profileSaveError);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="profile-card" id="profile-notify">
+      <header className="profile-card__head">
+        <h3 className="profile-card__title">{t.profileNotifyTitle}</h3>
+        <p className="profile-card__desc">{t.profileNotifyDesc}</p>
+      </header>
+      <div className="profile-card__body profile-form">
+        <label className="profile-switch">
+          <input
+            type="checkbox"
+            checked={emailPaid}
+            onChange={(e) => setEmailPaid(e.target.checked)}
+          />
+          <span>
+            <span className="profile-switch__label">{t.profileNotifyEmail}</span>
+            <span className="profile-switch__hint">{t.profileNotifyEmailHint}</span>
+          </span>
+        </label>
+        <label className="profile-switch">
+          <input
+            type="checkbox"
+            checked={waPaid}
+            onChange={(e) => setWaPaid(e.target.checked)}
+          />
+          <span>
+            <span className="profile-switch__label">{t.profileNotifyWa}</span>
+            <span className="profile-switch__hint">{t.profileNotifyWaHint}</span>
+          </span>
+        </label>
+        {error ? (
+          <p className="tone tone--error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        {ok ? (
+          <p className="tone tone--success" role="status">
+            {t.profileSaveOk}
+          </p>
+        ) : null}
+        <div className="profile-form__actions">
+          <Button type="button" variant="secondary" disabled={saving} onClick={() => void save()}>
+            {saving ? t.profileSaving : t.profileSave}
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
