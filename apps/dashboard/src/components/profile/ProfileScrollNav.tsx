@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/lib/i18n";
+import { scrollToProfileAnchor } from "./scrollToProfileAnchor";
 
 const ANCHORS = [
   { id: "profile-identity", key: "identity" as const },
@@ -25,7 +26,14 @@ export function ProfileScrollNav() {
       <ul className="profile-scroll-nav__list">
         {ANCHORS.map(({ id, key }) => (
           <li key={id}>
-            <a className="profile-scroll-nav__link" href={`#${id}`}>
+            <a
+              className="profile-scroll-nav__link"
+              href={`#${id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToProfileAnchor(id);
+              }}
+            >
               {labels[key]}
             </a>
           </li>
