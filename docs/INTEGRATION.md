@@ -1,8 +1,16 @@
 # Integración ViaPay
 
-Guía para conectar ViaPay **hoy** (sin email, sin embed, sin plugins — eso está en [`FUTURO.md`](./FUTURO.md)).
+Guía para conectar ViaPay **hoy** (sin embed, sin plugins — eso está en [`FUTURO.md`](./FUTURO.md)). Invoices WA/email: vivos en panel; bot WA inbound depende de Meta Live.
 
-Base URL local: `http://localhost:3001`. Auth del comercio: `Authorization: Bearer sk_test_…`.
+Base URL prod: `https://viapay-api.vercel.app` · local: `http://localhost:3001`.  
+Auth del comercio: `Authorization: Bearer sk_test_…`.
+
+**Auditar el riel (público, sin key):** [`VERIFY.md`](./VERIFY.md).
+
+```bash
+curl -sS 'https://viapay-api.vercel.app/v1/verify?network=mainnet&tx_hash=b28aafbdce81e0b01e9cb3d2e3d0c037d3f5742a4d7a1b557612d6e12028380e' \
+  | jq '{verified, contract_id, net, fee, event}'
+```
 
 ---
 

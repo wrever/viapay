@@ -7,14 +7,39 @@ info:
     (checkout hosted) o un agente (HTTP 402 / x402). Fee ViaPay 1% fijo en
     servidor; revendedor opcional en el body.
 servers:
+  - url: https://viapay-api.vercel.app
   - url: http://localhost:3001
 paths:
   /v1/health:
     get:
-      summary: Health
+      summary: Health + seps + evidence + verify/rails links
       responses:
         "200":
           description: OK
+  /v1/verify:
+    get:
+      summary: Public settlement verifier (no API key)
+      description: |
+        Decodes payment-router pay() from a confirmed tx.
+        Example mainnet evidence:
+        /v1/verify?network=mainnet&tx_hash=b28aafbdce81e0b01e9cb3d2e3d0c037d3f5742a4d7a1b557612d6e12028380e
+      parameters:
+        - in: query
+          name: network
+          schema: { type: string, enum: [testnet, mainnet, local], default: mainnet }
+        - in: query
+          name: tx_hash
+          required: true
+          schema: { type: string, minLength: 64, maxLength: 66 }
+      responses:
+        "200":
+          description: verified true + legs
+  /v1/rails:
+    get:
+      summary: Machine discovery of ViaPay settlement infrastructure
+      responses:
+        "200":
+          description: Manifest (primitive, human/agent, contracts, MCP, verify)
   /v1/payment_intents:
     get:
       summary: Listar payment intents (reconcilia pendientes en Horizon)

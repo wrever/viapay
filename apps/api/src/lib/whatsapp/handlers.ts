@@ -1,6 +1,9 @@
 import {
+  classifyChargeDestination,
   createContact,
+  findContactsByEmail,
   findContactsByName,
+  findContactsByPhone,
   listContacts,
   type ContactRow,
 } from "@/lib/contacts";
@@ -11,6 +14,7 @@ import {
   listPaymentIntents,
   serializePaymentIntent,
 } from "@/lib/payments";
+import { networkSettlementReady, stellarNetwork } from "@/lib/chain";
 import {
   authContextForAccount,
   consumeLinkCode,
@@ -32,26 +36,101 @@ import {
   merchantOnboardingText,
   parseNaturalCharge,
 } from "./parse-charge";
+import { lockExactPayAmount } from "@/lib/exact-pay";
+import {
+  parseEstadoQuery,
+  resolveCobroCode,
+} from "@/lib/cobro-codes";
+import { buildRailParity } from "@/lib/rail-parity";
+import { getCheckoutBaseUrl } from "@/lib/payments";
+import { isValidStellarPubkey } from "@viapay/shared";
 
 const MENU = `ViaPay — asistente comercio
-Atajo: cobro 20 xlm a juanito
+Atajos:
+• cobro 20000 pesos a juanito
+• cobro 20000 pesos a juanito con hubby 7%
+• cobro 20 xlm a mail@cliente.com
+• estado VP-XXXX
 1 Nuevo cobro (paso a paso)
 2 Mis contactos
 3 Estado (últimos cobros)
 0 Ayuda
 
 Vincular: vincular 123456
-Alta contacto: Nuevo: Nombre|+569… o Nuevo: Nombre|mail@x.com`;
+Alta contacto: Nuevo: Nombre|+569… o Nuevo: Nombre|mail@x.com
+
+proof-or-nothing: no aceptamos capturas. Solo Paid on-chain.`;
 
 function helpText(): string {
   return `${MENU}
 
-Ejemplos:
-• cobro 20 xlm a juanito
-• cobrar 5.5 usdc a mi contacto llamado María
+Ejemplos (Chile / LATAM):
+• cobro 20000 pesos a juanito     → exact-pay: traba USDC ≈ 20 mil CLP
+• cobro 15 mil pesos a +569…      → mismo, destino WhatsApp
+• cobro 20000 pesos a juanito con G… 7%  → exact-split (reseller)
+• cobro 20 usdc a mail@x.com      → crypto fijo (exact)
+• estado VP-ABCD                 → ¿pagó? (anti-comprobante)
 
-Después elegís enviar el link por WhatsApp o email.
-El pagador no necesita cuenta ViaPay — solo abre el link.`;
+El pagador paga el crypto trabado (Freighter). Sin cuenta ViaPay.
+Una captura JPG no confirma nada — solo Stellar.`;
+}
+
+async function resolveResellerAddress(
+  accountId: string,
+  query: string,
+): Promise<{ address: string; label: string } | { error: string }> {
+  const q = query.trim();
+  if (isValidStellarPubkey(q)) {
+    return { address: q, label: `${q.slice(0, 4)}…${q.slice(-4)}` };
+  }
+  const matches = await findContactsByName(accountId, q);
+  for (const c of matches) {
+    const fromNotes = c.notes?.match(/G[A-Z2-7]{55}/)?.[0];
+    if (fromNotes && isValidStellarPubkey(fromNotes)) {
+      return { address: fromNotes, label: c.display_name };
+    }
+  }
+  return {
+    error: `Reseller "${q}": usá una wallet G… (ej. con GDIN… 7%) o guardá la G… en notas del contacto.`,
+  };
+}
+
+async function formatEstadoReply(
+  row: Awaited<ReturnType<typeof getPaymentIntentById>>,
+): Promise<string> {
+  if (!row) return `No encontré ese cobro.\n\n${MENU}`;
+  const site = getCheckoutBaseUrl();
+  const code =
+    row.metadata && typeof row.metadata.cobro_code === "string"
+      ? row.metadata.cobro_code
+      : null;
+  const codeLine = code ? `Código: ${code}\n` : "";
+  if (row.status !== "succeeded" || !row.stellar_tx_hash) {
+    return `Estado: NO PAGADO (${row.status})
+${codeLine}${row.amount} ${row.asset_code}
+Id: ${row.id}
+proof-or-nothing: una captura no cuenta. Esperá Paid on-chain.
+Pagar: ${site}/c/${code ?? row.id}
+
+${MENU}`;
+  }
+  const parity = await buildRailParity(row);
+  const legs = [
+    `neto comercio ${row.net_amount}`,
+    `fee ViaPay ${row.fee_amount}`,
+  ];
+  if (row.reseller_fee_bps > 0) {
+    legs.push(`reseller ${row.reseller_amount}`);
+  }
+  return `Estado: PAGADO ✓
+${codeLine}${row.amount} ${row.asset_code}
+split-glass: ${legs.join(" · ")}
+rail-parity: ${parity.ok ? "ok" : "mismatch"}
+Tx: ${row.stellar_tx_hash}
+Recibo: ${site}/r/${row.id}
+Parity: ${parity.links.parity}
+
+${MENU}`;
 }
 
 async function resetIdle(
@@ -83,9 +162,12 @@ function formatContacts(contacts: ContactRow[]): string {
 function deliverPrompt(draft: WaDraft): string {
   const hasPhone = Boolean(draft.contact_phone);
   const hasEmail = Boolean(draft.contact_email);
+  const money = draft.fiat_label
+    ? `${draft.fiat_label} → ${draft.amount} ${draft.asset}`
+    : `${draft.amount} ${draft.asset}`;
   const lines = [
     `Cobro listo ${draft.payment_intent_id}`,
-    `${draft.amount} ${draft.asset} → ${draft.contact_name}`,
+    `${money} → ${draft.contact_name}`,
     `Pagar: ${draft.checkout_url}`,
     "",
     "¿Cómo se lo mandamos?",
@@ -116,30 +198,54 @@ async function createChargeAndAskDeliver(input: {
   if (!draft.amount || !draft.asset || !draft.contact_name) {
     return resetIdle(phone, accountId, `Sesión incompleta.\n\n${MENU}`);
   }
+  const settleNetwork = stellarNetwork();
+  if (!networkSettlementReady(settleNetwork)) {
+    return resetIdle(
+      phone,
+      accountId,
+      `La red ${settleNetwork} no está lista para liquidar cobros (falta payment-router). Revisá Integración / env.`,
+    );
+  }
   try {
+    const meta: Record<string, unknown> = {
+      invoice: {
+        contact_id: draft.contact_id,
+        recipient_name: draft.contact_name,
+        channel: "whatsapp",
+        source: "whatsapp",
+        phone_e164: draft.contact_phone ?? null,
+        email: draft.contact_email ?? null,
+      },
+    };
+    if (draft.exact_pay) meta.exact_pay = draft.exact_pay;
+
     const row = await createPaymentIntent(auth, {
       amount: draft.amount,
       asset: draft.asset,
-      description: `Cobro a ${draft.contact_name}`,
+      network: settleNetwork,
+      description: draft.fiat_label
+        ? `Exact-pay ${draft.fiat_label} → ${draft.contact_name}`
+        : `Cobro a ${draft.contact_name}`,
       external_user_id: draft.contact_id,
-      metadata: {
-        invoice: {
-          contact_id: draft.contact_id,
-          recipient_name: draft.contact_name,
-          channel: "whatsapp",
-          source: "whatsapp",
-          phone_e164: draft.contact_phone ?? null,
-          email: draft.contact_email ?? null,
-        },
-      },
+      metadata: meta,
+      reseller_fee_bps: draft.reseller_fee_bps,
+      reseller_address: draft.reseller_address,
     });
     const s = serializePaymentIntent(row);
-    const shareText = `${auth.accountName} te cobra ${row.amount} ${row.asset_code} por ViaPay:\n${s.checkout_url}`;
+    const chargeLabel = draft.fiat_label
+      ? `${draft.fiat_label} (≈ ${row.amount} ${row.asset_code})`
+      : `${row.amount} ${row.asset_code}`;
+    const code = s.cobro_code ? `\nCódigo: ${s.cobro_code}` : "";
+    const payShort = s.cobro_code
+      ? `${getCheckoutBaseUrl()}/c/${s.cobro_code}`
+      : s.checkout_url;
+    const shareText = `${auth.accountName} te cobra ${chargeLabel} por ViaPay:${code}\n${payShort}\n(No envíes capturas: solo el link confirma el pago)`;
     const nextDraft: WaDraft = {
       ...draft,
       payment_intent_id: row.id,
       checkout_url: s.checkout_url,
       share_text: shareText,
+      cobro_code: s.cobro_code ?? undefined,
     };
     if (!draft.contact_phone && !draft.contact_email) {
       await saveSession(phone, {
@@ -147,7 +253,16 @@ async function createChargeAndAskDeliver(input: {
         state: "idle",
         draft: {},
       });
-      return `Listo. Cobro ${row.id}\n${row.amount} ${row.asset_code} → ${draft.contact_name}\nPagar: ${s.checkout_url}\n\n${MENU}`;
+      const splitNote =
+        row.reseller_fee_bps > 0
+          ? `\nsplit-glass: neto ${row.net_amount} · fee ${row.fee_amount} · reseller ${row.reseller_amount}`
+          : "";
+      return `Listo. Cobro ${row.id}${s.cobro_code ? ` (${s.cobro_code})` : ""}
+${row.amount} ${row.asset_code} → ${draft.contact_name}${splitNote}
+Pagar: ${payShort}
+estado ${s.cobro_code ?? row.id}
+
+${MENU}`;
     }
     await saveSession(phone, {
       account_id: accountId,
@@ -344,44 +459,137 @@ export async function handleWhatsAppInbound(input: {
     });
   }
 
+  // Anti-comprobante: estado VP-XXXX / pi_…
+  const estadoQ = parseEstadoQuery(text);
+  if (estadoQ && session.state === "idle") {
+    let row = null;
+    if (/^VP-/i.test(estadoQ)) {
+      row = await resolveCobroCode(estadoQ);
+      if (row && row.account_id !== accountId) row = null;
+    } else {
+      row = await getPaymentIntentById(estadoQ);
+      if (row && row.account_id !== accountId) row = null;
+    }
+    return formatEstadoReply(row);
+  }
+
   // Natural language charge (idle or mid-flow if clear intent)
   const natural = parseNaturalCharge(text);
   if (natural && (session.state === "idle" || session.state === "pick_contact")) {
-    const matches = await findContactsByName(accountId, natural.contactQuery);
-    if (matches.length === 0) {
-      return `No encontré contacto "${natural.contactQuery}".\nAlta: Nuevo: ${natural.contactQuery}|+569…\no Nuevo: ${natural.contactQuery}|mail@x.com`;
-    }
-    if (matches.length > 1) {
-      const lines = matches
-        .slice(0, 8)
-        .map((c, i) => `${i + 1}. ${c.display_name}`)
-        .join("\n");
-      await saveSession(phone, {
-        account_id: accountId,
-        state: "pick_contact",
-        draft: {
-          amount: natural.amount,
+    let lockedAmount = natural.amount;
+    let lockedAsset = natural.asset;
+    let exactPay: Record<string, unknown> | undefined;
+    let fiatLabel: string | undefined;
+    let resellerFeeBps: number | undefined;
+    let resellerAddress: string | undefined;
+    let resellerLabel: string | undefined;
+
+    if (natural.scheme === "exact_pay" && natural.fiatAmount && natural.fiatCurrency) {
+      try {
+        const lock = await lockExactPayAmount({
+          fiatAmount: natural.fiatAmount,
+          fiatCurrency: natural.fiatCurrency,
           asset: natural.asset,
-          contact_query: natural.contactQuery,
-        },
-      });
-      return `Varios contactos para "${natural.contactQuery}":\n${lines}\n\nElegí número (1-${Math.min(8, matches.length)}). Monto ya: ${natural.amount} ${natural.asset}`;
+        });
+        lockedAmount = lock.crypto_amount;
+        lockedAsset = lock.asset;
+        exactPay = lock as unknown as Record<string, unknown>;
+        fiatLabel = `${lock.fiat_amount} ${lock.fiat_currency}`;
+      } catch (e) {
+        return `${e instanceof Error ? e.message : "No pude cotizar el fiat"}\nProbá crypto: cobro 20 usdc a nombre\n\n${MENU}`;
+      }
     }
-    const c = matches[0]!;
+
+    if (natural.resellerFeeBps && natural.resellerQuery) {
+      const resolved = await resolveResellerAddress(
+        accountId,
+        natural.resellerQuery,
+      );
+      if ("error" in resolved) {
+        return `${resolved.error}\n\n${MENU}`;
+      }
+      resellerFeeBps = natural.resellerFeeBps;
+      resellerAddress = resolved.address;
+      resellerLabel = resolved.label;
+    }
+
+    const moneyLabel = fiatLabel
+      ? `${fiatLabel} → ${lockedAmount} ${lockedAsset} (exact-pay)`
+      : `${lockedAmount} ${lockedAsset}`;
+    const splitLabel =
+      resellerFeeBps && resellerLabel
+        ? `\nexact-split: reseller ${resellerLabel} ${resellerFeeBps / 100}%`
+        : "";
+
+    const dest = classifyChargeDestination(natural.contactQuery);
+    let c: ContactRow | null = null;
+
+    if (dest.kind === "email") {
+      const byEmail = await findContactsByEmail(accountId, dest.email);
+      c =
+        byEmail[0] ??
+        (await createContact(accountId, {
+          display_name: dest.email.split("@")[0] || dest.email,
+          email: dest.email,
+        }));
+    } else if (dest.kind === "phone") {
+      const byPhone = await findContactsByPhone(accountId, dest.phone);
+      c =
+        byPhone[0] ??
+        (await createContact(accountId, {
+          display_name: dest.phone,
+          phone_e164: dest.phone,
+        }));
+    } else {
+      const matches = await findContactsByName(accountId, dest.query);
+      if (matches.length === 0) {
+        return `No encontré contacto "${dest.query}".\nAlta: Nuevo: ${dest.query}|+569…\no Nuevo: ${dest.query}|mail@x.com\nO directo: cobro 20000 pesos a +569… / mail@x.com`;
+      }
+      if (matches.length > 1) {
+        const lines = matches
+          .slice(0, 8)
+          .map((row, i) => `${i + 1}. ${row.display_name}`)
+          .join("\n");
+        await saveSession(phone, {
+          account_id: accountId,
+          state: "pick_contact",
+          draft: {
+            amount: lockedAmount,
+            asset: lockedAsset,
+            exact_pay: exactPay,
+            fiat_label: fiatLabel,
+            contact_query: dest.query,
+          },
+        });
+        return `Varios contactos para "${dest.query}":\n${lines}\n\nElegí número (1-${Math.min(8, matches.length)}). Monto ya: ${moneyLabel}`;
+      }
+      c = matches[0]!;
+    }
+
     const draft: WaDraft = {
       contact_id: c.id,
       contact_name: c.display_name,
       contact_phone: c.phone_e164,
       contact_email: c.email,
-      amount: natural.amount,
-      asset: natural.asset,
+      amount: lockedAmount,
+      asset: lockedAsset,
+      exact_pay: exactPay,
+      fiat_label: fiatLabel,
+      reseller_fee_bps: resellerFeeBps,
+      reseller_address: resellerAddress,
+      reseller_label: resellerLabel,
     };
     await saveSession(phone, {
       account_id: accountId,
       state: "confirm",
       draft,
     });
-    return `¿Confirmás?\nCobrar ${draft.amount} ${draft.asset} a ${draft.contact_name}\nSí / No`;
+    const via = c.phone_e164
+      ? c.phone_e164
+      : c.email
+        ? c.email
+        : c.display_name;
+    return `¿Confirmás?\nCobrar ${moneyLabel}${splitLabel}\na ${draft.contact_name} (${via})\nSí / No`;
   }
 
   if (session.state === "idle") {
@@ -448,7 +656,10 @@ export async function handleWhatsAppInbound(input: {
         state: "confirm",
         draft,
       });
-      return `¿Confirmás?\nCobrar ${draft.amount} ${draft.asset} a ${draft.contact_name}\nSí / No`;
+      const money = draft.fiat_label
+        ? `${draft.fiat_label} → ${draft.amount} ${draft.asset} (exact-pay)`
+        : `${draft.amount} ${draft.asset}`;
+      return `¿Confirmás?\nCobrar ${money}\na ${draft.contact_name}\nSí / No`;
     }
     await saveSession(phone, {
       account_id: accountId,

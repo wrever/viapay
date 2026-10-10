@@ -1,23 +1,83 @@
 # ViaPay — memoria de proyecto
 
-Actualizado: 2026-10-08 (docs + footer legales). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
+Actualizado: 2026-10-10 (**abonos** + enlace firmado **v2** + **plan cuotas opt-in** sin tocar wasm · mainnet 2×`pay` mismo intent_id `f21f2785…` · kit verde · SEPs probes). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
 **Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `scripts/rebuild-history.py` usa `git commit-tree` (sin hooks). Repo: https://github.com/wrever/viapay (88 commits limpios).
 
 **Prioridad de producto:** lo demostrable ahora está en [`docs/AHORA.md`](./AHORA.md). Lo diferido (HSM/SMS, embed ecommerce, plugins, infra pesada) está en [`docs/FUTURO.md`](./FUTURO.md). No mezclar. Email invoices **ya no es FUTURO**: Resend cableado (falta pegar `RESEND_API_KEY` en Vercel).
 
-Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`, **checkout pagador `/pay/[id]`**, legal `/privacy` `/terms` `/data-deletion` para Meta App Review). Supabase Site URL debe ser exactamente esa. Local panel+landing+checkout: `:3000`. **No mandar comercios ni pagadores a otro frontend** (`apps/web` es legado local; `apps/checkout` es legado/local — prod es el dashboard). `checkout_url` unificado = `https://viapay-api.vercel.app/v1/x402/…` (navegador → 302 a `/pay`; agente → 402). UI humana directa: `pay_url` = `https://viapay.vercel.app/pay/…` (`VIAPAY_CHECKOUT_URL`). Links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, campana notificaciones, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#swap` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | **Swap** (plus, opcional) | Integración | Notificaciones. **Wallet de destino hard-mandatory:** sin `merchant_wallet` el panel fuerza Integración, bloquea el resto de tabs (nav locked), banner + **modal no descartable** con form G… (cierra solo al guardar vía `POST /v1/wallets`), y desbloquea al guardar. API también rechaza `POST /v1/payment_intents` sin wallet. **Trustline comercio:** zona primaria en **Integración** (`TrustlinesSection`: XLM “no requiere”, USDC Circle testnet Activar/Activa vía Freighter + `/v1/wallets/trustline/*`, USDT0 placeholder disabled). Gate residual: si elige USDC en Cobros (o post-guardar wallet) y Horizon dice que no puede recibir → **TrustlineGateModal** (no dismissible hasta activar o confirmar “solo XLM”); si ya tiene trustline, no se bloquea. Cobros default **XLM**. Checkout distingue fallo **comercio** vs **tesorería** vs **revendedor** (no culpa falsa al comercio cuando falla fee→tesorería). Resumen = cards (hoy/mes/todo) + conversión + últimos pagos + hints fiat aprox. Estadísticas = desglose por estado + por activo (+ ≈ fiat). Cobros = form + contacto opcional + equivalencia crypto→fiat + share WhatsApp (`wa.me`) / email (**Resend** si hay key, si no `mailto`) + agenda contactos + **asistente WhatsApp** (Meta Cloud API: vínculo, NL `cobro 20 xlm a juanito`, menú 1/2/3, deliver WA|email|link). Historial = solo pagos `succeeded` (+ destinatario invoice). Integración = wallet + moneda local preferida (`viapay-fiat`, default CLP) + API key secreta (`sk_…`; sin publishable aún) + snippets curl/SDK + `external_user_id` para clientes del comercio + poll. Notificaciones = poll API, sin UX de webhooks. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin tour/onboarding multi-paso (videos después). Sin copy de marketing en el intro.
+Índice de docs: [`docs/README.md`](./README.md). Integración API/SDK/x402: [`docs/INTEGRATION.md`](./INTEGRATION.md). Deploy/Supabase: [`docs/DEPLOY.md`](./DEPLOY.md). Sitio prod único: https://viapay.vercel.app/ (`apps/dashboard`: landing `/`, docs `/docs`, login `/login`, panel `/app`, **checkout pagador `/pay/[id]`**, legal `/privacy` `/terms` `/data-deletion` para Meta App Review). Supabase Site URL debe ser exactamente esa. Local panel+landing+checkout: `:3000`. **No mandar comercios ni pagadores a otro frontend** (`apps/web` es legado local; `apps/checkout` es legado/local — prod es el dashboard). `checkout_url` unificado = `https://viapay-api.vercel.app/v1/x402/…` (navegador → 302 a `/pay`; agente → 402). UI humana directa: `pay_url` = `https://viapay.vercel.app/pay/…` (`VIAPAY_CHECKOUT_URL`). Links de docs en el panel son relativos (`/docs`). Panel `/app`: app shell — top bar (logo, campana notificaciones, locale/theme, user, sign out) + left sidebar desktop / bottom tabs mobile (scroll horizontal). Secciones con estado cliente + `?tab=` + hash (`#resumen` `#cobros` `#historial` `#estadisticas` `#swap` `#integracion` `#notificaciones`); default **Resumen**. Nav: Resumen | Cobros | Historial | Estadísticas | **Swap** (plus, opcional) | Integración | Notificaciones. **Wallet de destino hard-mandatory:** sin `merchant_wallet` el panel fuerza Integración, bloquea el resto de tabs (nav locked), banner + **modal no descartable** con form G… (cierra solo al guardar vía `POST /v1/wallets`), y desbloquea al guardar. API también rechaza `POST /v1/payment_intents` sin wallet. **Trustline comercio:** zona primaria en **Integración** (`TrustlinesSection`: XLM “no requiere”, USDC Circle testnet Activar/Activa vía Freighter + `/v1/wallets/trustline/*`, USDT0 placeholder disabled). Gate residual: si elige USDC en Cobros (o post-guardar wallet) y Horizon dice que no puede recibir → **TrustlineGateModal** (no dismissible hasta activar o confirmar “solo XLM”); si ya tiene trustline, no se bloquea. Cobros default **XLM**. Checkout distingue fallo **comercio** vs **tesorería** vs **revendedor** (no culpa falsa al comercio cuando falla fee→tesorería). Resumen = cards (hoy/mes/todo) + conversión + últimos pagos + hints fiat aprox. Estadísticas = desglose por estado + por activo (+ ≈ fiat). Cobros = form + **scheme exact \| exact-pay** (fiat local → crypto trabado) + contacto/email/tel + equivalencia ≈ + share WA/email + agenda + **asistente WhatsApp** (Meta Cloud API: vínculo, NL `cobro 20 xlm a juanito`, menú 1/2/3, deliver WA|email|link). Historial = solo pagos `succeeded` (+ destinatario invoice). Integración = wallet + moneda local preferida (`viapay-fiat`, default CLP) + API key secreta (`sk_…`; sin publishable aún) + snippets curl/SDK + `external_user_id` para clientes del comercio + poll. Notificaciones = **webhooks en panel** (alta URL + secreto once + entregas) + poll API. Cobros eligen **red** (`network` en `payment_intents`: testnet|mainnet); checkout/prepare/submit/x402 usan esa red (issuer + router + Freighter). Mainnet requiere `PAYMENT_ROUTER_CONTRACT_ID_MAINNET`. Sin bloque ReceiveNotice (friendbot/faucet/tesorería). Sin fee ViaPay acumulado (admin). Sin tour/onboarding multi-paso (videos después). Sin copy de marketing en el intro.
 
 **Prod Vercel (vivo, 2026-10-08):**
-- Sitio/panel/checkout: https://viapay.vercel.app (proyecto Vercel `web`, Root = `apps/dashboard`). Envs: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`.
-- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** JSON público (`ok`, `mode`, `payment_router`, **`whatsapp`**, **`email`**). Alias team: https://viapay-api-bruno-mirandas-projects-b5bdc738.vercel.app. `VIAPAY_API_PUBLIC_URL` = misma canónica. `VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`. Supabase service role en el entorno (Postgres compartido). `PAYMENT_ROUTER_CONTRACT_ID=CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` en prod → prepare/submit invoca Soroban; health expone ese id en `payment_router` (null = path clásico). `SOROSWAP_API_KEY` = Secret (Sensitive) Production+Preview → `/v1/rates` + `/v1/swap` (`configured: true`).
-- Meta WA en **viapay-api** (presentes): `META_WA_ACCESS_TOKEN`, `META_WA_PHONE_NUMBER_ID` (= prod `1384802108045403`, display `+56 9 8494 1552`), `META_WA_VERIFY_TOKEN` (`viapay_wa_verify_2026`), `META_APP_SECRET`, `META_WA_SKIP_SIGNATURE`, `META_GRAPH_VERSION`, `META_WA_APP_LIVE=0` (poner `1` cuando Meta publique la app). Webhook URL: `https://viapay-api.vercel.app/v1/whatsapp/webhook`.
-- Resend: **código listo**; falta `RESEND_API_KEY` (+ opcional `RESEND_FROM_EMAIL`) en Vercel → hasta entonces email = mailto fallback. Health `email.configured: false` hasta pegar key.
+- Sitio/panel/checkout: https://viapay.vercel.app (proyecto Vercel `web`, Root = `apps/dashboard`). Envs: `NEXT_PUBLIC_VIAPAY_API_URL=https://viapay-api.vercel.app`, `NEXT_PUBLIC_VIAPAY_CHECKOUT_URL=https://viapay.vercel.app`. **`/evidence`**: hero mainnet third-party `83926d93…` + judge kit + payer-path Chile + self-pay `b28aafbd…`.
+- API: proyecto `viapay-api` · Ready · canónico https://viapay-api.vercel.app · `GET /v1/health` → **200** (`ok`, `mode`, `payment_router`, **`networks`** testnet+mainnet **ready:true**, **`evidence`**, **`seps`** con probes, **`sep_defaults`**, `verify`/`rails`/`parity`/`settle_proof`, whatsapp, email, fee_sponsor). `STELLAR_NETWORK=testnet` (no flippear a mainnet global). Routers: testnet `CDI6XC5…` · mainnet `CA4FJAYS…` vía `PAYMENT_ROUTER_CONTRACT_ID_MAINNET`. Evidencia mainnet preferida: third-party `83926d93…` (+ self-pay `b28aafbd…`). `SOROSWAP_API_KEY` → rates/swap `configured: true`.
+- Meta WA: tokens/pnid presentes · `META_WA_APP_LIVE=0` · health `app_live: false` · webhook `…/v1/whatsapp/webhook` · display `+56 9 8494 1552`.
+- Resend: código listo · **`email.configured: false`** (falta `RESEND_API_KEY`). Fee-sponsor: **`fee_sponsor.configured: false`**.
 - Checkout legado `viapay-checkout` puede seguir desplegado pero **no es la URL de producto**; no crear más apps Vercel de UI.
 - Proyectos Vercel UI no canónicos: `dashboard` (Root `.`; fallaba “No Next.js version detected”) y `viapay-dashboard` (Ready, duplicado). **Git desconectado** de ambos respecto a `wrever/viapay` (2026-10-05) para cortar notificaciones de deploy; prod UI = solo `web`.
 - **Deployment Protection:** `ssoProtection` / `passwordProtection` = **null** en `viapay-api` (backend público; sin redirect 302 a Vercel SSO). Previews de `web` pueden seguir con SSO; el dominio `viapay.vercel.app` es alcanzable.
 
 **Docs (`/docs`):** en el mismo deploy del panel (`apps/dashboard`). Capítulos ES/EN/PT en `apps/dashboard/src/lib/marketing/docs-chapters.ts`.
+
+## Estado listo / falta (testnet + mainnet) — 2026-10-10
+
+Fuente viva: `GET /v1/health` · checklist hashes: [`submission/evidence-index.md`](./submission/evidence-index.md) · gaps ranking: [`submission/RANK_GAPS.md`](./submission/RANK_GAPS.md) · SEPs: [`submission/SEPS.md`](./submission/SEPS.md).
+
+### Testnet — listo para demo producto
+
+| Pieza | Estado |
+|---|---|
+| Router + cobro panel → Freighter → `Paid` | LISTO (código + prod) |
+| x402 mismo `checkout_url` | LISTO (código; hash evidencia fila #5 **pendiente documentar**) |
+| Parity / settle-proof / VP-codes / `/r` / kit `pnpm verify -- --kit` | LISTO |
+| SEP-1 / 10 / 24 (fiat simulado) / 41 | LISTO (probes live) |
+| SEP-7 clásico | OFF a propósito (`wallet_path`) |
+| USDC trustline + cobro | CÓDIGO listo; evidencia fila #4/#6 **pendiente** |
+| Shop consumer | Solo local `:3005` (no deploy) |
+
+### Mainnet — asegurado (evidencia + opt-in)
+
+| Pieza | Estado |
+|---|---|
+| Contrato + wasm (= testnet) | LISTO `CA4FJAYS…` · hash `2ef55539…` |
+| Env `PAYMENT_ROUTER_CONTRACT_ID_MAINNET` | LISTO → `networks.mainnet.ready: true` |
+| Pay self-pay + third-party | LISTO `b28aafbd…` + `83926d93…` |
+| **Abonos on-chain** (mismo `intent_id`, 2× Paid) | LISTO `09f59b22…` + `d44f151e…` intent `f21f2785…` |
+| Cobros panel `network=mainnet` | LISTO (opt-in) |
+| Kit `pnpm verify -- --kit` | VERDE |
+| Pay mainnet USDC | FALTA (opcional) |
+| SEP-55 attest + Lab | FALTA (workflow no en origin) |
+
+### Diferenciador producto (sin cambiar wasm)
+
+Todo opt-in del comercio al crear el link (default = cobro simple).
+
+- **Abonos / fiado:** `allow_abonos` → estados `partially_paid` → `succeeded`; prepare/submit con `amount`; ledger en `metadata.abonos`.
+- **Enlace firmado v2:** `link_signature` + `link_sig` (`viapay-link-v2|network|asset|amount|merchant|treasury|reseller|fee_bps|expires|nonce`) → `link_verified` / `link_sig_status` en checkout; Freighter `signMessage` en Cobros.
+- **Plan cuotas:** `plan: { installments: N }` → parent + N children; parent no payable; `plan_summary.next_pay_url`; cron `/v1/cron/plan-reminders` (deuda + avisos WA/email). No combinar con abonos.
+- Spec: [`submission/ABONOS_SIGNED_LINK.md`](./submission/ABONOS_SIGNED_LINK.md).
+- Contrato **no** uniquea `intent_id` (test Rust `same_intent_id_allows_multiple_pays_abonos`).
+
+### Verificabilidad / producto estrella
+
+- **Recibo que no miente:** `/recibo?id=pi_…` — 4 comparaciones (intent·x402·Paid·recibo); `?demo=altered` = captura falsa. Spec/guion: [`submission/RECIBO_QUE_NO_MIENTE.md`](./submission/RECIBO_QUE_NO_MIENTE.md) · demo [`submission/demo-90s.md`](./submission/demo-90s.md).
+- Spec firma: [`submission/LINK_SIG_V2.md`](./submission/LINK_SIG_V2.md).
+- Checklist anti-phishing en `/pay`. `/verify` decode tx. `/r` → link a `/recibo`.
+- Tests: shared **20** · API **29** · router **9**. Dora: [`submission/DORA_DESCRIPTION.md`](./submission/DORA_DESCRIPTION.md).
+- Feedback de ranking en chat **no es evaluación oficial de jurado** — no citarlo como tal.
+
+### Ops / producto que aún mueven aguja (prioridad)
+
+1. **Video 2 min** abonos + link firmado + plan cuotas + kit ([`demo-90s.md`](./submission/demo-90s.md)).
+2. Evidence testnet Freighter/x402 documentada (#3–#5).
+3. **`RESEND_API_KEY`** + Meta Live `META_WA_APP_LIVE=1` (también desbloquea reminders de cuotas — **hoy no activos** sin eso).
+4. `CRON_SECRET` en viapay-api para cron de plan-reminders en prod.
+5. Push workflow SEP-55 + Lab (**Lab no registrado** aún).
+6. Opcional: mainnet USDC · shop deploy · fee-sponsor · caso cobro con tercero no-equipo.
+
+### No construir ahora (FUTURO)
+
+HSM/SMS · embed sin redirect · plugins Shopify/Woo · Reflector/exact-fx · KYC SEP-11 · anchors fiat reales · escrow Trustless en producto · disputas/ZK · flip `STELLAR_NETWORK=mainnet` global.
 
 ## Supabase (ViaPay)
 
@@ -73,7 +133,7 @@ En **onchain**, la liquidación **exige** Soroban `payment-router` (`PAYMENT_ROU
 5. La API verifica destinos/montos (clásico: ops; router: args de `pay`) y envía (`POST /v1/checkout/:id/submit`) → `status: succeeded` + `stellar_tx_hash`. UI de éxito = recibo de patas + link stellar.expert.
 6. El comercio consulta por id: `GET /v1/payment_intents/:id` (Bearer) o la lista. Polling, no webhooks obligatorios.
 7. SEP-7 QR sigue el path **clásico** (placeholder + callback). La reconciliación Horizon por memo también es clásica; cobros router quedan `succeeded` vía submit (o poll tras submit).
-8. Al marcar pagado se dispara `payment_intent.succeeded` a los webhooks del comercio (si los configuró fuera del panel).
+8. Al marcar pagado se dispara `payment_intent.succeeded` a los webhooks del comercio (configurables en panel → Notificaciones).
 
 **No en roadmap cercano (decisión):** memo/tag de exchanges (Binance) como destino de cobro; tarjetas/onramp fiat. El comercio cobra a G… propia; el pagador usa wallet/QR/agente.
 
@@ -96,7 +156,12 @@ Tesorería por defecto: `GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT
 
 | Método | Ruta | Para qué |
 |---|---|---|
-| GET | `/v1/health` | health + `seps` (SEP-1/7/10/24/41/55) + `stellar_toml` + `payment_router` |
+| GET | `/v1/health` | health + `seps` (SEP-1/7/10/24/41/55) + `stellar_toml` + `payment_router` + `evidence` + `verify`/`rails` |
+| GET | `/v1/verify?network=&tx_hash=` | **público** — decodifica `pay()` on-chain (sin API key) |
+| GET | `/v1/parity/:id` | **público** — rail-parity (intent ≡ x402 ≡ Paid) |
+| GET | `/v1/settle-proof/:id` | **público** — recibo HMAC (solo succeeded; proof-or-nothing) |
+| GET | `/v1/codes/:code` | resuelve `VP-XXXX` → intent / checkout |
+| GET | `/v1/rails` | discovery máquina: primitiva, human/agent, contratos, MCP, consumers |
 | POST | `/v1/sep10/challenge` | proxy SEP-10 challenge al WEB_AUTH del anchor (público; evita CORS) |
 | POST | `/v1/sep10/token` | proxy SEP-10 token tras firma Freighter |
 | POST | `/v1/sep24/withdraw` | proxy SEP-24 interactive withdraw (devuelve URL del anchor) |
@@ -141,7 +206,7 @@ Auth del comercio: `Authorization: Bearer sk_test_…`. CORS abierto en `/v1/*`.
 | Número Cloud API prod | `+56 9 8494 1552` · phone_number_id `1384802108045403` · WABA prod `2613430062506895` (ViaPay-wsp) |
 | Webhook app | URL + verify token OK; campo **`messages` suscrito** |
 | App Meta | En revisión / sin publicar. Aviso naranja: *sin publicar no se entrega dato de producción* (ni a admins/testers). Eventos que llegan hoy son del **número test** Meta (`15556355001` / pnid `1301835263021465` / entry `1410305890623359`) — statuses, no inbound del comercio |
-| Bot lógica | NL `cobro 20 xlm a juanito` → confirm → estado `deliver` (1 WhatsApp Graph o fallback `wa.me`, 2 Resend/`mailto`, 3 solo link). Menú 1/2/3. Sin vínculo → onboarding `/login` + `vincular ######`. **Pagador no necesita cuenta** |
+| Bot lógica | NL crypto `cobro 20 xlm/usdc a …` **o fiat exact-pay** `cobro 20000 pesos a juanito` / `clp en usdc a +569…` (traba crypto) → confirm → `deliver`. Destino: agenda / email / tel. Panel: scheme exact\|exact-pay. Menú 1/2/3. **Pagador no necesita cuenta**. Meta Live pendiente para inbound prod |
 | Robustez webhook | Dedup `wa_inbound_dedup`, ignora pnid ≠ prod, nudge no-texto, mark-read, no reenvía errores Graph crudos, health diagnostics |
 | Panel | `WhatsAppAssistantCard` + aviso “pendiente Live” mientras `META_WA_APP_LIVE≠1`; Cobros envía email vía API |
 | Resend | Código + ruta send_email; **key pendiente** en Vercel |
@@ -150,12 +215,18 @@ Auth del comercio: `Authorization: Bearer sk_test_…`. CORS abierto en `/v1/*`.
 
 Código: `apps/api/src/lib/whatsapp/*`, `apps/api/src/lib/email/resend.ts`, `apps/dashboard/src/components/WhatsAppAssistantCard.tsx`, `CreatePaymentLink.tsx`, legales en `apps/dashboard/src/app/{privacy,terms,data-deletion}/` + `lib/marketing/legal.ts`.
 
-## Webhooks
+## Webhooks + notificaciones (on succeeded)
 
-API viva (`POST/GET /v1/webhook_endpoints`, entregas, firma HMAC). El panel **no** exige webhooks: camino recomendado `GET /v1/payment_intents/:id` (o lista). Header `ViaPay-Signature: t=<unix>,v1=<hex hmac-sha256>`.  
-Mensaje firmado: `` `${t}.${rawBody}` ``. Ventana de 5 minutos.  
-El SDK verifica con `ViaPay.verifyWebhook(rawBody, header, secret)`.  
-Hasta 5 intentos. Localhost http está permitido. El resto exige https.
+Al pasar a `succeeded` (`markCheckoutSucceeded`):
+
+1. **Webhook HTTPS** — `enqueuePaymentSucceeded` → `payment_intent.succeeded` firmado (`ViaPay-Signature`). Panel **Notificaciones** (`WebhooksSection`).
+2. **Comercio WA** — si hay `wa_links` (`getLinkForAccount`) → `sendMetaWhatsAppText` (Meta Live + ventana 24h).
+3. **Comercio email** — `accounts.email` + Resend (`sendPaymentReceiptEmail`) si `RESEND_API_KEY`.
+4. **Pagador WA/email** — desde `metadata.invoice.phone_e164` / `.email` (best-effort).
+
+Código: `apps/api/src/lib/notify-succeeded.ts`. Nunca bloquea el settle. Spec: [`submission/PAYMENT_INTENT_SPEC.md`](./submission/PAYMENT_INTENT_SPEC.md).
+
+Webhooks: `POST/GET /v1/webhook_endpoints`, entregas, HMAC. Header `ViaPay-Signature: t=<unix>,v1=<hex>`. Mensaje `` `${t}.${rawBody}` ``. Ventana 5 min. SDK: `ViaPay.verifyWebhook`. Hasta 5 intentos. Localhost http OK.
 
 ## Login
 
@@ -164,6 +235,17 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 - Flujo: `/auth/oauth` → Supabase → `/auth/callback` → upsert `accounts` + `api_keys` en Postgres (service role) → cookies de sesión.
 - Site URL de Supabase Auth debe ser `https://viapay.vercel.app` (nunca localhost ni subdomain).
 - `VIAPAY_ALLOW_LOCAL_LOGIN=1` solo para emergencia en máquina local; en Vercel está apagado.
+
+## Riel verificable (diferenciador)
+
+- **Kit IA canónico:** [`docs/VERIFY.md`](./VERIFY.md) — curls + expect + límites honestos.
+- `GET /v1/rails` — discovery máquina + lista MCP tools (**prod**).
+- `GET /v1/verify?network=&tx_hash=` — **público**, sin API key (**prod**).
+- `pnpm verify` — CLI; fallback RPC si API cae.
+- `/evidence` — hashes + bloque copy-verify (**prod**).
+- `scripts/mcp-viapay.mjs` / `pnpm mcp` — MCP stdio.
+- Tests: `pnpm test` (shared+api incl. notify) · `pnpm test:contract` (**8**) · verify live mainnet. Spec: [`PAYMENT_INTENT_SPEC.md`](./submission/PAYMENT_INTENT_SPEC.md) · gaps: [`RANK_GAPS.md`](./submission/RANK_GAPS.md).
+- RPC mainnet: `https://mainnet.sorobanrpc.com`.
 
 ## Soroban: payment-router (preferido si hay env)
 
@@ -174,13 +256,13 @@ Hasta 5 intentos. Localhost http está permitido. El resto exige https.
 | contract id (testnet) | `CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` |
 | tx del deploy | `7f0d1f0a4e9090e86f17eecb438544e8e178d632fc0ac5c91fdfc712b4c7f159` |
 | hash del wasm | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
-| mainnet | pendiente fondeo deployer · [`submission/MAINNET_ONE_SHOT.md`](./submission/MAINNET_ONE_SHOT.md) · **prod Vercel sigue testnet** |
+| mainnet | **vivo** · `CA4FJAYS…LQ2U` · deploy `058c3502…` · **third-party** pay `83926d93…` ledger 64864011 merchant GCXX… ≠ treasury GDIN7H… · self-pay `b28aafbd…` · env MAINNET set · `pnpm verify -- --kit` · Meta Live / Resend / Lab SEP-55 = ops. |
 
 Onchain + `PAYMENT_ROUTER_CONTRACT_ID`: `prepare` / `submit` / x402 solo router; un XDR clásico se rechaza. SEP-7 clásico desactivado si hay router. Reconcile Horizon por memo sigue siendo path clásico (no marca cobros router). Código: `requirePaymentRouterContractId`, `buildRouterPayXdr`, `assertRouterPayXdr`, `submitVerifiedRouter`.
 
-## Lo que no está desplegado
+## Lo que no está desplegado / parcial
 
-- **Anchor SEP-10/24**: LIVE como demo. Descubrimiento `POST /v1/integrations` `{ domain: testanchor.stellar.org }`. Auth: `POST /v1/sep10/challenge` + firma Freighter + `POST /v1/sep10/token` → `POST /v1/sep24/withdraw` abre URL interactiva. Fiat payout **simulado** (copy honesto en UI). `ANCHOR_HOME_DOMAIN` opcional.
+- **Anchor SEP-10/24**: probes **live** en health contra SDF Test Anchor; proxies API + panel cash-out. Fiat payout **simulado**. `web_auth` default en challenge si se omite.
 - **Escrow Trustless Work**: el POST existe. Sin `TRUSTLESSWORK_API_KEY` no llama a su API. Testnet: `https://beta.api.trustlesswork.com` (`/escrow/single-release/v2/deploy`). Mainnet legacy: `https://api.trustlesswork.com`.
 - **Pollar**: el checkout monta `PollarProvider` solo si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`. Sin key, el botón no aparece. Hace falta una key de `dashboard.pollar.xyz`.
 - **Swap (público en checkout + plus en panel)**: `POST /v1/swap/quote|build|send` son **públicos** (sin cuenta ViaPay); `SOROSWAP_API_KEY` solo server-side; rate-limit básico por IP. **Checkout pagador** `/pay/[id]`: tabs **Billetera | QR**; debajo del flujo, link «¿No tienes el token? Swappear» cambia `view` a swap (reemplaza el área de pago con `CheckoutSwap` + CTA «Volver a pagar»). Copy visible sin marca del agregador ni link externo (feature ViaPay). Swap no es tab ni liquida el `payment_intent`. Panel `#swap` (`SwapPanel`) usa los mismos endpoints; sin hint de API key / login ni link externo. **Prod:** `SOROSWAP_API_KEY` en Vercel `viapay-api` → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje genérico).

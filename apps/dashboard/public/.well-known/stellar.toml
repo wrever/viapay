@@ -1,25 +1,44 @@
 # ViaPay — SEP-0001
 # https://viapay.vercel.app/.well-known/stellar.toml
-VERSION = "2.0.0"
+VERSION = "2.2.0"
 
+# Product default network is testnet. Cobros can also target mainnet when
+# PAYMENT_ROUTER_CONTRACT_ID_MAINNET is set on the API.
 NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 HORIZON_URL = "https://horizon-testnet.stellar.org"
-# Demo cash-out uses SDF Test Anchor (SEP-10 + SEP-24). Fiat is simulated.
+
+# Cash-out demo: SDF Test Anchor (SEP-10 + SEP-24). Fiat payout is simulated.
 WEB_AUTH_ENDPOINT = "https://testanchor.stellar.org/auth"
 TRANSFER_SERVER_SEP0024 = "https://testanchor.stellar.org/sep24"
 TRANSFER_SERVER = "https://testanchor.stellar.org/sep6"
 KYC_SERVER = "https://testanchor.stellar.org/sep12"
 
+# WEB_AUTH is the SDF Test Anchor (not ViaPay as issuer). Treasury lives in ACCOUNTS.
 ACCOUNTS = [
   "GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5",
 ]
 
+# Product discovery (informational)
+# API = https://viapay-api.vercel.app
+# SITE = https://viapay.vercel.app
+# DOCS = https://viapay.vercel.app/docs
+# EVIDENCE = https://viapay.vercel.app/evidence
+# HEALTH = https://viapay-api.vercel.app/v1/health
+# RAILS = https://viapay-api.vercel.app/v1/rails
+# VERIFY = https://viapay-api.vercel.app/v1/verify?network=mainnet&tx_hash=83926d934e77d2598299d9cf59d2e597e448277b984412fdeb83047d3e03b75f
+# PAYMENT_ROUTER_TESTNET = CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT
+# PAYMENT_ROUTER_MAINNET = CA4FJAYS6WBH2JWGLIOT4PBV3FDCPWUYMPDRY2SKD5UYJYRGGZP7LQ2U
+# WASM_HASH = 2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383
+# SEP-55 CI = https://github.com/wrever/viapay/actions/workflows/payment-router-verified-build.yml
+# CLI = pnpm verify -- --kit
+
 [DOCUMENTATION]
 ORG_NAME = "ViaPay"
 ORG_URL = "https://viapay.vercel.app"
-ORG_DESCRIPTION = "Complete Stellar checkout: hosted payment links, marketplace fee split via payment-router (SEP-41 SAC), and x402 for AI agents. One link for humans and agents."
+ORG_DESCRIPTION = "Stellar settlement infrastructure: payment_intent, Soroban payment-router (SEP-41), human/agent checkout, public /v1/verify /v1/parity /v1/rails. Testnet product demos + mainnet evidence (same wasm)."
 ORG_OFFICIAL_EMAIL = "hello@viapay.app"
 ORG_SUPPORT_EMAIL = "hello@viapay.app"
+ORG_GITHUB = "https://github.com/wrever/viapay"
 
 [[PRINCIPALS]]
 name = "ViaPay"
@@ -29,7 +48,7 @@ email = "hello@viapay.app"
 code = "native"
 status = "test"
 display_decimals = 7
-desc = "XLM — native asset. Checkout settles via Soroban payment-router (SAC)."
+desc = "XLM — native. Checkout settles via Soroban payment-router (SAC SEP-41)."
 
 [[CURRENCIES]]
 code = "USDC"
@@ -38,10 +57,13 @@ status = "test"
 display_decimals = 7
 is_asset_anchored = false
 anchor_asset_type = "crypto"
-desc = "Circle USDC on Stellar testnet (SEP-41 SAC). Requires trustline on merchant and treasury."
+desc = "Circle USDC on Stellar testnet (SEP-41 SAC). Trustline required on merchant + treasury."
 
-# Product discovery (informational)
-# API = https://viapay-api.vercel.app
-# CHECKOUT = https://viapay.vercel.app
-# DOCS = https://viapay.vercel.app/docs
-# PAYMENT_ROUTER_TESTNET = CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+status = "live"
+display_decimals = 7
+is_asset_anchored = false
+anchor_asset_type = "crypto"
+desc = "Circle USDC on Stellar mainnet (SEP-41). Payment-router CA4FJAYS…LQ2U accepts this SAC when cobro network=mainnet."

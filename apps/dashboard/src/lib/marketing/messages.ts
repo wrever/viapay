@@ -108,6 +108,7 @@ export type Messages = {
     legal: string;
     panel: string;
     docs: string;
+    evidence: string;
     api: string;
     modes: string;
     redirect: string;
@@ -167,7 +168,7 @@ const es: Messages = {
     lede: "Creas el cobro, compartes el link. Paga tu cliente con su billetera — o un agente de IA. ViaPay solo toma el 1%. Sin custodiar tu dinero: llega directo a tu billetera, al instante.",
     ctaPrimary: "Crear un cobro",
     ctaSecondary: "Ver cómo funciona",
-    note: "Prueba hoy en Stellar · con USDC o XLM",
+    note: "Stellar · Soroban payment-router · USDC o XLM · testnet + mainnet",
   },
   how: {
     title: "Así de simple",
@@ -267,6 +268,7 @@ const es: Messages = {
     legal: "Legal",
     panel: "Panel",
     docs: "Documentación",
+    evidence: "Evidencia on-chain",
     api: "Estado del servicio",
     modes: "Modos de uso",
     redirect: "Redirect ecommerce",
@@ -326,7 +328,7 @@ const en: Messages = {
     lede: "Create the charge, share the link. Your customer pays with their wallet — or an AI agent does. ViaPay only takes 1%. We never hold your money: it lands in your wallet instantly.",
     ctaPrimary: "Create a charge",
     ctaSecondary: "See how it works",
-    note: "Try it today on Stellar · USDC or XLM",
+    note: "Stellar · Soroban payment-router · USDC or XLM · testnet + mainnet",
   },
   how: {
     title: "That simple",
@@ -426,6 +428,7 @@ const en: Messages = {
     legal: "Legal",
     panel: "Dashboard",
     docs: "Documentation",
+    evidence: "On-chain evidence",
     api: "Service status",
     modes: "Modes",
     redirect: "Ecommerce redirect",
@@ -485,7 +488,7 @@ const pt: Messages = {
     lede: "Crie a cobrança, compartilhe o link. O cliente paga com a carteira — ou um agente de IA. A ViaPay só fica com 1%. Sem custodiar seu dinheiro: chega direto na sua carteira, na hora.",
     ctaPrimary: "Criar uma cobrança",
     ctaSecondary: "Ver como funciona",
-    note: "Experimente hoje na Stellar · USDC ou XLM",
+    note: "Stellar · Soroban payment-router · USDC ou XLM · testnet + mainnet",
   },
   how: {
     title: "Assim de simples",
@@ -585,6 +588,7 @@ const pt: Messages = {
     legal: "Legal",
     panel: "Painel",
     docs: "Documentação",
+    evidence: "Evidência on-chain",
     api: "Status do serviço",
     modes: "Modos de uso",
     redirect: "Redirect ecommerce",

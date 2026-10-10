@@ -48,7 +48,10 @@ export function TrustlinesSection({
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ asset: "USDC" }),
+        body: JSON.stringify({
+          asset: "USDC",
+          network: kitNetwork,
+        }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -63,7 +66,7 @@ export function TrustlinesSection({
     } catch {
       setUsdcStatus("unknown");
     }
-  }, [apiKey, merchantWallet]);
+  }, [apiKey, merchantWallet, kitNetwork]);
 
   useEffect(() => {
     void refreshUsdc();
@@ -86,7 +89,10 @@ export function TrustlinesSection({
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ asset: "USDC" }),
+        body: JSON.stringify({
+          asset: "USDC",
+          network: kitNetwork,
+        }),
       });
       const prepared = await prep.json();
       if (!prep.ok) throw new Error(prepared.error ?? t.trustlinePrepareFail);
@@ -109,7 +115,10 @@ export function TrustlinesSection({
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ signed_xdr: signed }),
+        body: JSON.stringify({
+          signed_xdr: signed,
+          network: kitNetwork,
+        }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? t.trustlineSubmitFail);

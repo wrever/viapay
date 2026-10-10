@@ -6,6 +6,8 @@ import { serializePaymentIntent } from "@/lib/payments";
 const bodySchema = z.object({
   client_secret: z.string().min(10),
   signed_xdr: z.string().min(20),
+  /** Must match prepare amount when abonos enabled. */
+  amount: z.string().min(1).optional(),
 });
 
 export async function POST(
@@ -16,7 +18,12 @@ export async function POST(
     ensureDb();
     const { id } = await ctx.params;
     const body = bodySchema.parse(await req.json());
-    const updated = await submitCheckoutXdr(id, body.client_secret, body.signed_xdr);
+    const updated = await submitCheckoutXdr(
+      id,
+      body.client_secret,
+      body.signed_xdr,
+      body.amount,
+    );
     return jsonOk(serializePaymentIntent(updated));
   } catch (e) {
     return jsonError(e);

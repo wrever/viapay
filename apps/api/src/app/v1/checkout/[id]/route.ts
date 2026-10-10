@@ -1,15 +1,15 @@
 import {
   getPaymentIntentPublic,
-  serializePaymentIntent,
+  serializePaymentIntentAsync,
 } from "@/lib/payments";
 import { ensureDb, jsonError, jsonOk } from "@/lib/http";
 import { getTreasuryAddress } from "@/lib/auth";
 import {
   buildCheckoutSep7,
+  intentNetwork,
   paymentRouterContractId,
   receiveStatusFor,
   reconcileCheckoutPayment,
-  stellarNetwork,
   usdcIssuer,
 } from "@/lib/chain";
 import { breakdownFor, x402ResourceUrl } from "@/lib/x402";
@@ -37,7 +37,8 @@ export async function GET(
     } catch {
       row = loaded;
     }
-    const issuer = row.asset_code === "USDC" ? usdcIssuer() : null;
+    const network = intentNetwork(row);
+    const issuer = row.asset_code === "USDC" ? usdcIssuer(network) : null;
     type Receivable = { exists: boolean; canReceive: boolean };
     let receive: {
       merchant: Receivable;
@@ -46,10 +47,10 @@ export async function GET(
     } | null = null;
     try {
       const [merchant, treasury, reseller] = await Promise.all([
-        receiveStatusFor(row.merchant_wallet, row.asset_code),
-        receiveStatusFor(getTreasuryAddress(), row.asset_code),
+        receiveStatusFor(row.merchant_wallet, row.asset_code, network),
+        receiveStatusFor(getTreasuryAddress(), row.asset_code, network),
         row.reseller_address
-          ? receiveStatusFor(row.reseller_address, row.asset_code)
+          ? receiveStatusFor(row.reseller_address, row.asset_code, network)
           : Promise.resolve(null),
       ]);
       receive = { merchant, treasury, reseller };
@@ -64,9 +65,9 @@ export async function GET(
       sep7Error = error instanceof Error ? error.message : "No se pudo armar el QR";
     }
 
-    const routerId = paymentRouterContractId();
+    const routerId = paymentRouterContractId(network);
     return jsonOk({
-      ...serializePaymentIntent(row),
+      ...(await serializePaymentIntentAsync(row)),
       treasury_wallet: getTreasuryAddress(),
       breakdown: breakdownFor(row),
       x402_url: x402ResourceUrl(row),
@@ -74,7 +75,7 @@ export async function GET(
       settlement: routerId ? "router" : "classic",
       contract_id: routerId,
       stellar: {
-        network: stellarNetwork(),
+        network,
         asset_issuer: issuer,
         sep7_error: sep7Error,
         receive,

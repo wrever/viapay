@@ -1,6 +1,6 @@
 # payment-router (Soroban)
 
-Reparte un token SEP-41 (por ejemplo el SAC de USDC) entre tres destinos en una sola invocación, con la misma matemática que usa el camino clásico de ViaPay.
+Reparte un token SEP-41 (por ejemplo el SAC de USDC o el nativo) entre hasta tres destinos en una sola invocación. Misma matemática que `calcFeeSplit` en `@viapay/shared`. Path canónico del checkout onchain.
 
 ```rust
 pub fn pay(
@@ -19,16 +19,17 @@ pub fn pay(
 
 `payer.require_auth()` y luego una `transfer` por pata (la del revendedor solo si `reseller_fee > 0`). Emite un evento `Paid` con las tres cifras y el `intent_id`. Errores: `InvalidAmount = 1` (algún monto negativo o todo en cero), `MissingReseller = 2` (`reseller_fee > 0` sin `reseller`).
 
-## Desplegado en testnet
+## Desplegado
 
-| | |
-|---|---|
-| contract id | `CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` |
-| tx del deploy | `7f0d1f0a4e9090e86f17eecb438544e8e178d632fc0ac5c91fdfc712b4c7f159` |
-| hash del wasm | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
-| soroban-sdk | 27 · Stellar CLI 23.2.1 · target `wasm32v1-none` |
+| | testnet | mainnet |
+|---|---|---|
+| contract id | `CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` | `CA4FJAYS6WBH2JWGLIOT4PBV3FDCPWUYMPDRY2SKD5UYJYRGGZP7LQ2U` |
+| deploy tx | `7f0d1f0a…` | `058c3502…` |
+| pay evidencia | — | `b28aafbd…` (evento `Paid`) |
+| wasm hash | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` (idéntico) |
+| toolchain | soroban-sdk 27 · Stellar CLI 23.2.1 · `wasm32v1-none` | mismo |
 
-**Checkout onchain:** con `PAYMENT_ROUTER_CONTRACT_ID`, `prepare`/`submit` invocan este contrato (`assertRouterPayXdr`). Testnet id abajo. Mainnet one-shot: `docs/submission/MAINNET_ONE_SHOT.md` (no flippear Vercel a mainnet).
+**Checkout onchain:** `PAYMENT_ROUTER_CONTRACT_ID` (testnet) y opcional `PAYMENT_ROUTER_CONTRACT_ID_MAINNET`. `prepare`/`submit` invocan este contrato (`assertRouterPayXdr`). Mainnet one-shot: `docs/submission/MAINNET_ONE_SHOT.md`.
 
 ## Build y deploy
 
@@ -48,4 +49,4 @@ stellar contract info interface \
   --network testnet
 ```
 
-El id va en `PAYMENT_ROUTER_CONTRACT_ID`. Las claves viven en `~/.config/stellar/identity/`; `target/` está en `.gitignore`.
+El id va en `PAYMENT_ROUTER_CONTRACT_ID` / `_MAINNET`. Las claves viven en `~/.config/stellar/identity/`; `target/` está en `.gitignore`.

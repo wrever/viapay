@@ -4,14 +4,20 @@ import {
   type PayoutShare,
 } from "@viapay/shared";
 import { getTreasuryAddress } from "./auth";
-import { publicApiUrl, stellarNetwork, usdcIssuer } from "./chain";
+import type { Network } from "@viapay/stellar";
+import {
+  intentNetwork,
+  paymentRouterContractId,
+  publicApiUrl,
+  usdcIssuer,
+} from "./chain";
 import { buildX402Url, type PaymentIntentRow } from "./payments";
 
 export type { PayoutShare };
 
 /** x402 speaks CAIP-2, not our short network names. */
-export function caip2Network(): string {
-  switch (stellarNetwork()) {
+export function caip2Network(network: Network): string {
+  switch (network) {
     case "mainnet":
       return "stellar:pubnet";
     case "local":
@@ -45,19 +51,33 @@ export function x402ResourceUrl(row: PaymentIntentRow): string {
  * that spells out the split and the two ways to settle it here.
  *
  * ViaPay settles from its own API instead of an x402 facilitator, so the payer
- * signs a full transaction envelope rather than contract auth entries.
+ * signs a full Soroban invoke (payment-router `pay`) rather than auth entries
+ * for a third-party facilitator.
  */
 export function buildChallenge(row: PaymentIntentRow) {
-  const network = caip2Network();
-  const issuer = row.asset_code === "USDC" ? usdcIssuer() : null;
+  const stellarNet = intentNetwork(row);
+  const network = caip2Network(stellarNet);
+  const issuer = row.asset_code === "USDC" ? usdcIssuer(stellarNet) : null;
   const resource = x402ResourceUrl(row);
   const shares = breakdownFor(row);
+  const routerId = paymentRouterContractId(stellarNet);
+  const settlement = routerId ? "payment-router" : "viapay-split-envelope";
+  const exactPayMeta =
+    row.metadata &&
+    typeof row.metadata === "object" &&
+    row.metadata.exact_pay &&
+    typeof row.metadata.exact_pay === "object"
+      ? (row.metadata.exact_pay as Record<string, unknown>)
+      : null;
+  const viapayScheme = exactPayMeta ? "exact_pay" : "exact";
 
   return {
     x402Version: 2,
     error: "payment_required",
     accepts: [
       {
+        // Wire scheme stays x402 `exact` (locked crypto amount). ViaPay pricing
+        // mode lives in extra.viapay_scheme / viapay.scheme (exact_pay ≠ Local402 exact-fx).
         scheme: "exact",
         network,
         resource,
@@ -76,7 +96,15 @@ export function buildChallenge(row: PaymentIntentRow) {
           decimals: 7,
           memo: row.id,
           memo_type: "text",
-          settlement: "viapay-split-envelope",
+          settlement,
+          viapay_scheme: viapayScheme,
+          ...(exactPayMeta ? { exact_pay: exactPayMeta } : {}),
+          ...(routerId
+            ? {
+                payment_router: routerId,
+                event: "Paid",
+              }
+            : {}),
           payouts: shares.map((share) => ({
             role: share.role,
             destination: share.address,
@@ -88,7 +116,11 @@ export function buildChallenge(row: PaymentIntentRow) {
     viapay: {
       payment_intent: row.id,
       status: row.status,
-      network: stellarNetwork(),
+      scheme: viapayScheme,
+      ...(exactPayMeta ? { exact_pay: exactPayMeta } : {}),
+      network: stellarNet,
+      settlement,
+      ...(routerId ? { payment_router: routerId } : {}),
       asset: row.asset_code,
       asset_issuer: issuer,
       amount: row.amount,
@@ -158,7 +190,7 @@ export function paymentResponseHeader(row: PaymentIntentRow): string {
     JSON.stringify({
       success: true,
       transaction: row.stellar_tx_hash,
-      network: caip2Network(),
+      network: caip2Network(intentNetwork(row)),
       payer: null,
       payment_intent: row.id,
     }),

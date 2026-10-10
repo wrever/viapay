@@ -126,11 +126,32 @@ export type Messages = {
   cobrosGuide1: string;
   cobrosGuide2: string;
   cobrosGuide3: string;
+  networkLabel: string;
+  networkHint: string;
+  networkTestnet: string;
+  networkMainnet: string;
+  networkMainnetUnavailable: string;
   noticesTitle: string;
   noticesDesc: string;
+  noticesPollTitle: string;
   noticesPoll: string;
   noticesPollList: string;
-  noticesNoWebhook: string;
+  webhooksTitle: string;
+  webhooksBody: string;
+  webhooksUrlLabel: string;
+  webhooksAdd: string;
+  webhooksEmpty: string;
+  webhooksSecretOnce: string;
+  webhooksSecretCopied: string;
+  webhooksCopySecret: string;
+  webhooksDismissSecret: string;
+  webhooksDelete: string;
+  webhooksDeliveriesTitle: string;
+  webhooksDeliveriesEmpty: string;
+  webhooksLoadFail: string;
+  webhooksSaveFail: string;
+  webhooksRefresh: string;
+  webhooksAttempts: (n: number) => string;
   walletGateBanner: string;
   walletGateTitle: string;
   walletGateBody: string;
@@ -213,6 +234,15 @@ export type Messages = {
   sepsTitle: string;
   sepsBody: string;
   sepsLoadFail: string;
+  sepsNetworkTestnet: string;
+  sepsNetworkMainnet: string;
+  sepsReady: string;
+  sepsNotReady: string;
+  sepsMainnetPending: string;
+  sepsMainnetEvidence: string;
+  sepsMainnetPayTx: string;
+  chargeNetworkBadge: (network: string) => string;
+  chargeRouterBadge: string;
   contactsTitle: string;
   contactsBody: string;
   contactsName: string;
@@ -238,6 +268,16 @@ export type Messages = {
   invoiceContact: string;
   invoiceNoContact: string;
   invoiceContactHint: string;
+  invoiceQuickDest: string;
+  invoiceQuickDestHint: string;
+  pricingModeLabel: string;
+  pricingExact: string;
+  pricingExactPay: string;
+  pricingExactHint: string;
+  pricingExactPayHint: string;
+  fiatAmountLabel: string;
+  settleAssetLabel: string;
+  exactPayPreview: (crypto: string, asset: string) => string;
   shareWhatsApp: string;
   shareEmail: string;
   emailSent: string;
@@ -405,13 +445,39 @@ const es: Messages = {
   cobrosGuide2: "Compartí el checkout ViaPay. El cliente firma en su wallet (Freighter, Lobstr, …).",
   cobrosGuide3:
     "Cuando pague, el cobro pasa a Pagado. Consultá el estado por id con la API.",
+  networkLabel: "Red Stellar",
+  networkHint:
+    "El pagador debe usar la misma red. Un cobro mainnet no se puede pagar en testnet (y al revés).",
+  networkTestnet: "Testnet",
+  networkMainnet: "Mainnet",
+  networkMainnetUnavailable:
+    "Mainnet aún no habilitado en la API (falta contrato payment-router mainnet).",
   noticesTitle: "Notificaciones",
-  noticesDesc: "Sin webhooks obligatorios: consultá el estado del cobro por API.",
+  noticesDesc:
+    "Recibí payment_intent.succeeded en tu URL, o consultá el estado por API.",
+  noticesPollTitle: "Consultar por API",
   noticesPoll:
     "Tras el pago, pedí el intent por id. status: succeeded y stellar_tx_hash confirman.",
   noticesPollList: "Para varios cobros, listá con auth Bearer:",
-  noticesNoWebhook:
-    "La API de webhooks sigue disponible si la necesitás, pero el panel no la requiere.",
+  webhooksTitle: "Webhooks",
+  webhooksBody:
+    "Al pagar: webhook firmado (ViaPay-Signature) + WhatsApp al comercio si está vinculado + email Resend al comercio y al pagador (si el cobro tenía contacto/email). El secreto del webhook se muestra una sola vez.",
+  webhooksUrlLabel: "URL del endpoint",
+  webhooksAdd: "Agregar",
+  webhooksEmpty: "Todavía no hay endpoints. Agregá una URL https (localhost ok).",
+  webhooksSecretOnce:
+    "Guardá este secreto ahora. No se vuelve a mostrar.",
+  webhooksSecretCopied: "Copiado",
+  webhooksCopySecret: "Copiar secreto",
+  webhooksDismissSecret: "Ya lo guardé",
+  webhooksDelete: "Eliminar endpoint",
+  webhooksDeliveriesTitle: "Últimas entregas",
+  webhooksDeliveriesEmpty:
+    "Sin entregas aún. Se listan cuando un cobro pase a pagado.",
+  webhooksLoadFail: "No se pudieron cargar los webhooks",
+  webhooksSaveFail: "No se pudo crear el endpoint",
+  webhooksRefresh: "Actualizar entregas",
+  webhooksAttempts: (n) => (n === 1 ? "1 intento" : `${n} intentos`),
   walletGateBanner:
     "Sin billetera de destino el dinero no puede llegar. Guardá tu cuenta Stellar (G…) para desbloquear el panel.",
   walletGateTitle: "Billetera de destino obligatoria",
@@ -423,7 +489,7 @@ const es: Messages = {
   noticesBellAria: "Notificaciones",
   noticesBellPending: (n) =>
     n === 1 ? "1 cobro pendiente" : `${n} cobros pendientes`,
-  noticesBellHint: "Abrí Notificaciones para ver cómo consultar el estado por API.",
+  noticesBellHint: "Abrí Notificaciones para configurar webhooks o consultar por API.",
   fiatSelectLabel: "Moneda local",
   fiatSelectHint:
     "Se usa para mostrar equivalencias aproximadas de XLM/USDC en el panel y el checkout de este navegador.",
@@ -504,6 +570,16 @@ const es: Messages = {
   sepsBody:
     "Matriz desde GET /v1/health: identidad, auth, cash-out demo, SAC y verified build.",
   sepsLoadFail: "No se pudo cargar el estado de SEPs",
+  sepsNetworkTestnet: "Testnet",
+  sepsNetworkMainnet: "Mainnet",
+  sepsReady: "listo",
+  sepsNotReady: "pendiente",
+  sepsMainnetPending: "Sin PAYMENT_ROUTER_CONTRACT_ID_MAINNET",
+  sepsMainnetEvidence: "evidencia on-chain",
+  sepsMainnetPayTx: "Pay + evento Paid",
+  chargeNetworkBadge: (network) =>
+    network === "mainnet" ? "Stellar mainnet" : `Stellar ${network}`,
+  chargeRouterBadge: "Soroban router",
   contactsTitle: "Contactos",
   contactsBody:
     "Agenda para invoices. Nombre + teléfono (WhatsApp) y/o email.",
@@ -524,7 +600,7 @@ const es: Messages = {
   waLinked: "Número vinculado",
   waStep1: "Escribí al número Business (+56 9 8494 1552). Sin vínculo te guía a crear cuenta de comercio.",
   waStep2: "Generá un código abajo y mandá: vincular 123456",
-  waStep3: "Atajo cobro 20 xlm a nombre → Sí → 1 WhatsApp / 2 Email",
+  waStep3: "Atajo: cobro 20 xlm a juanito / mail@x.com / +569… → Sí → 1 WA / 2 Email",
   waGenCode: "Generar código de vínculo",
   waSendCode: "Enviá al bot:",
   waCodeExpires: "Vence",
@@ -533,7 +609,19 @@ const es: Messages = {
   invoiceContact: "Cobrar a (opcional)",
   invoiceNoContact: "Sin contacto — solo link",
   invoiceContactHint:
-    "Si elegís contacto, después podés abrir WhatsApp o email con el link listo.",
+    "Agenda, o más abajo un email / WhatsApp suelto. Después mandás el link.",
+  invoiceQuickDest: "Email o WhatsApp (sin agenda)",
+  invoiceQuickDestHint: "Ej. cliente@mail.com o +56912345678 — XLM o USDC arriba.",
+  pricingModeLabel: "Cómo cotizás",
+  pricingExact: "Crypto (exact)",
+  pricingExactPay: "Moneda local (exact-pay)",
+  pricingExactHint: "El monto es XLM/USDC. La ≈ fiat es solo referencia.",
+  pricingExactPayHint:
+    "Cotizás en CLP/ARS/…; al crear trabamos el crypto exacto (no es exact-fx / Reflector).",
+  fiatAmountLabel: "Monto en moneda local",
+  settleAssetLabel: "Liquidar en",
+  exactPayPreview: (crypto, asset) =>
+    `Se trabará ≈ ${crypto} ${asset} al crear el cobro`,
   shareWhatsApp: "Enviar por WhatsApp",
   shareEmail: "Enviar por email",
   emailSent: "Email enviado con Resend.",
@@ -695,13 +783,38 @@ const en: Messages = {
   cobrosGuide2: "Share the ViaPay checkout. The customer signs in their wallet (Freighter, Lobstr, …).",
   cobrosGuide3:
     "When paid, status becomes Paid. Poll status by id with the API.",
+  networkLabel: "Stellar network",
+  networkHint:
+    "The payer must use the same network. A mainnet charge cannot be paid on testnet (and vice versa).",
+  networkTestnet: "Testnet",
+  networkMainnet: "Mainnet",
+  networkMainnetUnavailable:
+    "Mainnet is not enabled on the API yet (missing payment-router mainnet contract).",
   noticesTitle: "Notifications",
-  noticesDesc: "No webhooks required: poll charge status via the API.",
+  noticesDesc:
+    "Receive payment_intent.succeeded at your URL, or poll charge status via the API.",
+  noticesPollTitle: "Poll via API",
   noticesPoll:
     "After payment, GET the intent by id. status: succeeded and stellar_tx_hash confirm.",
   noticesPollList: "For several charges, list with Bearer auth:",
-  noticesNoWebhook:
-    "Webhook APIs still exist if you need them, but the dashboard does not require them.",
+  webhooksTitle: "Webhooks",
+  webhooksBody:
+    "On pay: signed webhook (ViaPay-Signature) + WhatsApp to the merchant if linked + Resend email to merchant and payer (when the charge had contact/email). Webhook secret is shown once.",
+  webhooksUrlLabel: "Endpoint URL",
+  webhooksAdd: "Add",
+  webhooksEmpty: "No endpoints yet. Add an https URL (localhost ok).",
+  webhooksSecretOnce: "Save this secret now. It won’t be shown again.",
+  webhooksSecretCopied: "Copied",
+  webhooksCopySecret: "Copy secret",
+  webhooksDismissSecret: "I’ve saved it",
+  webhooksDelete: "Delete endpoint",
+  webhooksDeliveriesTitle: "Recent deliveries",
+  webhooksDeliveriesEmpty:
+    "No deliveries yet. They appear when a charge becomes paid.",
+  webhooksLoadFail: "Could not load webhooks",
+  webhooksSaveFail: "Could not create endpoint",
+  webhooksRefresh: "Refresh deliveries",
+  webhooksAttempts: (n) => (n === 1 ? "1 attempt" : `${n} attempts`),
   walletGateBanner:
     "Without a destination wallet, funds cannot arrive. Save your Stellar account (G…) to unlock the panel.",
   walletGateTitle: "Destination wallet required",
@@ -713,7 +826,7 @@ const en: Messages = {
   noticesBellAria: "Notifications",
   noticesBellPending: (n) =>
     n === 1 ? "1 pending charge" : `${n} pending charges`,
-  noticesBellHint: "Open Notifications to see how to poll status via the API.",
+  noticesBellHint: "Open Notifications to configure webhooks or poll via the API.",
   fiatSelectLabel: "Local currency",
   fiatSelectHint:
     "Used for approximate XLM/USDC equivalents in the panel and checkout on this browser.",
@@ -794,6 +907,16 @@ const en: Messages = {
   sepsBody:
     "Matrix from GET /v1/health: identity, auth, cash-out demo, SAC, and verified build.",
   sepsLoadFail: "Could not load SEP status",
+  sepsNetworkTestnet: "Testnet",
+  sepsNetworkMainnet: "Mainnet",
+  sepsReady: "ready",
+  sepsNotReady: "pending",
+  sepsMainnetPending: "Missing PAYMENT_ROUTER_CONTRACT_ID_MAINNET",
+  sepsMainnetEvidence: "on-chain evidence",
+  sepsMainnetPayTx: "Pay + Paid event",
+  chargeNetworkBadge: (network) =>
+    network === "mainnet" ? "Stellar mainnet" : `Stellar ${network}`,
+  chargeRouterBadge: "Soroban router",
   contactsTitle: "Contacts",
   contactsBody:
     "Address book for invoices. Name + phone (WhatsApp) and/or email.",
@@ -814,7 +937,7 @@ const en: Messages = {
   waLinked: "Linked number",
   waStep1: "Message the Business number (+56 9 8494 1552). Unlinked numbers get merchant signup guidance.",
   waStep2: "Generate a code below and send: vincular 123456",
-  waStep3: "Shortcut cobro 20 xlm a name → Yes → 1 WhatsApp / 2 Email",
+  waStep3: "Shortcut: cobro 20 xlm to name / mail@x.com / +569… → Yes → 1 WA / 2 Email",
   waGenCode: "Generate link code",
   waSendCode: "Send to the bot:",
   waCodeExpires: "Expires",
@@ -823,7 +946,19 @@ const en: Messages = {
   invoiceContact: "Charge to (optional)",
   invoiceNoContact: "No contact — link only",
   invoiceContactHint:
-    "If you pick a contact, you can open WhatsApp or email with the link ready.",
+    "Pick from your directory, or type an email / WhatsApp below.",
+  invoiceQuickDest: "Email or WhatsApp (no directory)",
+  invoiceQuickDestHint: "e.g. client@mail.com or +56912345678 — XLM or USDC above.",
+  pricingModeLabel: "How you quote",
+  pricingExact: "Crypto (exact)",
+  pricingExactPay: "Local currency (exact-pay)",
+  pricingExactHint: "Amount is XLM/USDC. Fiat ≈ is display only.",
+  pricingExactPayHint:
+    "Quote in CLP/ARS/…; we lock exact crypto at create (not exact-fx / Reflector).",
+  fiatAmountLabel: "Amount in local currency",
+  settleAssetLabel: "Settle in",
+  exactPayPreview: (crypto, asset) =>
+    `Will lock ≈ ${crypto} ${asset} when you create the charge`,
   shareWhatsApp: "Send via WhatsApp",
   shareEmail: "Send via email",
   emailSent: "Email sent with Resend.",
@@ -988,13 +1123,38 @@ const pt: Messages = {
   cobrosGuide2: "Compartilhe o checkout ViaPay. O cliente assina na wallet (Freighter, Lobstr, …).",
   cobrosGuide3:
     "Quando pagar, fica Pago. Consulte o status por id com a API.",
+  networkLabel: "Rede Stellar",
+  networkHint:
+    "O pagador deve usar a mesma rede. Uma cobrança mainnet não pode ser paga na testnet (e vice-versa).",
+  networkTestnet: "Testnet",
+  networkMainnet: "Mainnet",
+  networkMainnetUnavailable:
+    "Mainnet ainda não habilitado na API (falta contrato payment-router mainnet).",
   noticesTitle: "Notificações",
-  noticesDesc: "Sem webhooks obrigatórios: consulte o status pela API.",
+  noticesDesc:
+    "Receba payment_intent.succeeded na sua URL, ou consulte o status pela API.",
+  noticesPollTitle: "Consultar pela API",
   noticesPoll:
     "Após o pagamento, peça o intent por id. status: succeeded e stellar_tx_hash confirmam.",
   noticesPollList: "Para várias cobranças, liste com Bearer auth:",
-  noticesNoWebhook:
-    "A API de webhooks ainda existe se precisar, mas o painel não exige.",
+  webhooksTitle: "Webhooks",
+  webhooksBody:
+    "Ao pagar: webhook assinado (ViaPay-Signature) + WhatsApp ao comércio se vinculado + email Resend ao comércio e ao pagador (se o cobro tinha contato/email). O segredo do webhook aparece uma vez.",
+  webhooksUrlLabel: "URL do endpoint",
+  webhooksAdd: "Adicionar",
+  webhooksEmpty: "Ainda não há endpoints. Adicione uma URL https (localhost ok).",
+  webhooksSecretOnce: "Guarde este segredo agora. Não será mostrado de novo.",
+  webhooksSecretCopied: "Copiado",
+  webhooksCopySecret: "Copiar segredo",
+  webhooksDismissSecret: "Já guardei",
+  webhooksDelete: "Excluir endpoint",
+  webhooksDeliveriesTitle: "Últimas entregas",
+  webhooksDeliveriesEmpty:
+    "Sem entregas ainda. Aparecem quando um cobro fica pago.",
+  webhooksLoadFail: "Não foi possível carregar os webhooks",
+  webhooksSaveFail: "Não foi possível criar o endpoint",
+  webhooksRefresh: "Atualizar entregas",
+  webhooksAttempts: (n) => (n === 1 ? "1 tentativa" : `${n} tentativas`),
   walletGateBanner:
     "Sem carteira de destino o dinheiro não pode chegar. Salve sua conta Stellar (G…) para desbloquear o painel.",
   walletGateTitle: "Carteira de destino obrigatória",
@@ -1006,7 +1166,8 @@ const pt: Messages = {
   noticesBellAria: "Notificações",
   noticesBellPending: (n) =>
     n === 1 ? "1 cobrança pendente" : `${n} cobranças pendentes`,
-  noticesBellHint: "Abra Notificações para ver como consultar o status pela API.",
+  noticesBellHint:
+    "Abra Notificações para configurar webhooks ou consultar pela API.",
   fiatSelectLabel: "Moeda local",
   fiatSelectHint:
     "Usada para mostrar equivalentes aproximados de XLM/USDC no painel e no checkout neste navegador.",
@@ -1087,6 +1248,16 @@ const pt: Messages = {
   sepsBody:
     "Matriz de GET /v1/health: identidade, auth, cash-out demo, SAC e verified build.",
   sepsLoadFail: "Não foi possível carregar o status dos SEPs",
+  sepsNetworkTestnet: "Testnet",
+  sepsNetworkMainnet: "Mainnet",
+  sepsReady: "pronto",
+  sepsNotReady: "pendente",
+  sepsMainnetPending: "Sem PAYMENT_ROUTER_CONTRACT_ID_MAINNET",
+  sepsMainnetEvidence: "evidência on-chain",
+  sepsMainnetPayTx: "Pay + evento Paid",
+  chargeNetworkBadge: (network) =>
+    network === "mainnet" ? "Stellar mainnet" : `Stellar ${network}`,
+  chargeRouterBadge: "Soroban router",
   contactsTitle: "Contatos",
   contactsBody:
     "Agenda para invoices. Nome + telefone (WhatsApp) e/ou email.",
@@ -1107,7 +1278,7 @@ const pt: Messages = {
   waLinked: "Número vinculado",
   waStep1: "Escreva para o número Business (+56 9 8494 1552). Sem vínculo, o bot guia o cadastro do comércio.",
   waStep2: "Gere um código abaixo e envie: vincular 123456",
-  waStep3: "Atalho cobro 20 xlm a nome → Sim → 1 WhatsApp / 2 Email",
+  waStep3: "Atalho: cobro 20 xlm a nome / mail@x.com / +569… → Sim → 1 WA / 2 Email",
   waGenCode: "Gerar código de vínculo",
   waSendCode: "Envie ao bot:",
   waCodeExpires: "Expira",
@@ -1116,7 +1287,19 @@ const pt: Messages = {
   invoiceContact: "Cobrar de (opcional)",
   invoiceNoContact: "Sem contato — só link",
   invoiceContactHint:
-    "Se escolher um contato, depois pode abrir WhatsApp ou email com o link pronto.",
+    "Agenda, ou abaixo um email / WhatsApp solto. Depois envia o link.",
+  invoiceQuickDest: "Email ou WhatsApp (sem agenda)",
+  invoiceQuickDestHint: "Ex. cliente@mail.com ou +56912345678 — XLM ou USDC acima.",
+  pricingModeLabel: "Como você cotiza",
+  pricingExact: "Crypto (exact)",
+  pricingExactPay: "Moeda local (exact-pay)",
+  pricingExactHint: "O valor é XLM/USDC. A ≈ fiat é só referência.",
+  pricingExactPayHint:
+    "Cotiza em CLP/ARS/…; ao criar travamos o crypto exato (não é exact-fx / Reflector).",
+  fiatAmountLabel: "Valor na moeda local",
+  settleAssetLabel: "Liquidar em",
+  exactPayPreview: (crypto, asset) =>
+    `Será travado ≈ ${crypto} ${asset} ao criar a cobrança`,
   shareWhatsApp: "Enviar pelo WhatsApp",
   shareEmail: "Enviar por email",
   emailSent: "Email enviado com Resend.",

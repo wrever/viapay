@@ -7,6 +7,7 @@ import {
   tokenFor,
   type SoroswapQuote,
   type SwapAsset,
+  type SwapNetwork,
 } from "@/lib/soroswap";
 
 const schema = z.object({
@@ -16,10 +17,13 @@ const schema = z.object({
     .string()
     .regex(/^G[A-Z2-7]{55}$/)
     .optional(),
+  network: z.enum(["testnet", "mainnet"]).optional(),
 });
 
-function assertKnownSwapPair(quote: Record<string, unknown>): void {
-  const network = resolveSwapNetwork();
+function assertKnownSwapPair(
+  quote: Record<string, unknown>,
+  network: SwapNetwork,
+): void {
   const allowed = new Set<string>([
     tokenFor("XLM" as SwapAsset, network).contract,
     tokenFor("USDC" as SwapAsset, network).contract,
@@ -39,11 +43,13 @@ export async function POST(req: Request) {
   try {
     assertSwapRateLimit(req);
     const body = schema.parse(await req.json());
-    assertKnownSwapPair(body.quote);
+    const network = body.network ?? resolveSwapNetwork();
+    assertKnownSwapPair(body.quote, network);
     const built = await buildSoroswapTx({
       quote: body.quote as SoroswapQuote,
       from: body.from,
       to: body.to,
+      network,
     });
     return jsonOk(built);
   } catch (e) {

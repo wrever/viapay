@@ -1,18 +1,31 @@
 # SEPs — matriz ViaPay (hackathon)
 
-Actualizado: 2026-10-07.
+Actualizado: 2026-10-10. Runtime: `GET /v1/health` → `seps` (probes live) + `sep_defaults`.
 
 | SEP | Encaje | Decisión | Estado |
 |---|---|---|---|
-| SEP-1 stellar.toml | Identidad dominio | LIVE | `https://viapay.vercel.app/.well-known/stellar.toml` (+ CORS en `next.config`) |
-| SEP-7 tx URI | QR checkout | LIVE / off con router | Con `PAYMENT_ROUTER_CONTRACT_ID` onchain → QR clásico desactivado (usar Freighter) |
-| SEP-10 | Auth anchor | DEMO | Proxy API `POST /v1/sep10/challenge` + `/token` → SDF Test Anchor; panel firma con Freighter |
-| SEP-24 | Cash-out | DEMO | Proxy `POST /v1/sep24/withdraw` → interactive URL; **fiat simulado** (declarado en UI) |
-| SEP-11 KYC | Anchor customer info | SKIP | No KYC producto esta semana |
-| SEP-41 SAC | USDC + native | LIVE | `payment-router` `pay()` sobre SAC; health `seps["SEP-41"]` |
-| SEP-55 Verified Build | payment-router wasm | CI en repo | `.github/workflows/payment-router-verified-build.yml` (build + attest). Registro Lab = ops manual |
+| SEP-1 stellar.toml | Identidad dominio | LIVE | `https://viapay.vercel.app/.well-known/stellar.toml` (probe en health) |
+| SEP-7 tx URI | QR checkout | wallet_path | Con router onchain → Freighter / wallets kit (QR clásico off a propósito) |
+| SEP-10 | Auth anchor | LIVE (demo cash-out) | SDF Test Anchor WEB_AUTH; panel `POST /v1/sep10/challenge` + `/token` · health sonda challenge |
+| SEP-24 | Cash-out | LIVE (fiat simulado) | Proxy `POST /v1/sep24/withdraw` · health sonda `/sep24/info` · UI declara fiat simulado |
+| SEP-11 KYC | Anchor customer | SKIP | Sin KYC producto; toml apunta SEP-12 del test anchor |
+| SEP-41 SAC | USDC + native | LIVE | `payment-router` `pay()` · testnet + mainnet |
+| SEP-55 Verified Build | payment-router wasm | CI + attest | Workflow con meta `home_domain`/`source_repo` + provenance. Health → `attested` si GitHub lista attest. Lab UI = ops |
 | SEP-2/6/12/30/53 | Federación / recovery | SKIP | — |
 
-Matriz viva en runtime: `GET https://viapay-api.vercel.app/v1/health` → `seps`. UI: panel **Integración** → `StellarSepsStatus` + `AnchorCashOut`.
+UI: panel **Integración** → `StellarSepsStatus` + `AnchorCashOut`.
 
-**SEP-55 path:** Actions → artifact `payment-router-wasm` + provenance attestation → Stellar Lab “Verified Build” con wasm hash documentado en [`MEMORY.md`](../MEMORY.md) (`2ef55539…`).
+**Contratos**
+
+| Red | Contract |
+|---|---|
+| testnet | `CDI6XC5QTHOYUQQ2EU542OLA2ZB7ZP4PB5ANNX5YZO3FMBDPIAV7LPRT` |
+| mainnet | `CA4FJAYS6WBH2JWGLIOT4PBV3FDCPWUYMPDRY2SKD5UYJYRGGZP7LQ2U` |
+| wasm hash (deployed) | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
+
+**Qué no activamos a propósito**
+
+- SEP-11 KYC producto (fuera de scope).  
+- SEP-7 clásico con router (rompería settlement atómico `pay()`).  
+- Fiat SEP-24 real (sigue simulado en Test Anchor).  
+- Lab Verified Build click-ops (tras attest GitHub).

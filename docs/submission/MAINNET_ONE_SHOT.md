@@ -1,52 +1,42 @@
 # Mainnet one-shot (evidencia jurado)
 
-**No** cambiar prod Vercel a mainnet (rompe demo testnet). Esto es **1 deploy + 1–2 txs** de evidencia, luego seguir en testnet.
+**No** cambiar prod Vercel a `STELLAR_NETWORK=mainnet` (rompe demo testnet). Producto: cobros eligen red; mainnet necesita `PAYMENT_ROUTER_CONTRACT_ID_MAINNET`.
 
-## Estado (2026-10-07)
+## Hecho (2026-10-09)
 
-| Cuenta | Mainnet |
+| Campo | Valor |
 |---|---|
-| Tesorería `GDIN7H…DCT5` | Existe (~9 XLM) — **no** tenemos secret en esta máquina |
-| Deployer `viapay-hack-deploy` → `GCKAC7MNMVWK5HISZDCY7QJQ6ICSPQJ6PSX3NJCSLJBQLC5QXJNCYLNP` | **No existe** (hay que fondear) |
-| Agente `viapay-x402-agent` → `GB4NPG6YCZ6U2XTCX2HD7W5YO763LQBQEGBTGVLGU26RCTERC2B2QYA6` | **No existe** |
+| Contract | `CA4FJAYS6WBH2JWGLIOT4PBV3FDCPWUYMPDRY2SKD5UYJYRGGZP7LQ2U` |
+| Wasm hash | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
+| Deployer | `GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5` (`viapay-treasury`) |
+| Deploy tx | https://stellar.expert/explorer/public/tx/058c3502c840ae6d70edd4f8a00ffa301ab9537fa0b8a1f879a05b8f22b6f1b6 |
+| Pay self | https://stellar.expert/explorer/public/tx/b28aafbdce81e0b01e9cb3d2e3d0c037d3f5742a4d7a1b557612d6e12028380e |
+| Pay 3rd party | https://stellar.expert/explorer/public/tx/83926d934e77d2598299d9cf59d2e597e448277b984412fdeb83047d3e03b75f (merchant `GCXX…` ≠ treasury) |
+| Explorer | https://stellar.expert/explorer/public/contract/CA4FJAYS6WBH2JWGLIOT4PBV3FDCPWUYMPDRY2SKD5UYJYRGGZP7LQ2U |
 
-USDC Circle mainnet issuer: `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`
+Upload usó `--fee 50000000`. `PAYMENT_ROUTER_CONTRACT_ID_MAINNET` ya seteada en Vercel.
 
-## Qué fondear (mínimo)
-
-Enviá desde cualquier wallet mainnet:
-
-1. **≥ 15 XLM** → `GCKAC7MNMVWK5HISZDCY7QJQ6ICSPQJ6PSX3NJCSLJBQLC5QXJNCYLNP` (deploy + fees)  
-2. **≥ 2 XLM** → `GB4NPG6YCZ6U2XTCX2HD7W5YO763LQBQEGBTGVLGU26RCTERC2B2QYA6` (pagador evidencia; o usá Freighter)
-
-Alternativa: si tenés la secret de `GDIN7H…`, podés fondear el deployer desde ahí (no está en el repo).
-
-## Cuando haya fondos
+## Re-run (si hace falta otro contrato)
 
 ```bash
-# Desde raíz del monorepo
+stellar network add mainnet \
+  --rpc-url https://mainnet.sorobanrpc.com \
+  --network-passphrase "Public Global Stellar Network ; September 2015"
+
+VIAPAY_MAINNET_DEPLOY_SOURCE=viapay-treasury \
+VIAPAY_MAINNET_PAYER_SOURCE=viapay-treasury \
+VIAPAY_MAINNET_MERCHANT=GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5 \
+PAYMENT_ROUTER_MAINNET_ID=CA4FJAYS6WBH2JWGLIOT4PBV3FDCPWUYMPDRY2SKD5UYJYRGGZP7LQ2U \
 ./scripts/mainnet-one-shot.sh
 ```
 
-Eso:
-
-1. Build del wasm (si hace falta)  
-2. `stellar contract deploy --network mainnet --source viapay-hack-deploy`  
-3. Invoca `pay` con XLM nativo vía SAC (monto chico: 1 XLM → 0.99 comercio + 0.01 fee)  
-4. Imprime hashes para pegar en `evidence-index.md`
-
-Comercio de evidencia (misma tx): puede ser otra G… tuya o reusar el deployer como merchant **solo** para el one-shot (anotar en evidence).
-
-## Después del one-shot
-
-- Pegar txs en [`evidence-index.md`](./evidence-index.md) fila #7 (+ deploy mainnet)  
-- **No** setear `STELLAR_NETWORK=mainnet` en Vercel prod  
-- Demo jurado sigue en testnet; en pitch: “también corrimos en mainnet” + link expert  
+(`PAYMENT_ROUTER_MAINNET_ID` salta el deploy y solo intenta `pay`.)
 
 ## Checklist
 
-- [ ] Fondear deployer mainnet  
-- [ ] Fondear pagador (≥ 2 XLM)  
-- [ ] Correr `./scripts/mainnet-one-shot.sh`  
-- [ ] Actualizar evidence-index + JUDGE_ONE_PAGER  
-- [ ] Confirmar prod Vercel sigue en `testnet`
+- [x] Deploy mainnet  
+- [x] Pay self-pay + third-party merchant  
+- [x] evidence-index #7 + #8  
+- [x] `PAYMENT_ROUTER_CONTRACT_ID_MAINNET` en Vercel  
+- [x] Prod `STELLAR_NETWORK=testnet`  
+- [ ] SEP-55 Verified Build en Stellar Lab (manual)

@@ -47,6 +47,9 @@ export type Messages = {
   paidTitle: string;
   txLabel: string;
   viewOnExpert: string;
+  viewPaidEvent: string;
+  verifyRail: string;
+  viewRouterContract: string;
   problemTitle: string;
   incompleteLink: string;
   loadError: string;
@@ -148,6 +151,9 @@ const es: Messages = {
   paidTitle: "Pago confirmado",
   txLabel: "Transacción en Stellar",
   viewOnExpert: "Verla en stellar.expert",
+  viewPaidEvent: "Ver evento Paid",
+  verifyRail: "Verificar riel ViaPay (JSON)",
+  viewRouterContract: "Contrato payment-router",
   problemTitle: "Este cobro no se puede pagar",
   incompleteLink:
     "Este link viene incompleto. Pide al comercio que te mande uno nuevo.",
@@ -250,6 +256,9 @@ const en: Messages = {
   paidTitle: "Payment confirmed",
   txLabel: "Stellar transaction",
   viewOnExpert: "View on stellar.expert",
+  viewPaidEvent: "View Paid event",
+  verifyRail: "Verify ViaPay rail (JSON)",
+  viewRouterContract: "payment-router contract",
   problemTitle: "This charge can’t be paid",
   incompleteLink:
     "This link is incomplete. Ask the merchant to send you a new one.",
@@ -352,6 +361,9 @@ const pt: Messages = {
   paidTitle: "Pagamento confirmado",
   txLabel: "Transação na Stellar",
   viewOnExpert: "Ver no stellar.expert",
+  viewPaidEvent: "Ver evento Paid",
+  verifyRail: "Verificar trilho ViaPay (JSON)",
+  viewRouterContract: "Contrato payment-router",
   problemTitle: "Esta cobrança não pode ser paga",
   incompleteLink:
     "Este link está incompleto. Peça ao comércio que envie um novo.",

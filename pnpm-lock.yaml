@@ -11,6 +11,9 @@ importers:
       '@stellar/stellar-sdk':
         specifier: ^17.1.0
         version: 17.1.0
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
 
   apps/api:
     dependencies:
@@ -305,6 +308,9 @@ importers:
 
   packages/shared:
     devDependencies:
+      tsx:
+        specifier: ^4.19.4
+        version: 4.23.13
       typescript:
         specifier: ^5.8.3
         version: 5.9.3

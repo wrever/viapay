@@ -129,12 +129,14 @@ export function HomePage({
               <p className="foot__label">{t.foot.developers}</p>
               <a href="/docs#api">{t.docs.apiRef}</a>
               <a href="/docs#redirect">{t.foot.redirect}</a>
+              <a href="/evidence">{t.foot.evidence}</a>
               <a href="/docs">{t.foot.docs}</a>
             </div>
 
             <div className="foot__col">
               <p className="foot__label">{t.foot.company}</p>
               <a href={`${apiUrl}/v1/health`}>{t.foot.api}</a>
+              <a href={`${apiUrl}/v1/rails`}>Rails</a>
               <a href="mailto:hello@viapay.dev">{t.foot.support}</a>
             </div>
 

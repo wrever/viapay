@@ -19,13 +19,14 @@ export const DOC_CHAPTERS_ES: DocChapter[] = [
     lead: "Cobros non-custodial en Stellar: el pagador firma, el dinero llega al instante a las wallets del comercio (y del partner si hay split). Sin custodiar claves ni fondos.",
     paragraphs: [
       "ViaPay es un checkout hosted más una API. Creás un cobro (payment intent), compartís el link o redirigís desde tu tienda, y el cliente paga con wallet Stellar o QR SEP-7. Un agente de IA puede pagar el mismo cobro por HTTP 402 (x402).",
-      "Hoy el producto corre en testnet de Stellar. El camino de cobro por defecto es clásico (varias operaciones de pago en una sola transacción), no un contrato Soroban por cada cobro.",
-      "Sitio: https://viapay.vercel.app · Panel local: :3000 · API: :3001 · Docs web: :3003/docs · Checkout: :3004.",
+      "Demo diaria en testnet. La liquidación on-chain va por el contrato Soroban payment-router (pay() sobre SAC SEP-41): hasta tres patas + evento Paid. Mainnet vivo para evidencia (CA4FJAYS…); el panel puede crear cobros mainnet cuando la API tiene PAYMENT_ROUTER_CONTRACT_ID_MAINNET.",
+      "Sitio único: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, panel `/app`, checkout `/pay/[id]`, legal `/privacy` `/terms` `/data-deletion`). Local: panel+landing `:3000`. API `:3001`.",
     ],
     bullets: [
       "Sin custodia: ViaPay no guarda la clave del pagador.",
       "El pagador ve solo el total en el checkout; el desglose vive en el panel y en la API.",
-      "Lo diferido a propósito (email, embed ecommerce, plugins Woo/Shopify) no está documentado aquí: ver docs/FUTURO.md en el repo.",
+      "Legal: política de privacidad, términos y eliminación de datos (Meta / WhatsApp).",
+      "Invoices: contactos + WhatsApp (NL) + email Resend. Diferido: HSM/SMS, embed, plugins — docs/FUTURO.md.",
     ],
   },
   {
@@ -120,12 +121,12 @@ export const DOC_CHAPTERS_ES: DocChapter[] = [
     lead: "Un solo pago on-chain reparte a comercio, ViaPay y partner (ej. Hubby).",
     paragraphs: [
       "Pasá reseller_fee_bps y reseller_address al crear el payment intent. No hace falta un segundo cobro ni un batch aparte.",
-      "Caso curso $20 con partner 7%: ~0,20 ViaPay + ~1,40 partner + ~18,40 creador. Verificado en testnet con tres payment ops en una tx.",
+      "Caso curso $20 con partner 7%: ~0,20 ViaPay + ~1,40 partner + ~18,40 creador. En onchain el mismo split lo ejecuta payment-router (una invocación Soroban + evento Paid).",
     ],
     bullets: [
       "El pagador no ve el desglose en el checkout (solo el total).",
       "El panel y la API sí muestran fee, reseller y neto.",
-      "Si el partner es la misma cuenta que el comercio, igual se emiten dos operaciones (las dos patas se validan).",
+      "Submit rechaza cualquier XDR que no sea la invocación al router con las patas esperadas.",
     ],
   },
   {
@@ -136,7 +137,7 @@ export const DOC_CHAPTERS_ES: DocChapter[] = [
     paragraphs: [
       "GET /v1/x402/:id?client_secret=… → HTTP 402 con accepts[] (forma PaymentRequirements x402 v2) más un bloque viapay con desglose (rol, dirección, monto, bps) y URLs para liquidar.",
       "POST al mismo recurso con header X-PAYMENT (base64 JSON con payload.signed_xdr) o signed_xdr en el body → 200 y X-PAYMENT-RESPONSE. Con {\"reconcile\": true} busca un pago ya hecho en Horizon.",
-      "No hay facilitator x402 aparte: el agente firma la transacción completa (mismas patas que el checkout humano). Demo en el repo: examples/agent-pay.mjs.",
+      "No hay facilitator x402 aparte: el agente firma la transacción completa (mismas patas que el checkout humano, vía payment-router). Demo: examples/agent-pay.mjs.",
     ],
     bullets: [
       "Modo simple: 99% comercio / 1% ViaPay.",
@@ -190,26 +191,26 @@ export const DOC_CHAPTERS_ES: DocChapter[] = [
     id: "sdk",
     title: "SDK JavaScript",
     group: "integrate",
-    lead: "Paquete @viapay/sdk: createCheckout, verifyWebhook y helpers x402.",
+    lead: "Paquete @viapay/sdk: createPaymentLink, createCheckout, verifyWebhook y helpers x402.",
     paragraphs: [
-      "Instanciá ViaPay con apiKey y baseUrl. createCheckout envuelve el POST de payment intents y te devuelve url (checkout), id y secret.",
+      "Instanciá ViaPay con apiKey (secreta sk_…) y baseUrl. createPaymentLink crea un cobro único con externalUserId y te devuelve url (/pay/…), id y secret. createCheckout es el equivalente snake_case.",
       "Para agentes: parseX402Challenge sobre el JSON del 402, y encodePaymentHeader con el signed_xdr.",
     ],
     code: "sdk",
   },
   {
     id: "testnet",
-    title: "Testnet y readiness",
+    title: "Redes y readiness",
     group: "integrate",
-    lead: "Antes de demo, revisá que wallets y asset estén listos en testnet.",
+    lead: "Demo en testnet; mainnet para evidencia y cobros opt-in.",
     paragraphs: [
-      "USDC testnet (Circle): GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5. Tesorería por defecto: VIAPAY_TREASURY_ADDRESS en el entorno.",
-      "GET /v1/readiness reporta Friendbot, trustline SEP-7 del comercio, faucet USDC, fee_bps y resellers de cobros pendientes (o ?reseller=G…).",
-      "La API local puede seguir en SQLite aunque exista schema en Supabase; el cableado service-role → Postgres es trabajo aparte (ver docs/MEMORY.md).",
+      "USDC testnet (Circle): GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5. Mainnet USDC: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN. Tesorería: VIAPAY_TREASURY_ADDRESS.",
+      "payment-router testnet CDI6XC5Q… · mainnet CA4FJAYS… (mismo wasm 2ef55539…). GET /v1/health → networks + seps.",
+      "GET /v1/readiness reporta Friendbot, trustline, fee_bps y resellers. Cada cobro elige network (testnet|mainnet).",
     ],
     bullets: [
-      "Wallets: Freighter, Lobstr, xBull, Pollar embebida si hay NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY.",
-      "Prioridad de producto: docs/AHORA.md. Diferido: docs/FUTURO.md.",
+      "Wallets: Freighter, Lobstr, xBull (red del cobro).",
+      "Prioridad: docs/AHORA.md. Diferido: docs/FUTURO.md.",
     ],
   },
 ];
@@ -222,13 +223,14 @@ export const DOC_CHAPTERS_EN: DocChapter[] = [
     lead: "Non-custodial Stellar charges: the payer signs, funds land instantly in merchant (and partner) wallets. No custody of keys or balances.",
     paragraphs: [
       "ViaPay is a hosted checkout plus an API. You create a payment intent, share the link or redirect from your store, and the customer pays with a Stellar wallet or SEP-7 QR. An AI agent can pay the same charge over HTTP 402 (x402).",
-      "Today the product runs on Stellar testnet. The default path is classic multi-op payments in one transaction—not a Soroban contract per charge.",
-      "Site: https://viapay.vercel.app · Dashboard: :3000 · API: :3001 · Docs: :3003/docs · Checkout: :3004.",
+      "Day-to-day demo on testnet. On-chain settlement uses the Soroban payment-router contract (pay() on SEP-41 SAC): up to three legs + Paid event. Mainnet is live for evidence (CA4FJAYS…); the panel can create mainnet charges when the API has PAYMENT_ROUTER_CONTRACT_ID_MAINNET.",
+      "Single site: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, panel `/app`, checkout `/pay/[id]`, legal `/privacy` `/terms` `/data-deletion`). Local: panel+landing `:3000`. API `:3001`.",
     ],
     bullets: [
       "Non-custodial: ViaPay never holds the payer’s secret key.",
       "Checkout shows total only; fee breakdown lives in the dashboard and API.",
-      "Deferred work (email, ecommerce embed, Woo/Shopify plugins) is intentionally out of scope here—see docs/FUTURO.md.",
+      "Legal: privacy policy, terms of service, and data-deletion instructions (Meta / WhatsApp).",
+      "Invoices: contacts + WhatsApp (NL) + Resend email. Deferred: HSM/SMS, embed, plugins — docs/FUTURO.md.",
     ],
   },
   {
@@ -323,12 +325,12 @@ export const DOC_CHAPTERS_EN: DocChapter[] = [
     lead: "One on-chain payment splits to merchant, ViaPay, and partner (e.g. Hubby).",
     paragraphs: [
       "Pass reseller_fee_bps and reseller_address when creating the intent. No second charge or separate batch.",
-      "$20 course with 7% partner: ~0.20 ViaPay + ~1.40 partner + ~18.40 creator—three payment ops, one tx on testnet.",
+      "$20 course with 7% partner: ~0.20 ViaPay + ~1.40 partner + ~18.40 creator. On-chain the same split runs through payment-router (one Soroban invoke + Paid event).",
     ],
     bullets: [
       "Payer never sees the breakdown in checkout (total only).",
       "Dashboard and API expose fee, reseller, and net.",
-      "Same account as merchant + partner still emits two validated legs.",
+      "Submit rejects any XDR that is not the router invoke with the expected legs.",
     ],
   },
   {
@@ -393,25 +395,25 @@ export const DOC_CHAPTERS_EN: DocChapter[] = [
     id: "sdk",
     title: "JavaScript SDK",
     group: "integrate",
-    lead: "Package @viapay/sdk: createCheckout, verifyWebhook, and x402 helpers.",
+    lead: "Package @viapay/sdk: createPaymentLink, createCheckout, verifyWebhook, and x402 helpers.",
     paragraphs: [
-      "Construct ViaPay with apiKey and baseUrl. createCheckout wraps payment-intent creation and returns url, id, and secret.",
+      "Construct ViaPay with apiKey (secret sk_…) and baseUrl. createPaymentLink creates a one-off charge with externalUserId and returns url (/pay/…), id, and secret. createCheckout is the snake_case equivalent.",
       "Agents: parseX402Challenge on the 402 JSON, encodePaymentHeader with signed_xdr.",
     ],
     code: "sdk",
   },
   {
     id: "testnet",
-    title: "Testnet and readiness",
+    title: "Networks and readiness",
     group: "integrate",
-    lead: "Before a demo, confirm wallets and assets are ready on testnet.",
+    lead: "Demo on testnet; mainnet for evidence and opt-in charges.",
     paragraphs: [
-      "Testnet USDC (Circle): GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5. Default treasury: VIAPAY_TREASURY_ADDRESS.",
-      "GET /v1/readiness reports Friendbot, merchant SEP-7 trustline, USDC faucet, fee_bps, and pending resellers (or ?reseller=G…).",
-      "Local API may still use SQLite even if Supabase schema exists; wiring service-role → Postgres is separate (docs/MEMORY.md).",
+      "Testnet USDC (Circle): GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5. Mainnet USDC: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN. Treasury: VIAPAY_TREASURY_ADDRESS.",
+      "payment-router testnet CDI6XC5Q… · mainnet CA4FJAYS… (same wasm 2ef55539…). GET /v1/health → networks + seps.",
+      "GET /v1/readiness reports Friendbot, trustline, fee_bps, and resellers. Each charge chooses network (testnet|mainnet).",
     ],
     bullets: [
-      "Wallets: Freighter, Lobstr, xBull, embedded Pollar if NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY is set.",
+      "Wallets: Freighter, Lobstr, xBull (charge network).",
       "Product priority: docs/AHORA.md. Deferred: docs/FUTURO.md.",
     ],
   },
@@ -425,13 +427,14 @@ export const DOC_CHAPTERS_PT: DocChapter[] = [
     lead: "Cobranças non-custodial na Stellar: o pagador assina e o dinheiro chega na hora às wallets do comércio (e do parceiro, se houver split). Sem custodiar chaves nem fundos.",
     paragraphs: [
       "ViaPay é um checkout hospedado mais uma API. Você cria um payment intent, compartilha o link ou redireciona da sua loja, e o cliente paga com wallet Stellar ou QR SEP-7. Um agente de IA pode pagar a mesma cobrança via HTTP 402 (x402).",
-      "Hoje o produto roda na testnet Stellar. O caminho padrão é clássico (várias ops de pagamento numa só tx), não um contrato Soroban por cobrança.",
-      "Site: https://viapay.vercel.app · Painel: :3000 · API: :3001 · Docs: :3003/docs · Checkout: :3004.",
+      "Demo diária na testnet. A liquidação on-chain vai pelo contrato Soroban payment-router (pay() sobre SAC SEP-41): até três pernas + evento Paid. Mainnet vivo para evidência (CA4FJAYS…); o painel pode criar cobranças mainnet quando a API tem PAYMENT_ROUTER_CONTRACT_ID_MAINNET.",
+      "Site único: https://viapay.vercel.app (landing `/`, docs `/docs`, login `/login`, painel `/app`, checkout `/pay/[id]`, legal `/privacy` `/terms` `/data-deletion`). Local: painel+landing `:3000`. API `:3001`.",
     ],
     bullets: [
       "Sem custódia: a ViaPay não guarda a chave do pagador.",
       "No checkout o pagador vê só o total; o detalhe fica no painel e na API.",
-      "O diferido (email, embed ecommerce, plugins Woo/Shopify) fica de fora de propósito—ver docs/FUTURO.md.",
+      "Legal: privacidade, termos e eliminação de dados (Meta / WhatsApp).",
+      "Invoices: contatos + WhatsApp (NL) + email Resend. Diferido: HSM/SMS, embed, plugins — docs/FUTURO.md.",
     ],
   },
   {
@@ -526,12 +529,12 @@ export const DOC_CHAPTERS_PT: DocChapter[] = [
     lead: "Um único pagamento on-chain reparte para comércio, ViaPay e parceiro (ex. Hubby).",
     paragraphs: [
       "Passe reseller_fee_bps e reseller_address ao criar o intent. Não precisa de segunda cobrança.",
-      "Curso $20 com parceiro 7%: ~0,20 ViaPay + ~1,40 parceiro + ~18,40 criador—três ops numa tx na testnet.",
+      "Curso $20 com parceiro 7%: ~0,20 ViaPay + ~1,40 parceiro + ~18,40 criador. On-chain o mesmo split passa pelo payment-router (uma invocação Soroban + evento Paid).",
     ],
     bullets: [
       "O pagador não vê o detalhe no checkout (só o total).",
       "Painel e API mostram fee, reseller e líquido.",
-      "Mesma conta comércio + parceiro ainda gera duas pernas validadas.",
+      "O submit rejeita qualquer XDR que não seja a invocação do router com as pernas esperadas.",
     ],
   },
   {
@@ -596,25 +599,25 @@ export const DOC_CHAPTERS_PT: DocChapter[] = [
     id: "sdk",
     title: "SDK JavaScript",
     group: "integrate",
-    lead: "Pacote @viapay/sdk: createCheckout, verifyWebhook e helpers x402.",
+    lead: "Pacote @viapay/sdk: createPaymentLink, createCheckout, verifyWebhook e helpers x402.",
     paragraphs: [
-      "Instancie ViaPay com apiKey e baseUrl. createCheckout encapsula o POST e devolve url, id e secret.",
+      "Instancie ViaPay com apiKey (secreta sk_…) e baseUrl. createPaymentLink cria uma cobrança única com externalUserId e devolve url (/pay/…), id e secret. createCheckout é o equivalente snake_case.",
       "Agentes: parseX402Challenge no JSON do 402; encodePaymentHeader com signed_xdr.",
     ],
     code: "sdk",
   },
   {
     id: "testnet",
-    title: "Testnet e readiness",
+    title: "Redes e readiness",
     group: "integrate",
-    lead: "Antes da demo, confirme wallets e assets na testnet.",
+    lead: "Demo na testnet; mainnet para evidência e cobranças opt-in.",
     paragraphs: [
-      "USDC testnet (Circle): GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5. Tesouraria: VIAPAY_TREASURY_ADDRESS.",
-      "GET /v1/readiness reporta Friendbot, trustline SEP-7, faucet USDC, fee_bps e resellers.",
-      "A API local pode continuar em SQLite mesmo com schema no Supabase (docs/MEMORY.md).",
+      "USDC testnet (Circle): GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5. Mainnet USDC: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN. Tesouraria: VIAPAY_TREASURY_ADDRESS.",
+      "payment-router testnet CDI6XC5Q… · mainnet CA4FJAYS… (mesmo wasm 2ef55539…). GET /v1/health → networks + seps.",
+      "GET /v1/readiness reporta Friendbot, trustline, fee_bps e resellers. Cada cobrança escolhe network (testnet|mainnet).",
     ],
     bullets: [
-      "Wallets: Freighter, Lobstr, xBull, Pollar se houver NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY.",
+      "Wallets: Freighter, Lobstr, xBull (rede da cobrança).",
       "Prioridade: docs/AHORA.md. Diferido: docs/FUTURO.md.",
     ],
   },

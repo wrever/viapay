@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { CheckoutLocaleProvider } from "@/lib/checkout/i18n";
-import { PollarShell } from "@/components/checkout/PollarShell";
 import "../checkout.css";
 
 export const metadata: Metadata = {
@@ -11,9 +10,7 @@ export const metadata: Metadata = {
 export default function PayLayout({ children }: { children: React.ReactNode }) {
   return (
     <CheckoutLocaleProvider>
-      <PollarShell>
-        <div className="checkout-page">{children}</div>
-      </PollarShell>
+      <div className="checkout-page">{children}</div>
     </CheckoutLocaleProvider>
   );
 }

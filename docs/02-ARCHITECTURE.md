@@ -14,6 +14,6 @@
 - **Dos puertas, un `payment_intent`:** checkout hosted para personas (Stellar Wallets Kit o QR SEP-7 `tx` con `replace=sourceAccount` + callback, nunca `pay`, que no parte el fee) y `GET/POST /v1/x402/:id` para agentes (402 con los requisitos, liquidación con el header `X-PAYMENT`). Las dos llaman al mismo `prepare` / `submit`.
 - **Verificación:** el XDR firmado se desarma y se consume una operación por pata esperada antes de tocar Horizon. Además, al cargar el checkout o el dashboard se buscan txs recientes del comercio cuyo memo sea el id del cobro y cuyas patas coincidan, así que el callback SEP-7 no es el único camino.
 - **Webhooks:** `payment_intent.succeeded` firmado con `ViaPay-Signature`. OAuth Supabase opcional.
-- **Soroban:** `contracts/payment-router` hace el mismo reparto de 3 patas on-chain y está desplegado en testnet, pero el checkout no lo invoca.
+- **Soroban:** `contracts/payment-router` hace el reparto de 3 patas on-chain. En onchain con `PAYMENT_ROUTER_CONTRACT_ID`, checkout `prepare`/`submit` lo invocan (path vivo en testnet). Mainnet vía `PAYMENT_ROUTER_CONTRACT_ID_MAINNET` cuando hay deploy.
 
 El detalle vivo y honesto está en `docs/MEMORY.md`. El paquete de demo, en `docs/HACKATHON.md`.

@@ -12,9 +12,50 @@ export const STELLAR_PUBKEY_RE = /^G[A-Z2-7]{55}$/;
 export type AssetCode = "XLM" | "USDC";
 export type PaymentIntentStatus =
   | "requires_payment"
+  | "partially_paid"
   | "succeeded"
   | "canceled"
   | "expired";
+
+export {
+  appendAbono,
+  assertAbonoAmount,
+  emptyAbonosLedger,
+  readAbonos,
+  remainingAmount,
+  remainingAtomic,
+  type AbonoPay,
+  type AbonosLedger,
+} from "./abonos";
+
+export {
+  defaultLinkSigExpiresUnix,
+  generateLinkSigNonce,
+  linkSigMessage,
+  linkSigMessageV1,
+  linkSigMessageV2,
+  readLinkSigMeta,
+  type LinkSigMetaV2,
+  type LinkSigV1Payload,
+  type LinkSigV2Payload,
+} from "./link-sig";
+
+export {
+  PLAN_INSTALLMENTS_MAX,
+  PLAN_INSTALLMENTS_MIN,
+  assertInstallmentCount,
+  buildMonthlyDueDates,
+  isPlanChild,
+  isPlanParent,
+  planFullyPaid,
+  readPlan,
+  splitInstallmentAmounts,
+  summarizePlan,
+  type ChildStatusMap,
+  type PlanMeta,
+  type PlanScheduleEntry,
+  type PlanSummary,
+} from "./plan";
 
 export function generatePrefixedId(prefix: string): string {
   const bytes = crypto.getRandomValues(new Uint8Array(12));

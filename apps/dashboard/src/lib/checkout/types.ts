@@ -8,6 +8,25 @@ export type CheckoutIntent = {
   id: string;
   status: string;
   amount: string;
+  amount_remaining?: string;
+  amount_paid?: string;
+  abonos_enabled?: boolean;
+  plan_enabled?: boolean;
+  plan_summary?: {
+    kind: "installments";
+    role: "parent" | "child";
+    installment_count: number;
+    installment_index: number | null;
+    status: string;
+    paid_count: number;
+    overdue_count: number;
+    next_due_at: string | null;
+    next_child_id: string | null;
+    next_pay_url?: string | null;
+    parent_id: string | null;
+  } | null;
+  link_verified?: boolean | null;
+  link_sig_status?: "verified" | "invalid" | "expired" | null;
   fee_amount: string;
   net_amount: string;
   fee_bps?: number;
@@ -16,6 +35,8 @@ export type CheckoutIntent = {
   reseller_amount?: string;
   reseller_address?: string | null;
   asset: AssetCode;
+  /** Settles only on this Stellar network (from payment_intent). */
+  network?: "testnet" | "mainnet" | "local" | string;
   description: string | null;
   client_secret: string;
   success_url: string | null;

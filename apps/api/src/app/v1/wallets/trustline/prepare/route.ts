@@ -5,10 +5,11 @@ import {
   type Network,
 } from "@viapay/stellar";
 import { jsonError, jsonOk, requireAuth } from "@/lib/http";
-import { stellarNetwork, usdcIssuer } from "@/lib/chain";
+import { parseNetwork, stellarNetwork, usdcIssuer } from "@/lib/chain";
 
 const schema = z.object({
   asset: z.enum(["USDC"]).default("USDC"),
+  network: z.enum(["testnet", "mainnet", "local"]).optional(),
 });
 
 /** Build unsigned changeTrust XDR for the merchant wallet (Freighter / Wallets Kit). */
@@ -16,7 +17,9 @@ export async function POST(req: Request) {
   try {
     const auth = await requireAuth(req);
     const body = schema.parse(await req.json().catch(() => ({})));
-    const network = stellarNetwork();
+    const network: Network = body.network
+      ? parseNetwork(body.network)
+      : stellarNetwork();
     const source = auth.merchantWallet;
     if (!source) {
       throw Object.assign(
@@ -28,7 +31,7 @@ export async function POST(req: Request) {
       network,
       source,
       asset: body.asset,
-      assetIssuer: usdcIssuer(),
+      assetIssuer: usdcIssuer(network),
     });
     return jsonOk({
       xdr: prepared.xdr,
@@ -37,7 +40,7 @@ export async function POST(req: Request) {
       asset: prepared.asset,
       source,
       network,
-      assets: predefinedCreditAssets(network as Network),
+      assets: predefinedCreditAssets(network),
     });
   } catch (e) {
     return jsonError(e);

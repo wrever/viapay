@@ -1,4 +1,4 @@
-import { parseAssetAmount } from "@viapay/shared";
+import { parseAssetAmount, readPlan, isPlanChild } from "@viapay/shared";
 
 export type InvoiceMeta = {
   contact_id?: string;
@@ -19,6 +19,8 @@ export type DashboardPayment = {
   reseller_amount?: string;
   reseller_address?: string | null;
   asset: string;
+  /** Stellar network this charge settles on. */
+  network?: "testnet" | "mainnet" | "local" | string;
   description: string | null;
   external_user_id?: string | null;
   metadata?: { invoice?: InvoiceMeta } | null;
@@ -101,6 +103,12 @@ export function computePaymentStats(
   const byAsset = new Map<string, AssetTotals>();
 
   for (const p of payments) {
+    // Avoid double-counting installment plans (parent total + each cuota).
+    const plan = readPlan(
+      (p.metadata as Record<string, unknown> | null | undefined) ?? null,
+    );
+    if (plan && isPlanChild(plan)) continue;
+
     let amount = 0n;
     let net = 0n;
     let fee = 0n;
@@ -115,7 +123,10 @@ export function computePaymentStats(
     if (p.status === "succeeded") {
       succeeded += 1;
       addToMap(byAsset, p.asset, { gross: amount, net, fees: fee });
-    } else if (p.status === "requires_payment") {
+    } else if (
+      p.status === "requires_payment" ||
+      p.status === "partially_paid"
+    ) {
       pending += 1;
       addToMap(byAsset, p.asset, { pendingGross: amount });
     } else if (p.status === "canceled" || p.status === "expired") {
@@ -124,7 +135,12 @@ export function computePaymentStats(
   }
 
   return {
-    total: payments.length,
+    total: payments.filter((p) => {
+      const plan = readPlan(
+        (p.metadata as Record<string, unknown> | null | undefined) ?? null,
+      );
+      return !(plan && isPlanChild(plan));
+    }).length,
     succeeded,
     pending,
     canceledOrExpired,

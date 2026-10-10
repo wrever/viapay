@@ -1,32 +1,29 @@
-# Pitch kill — única pasarela completa
+# Pitch kill — settlement rail, not another niche app
 
-Actualizado: 2026-10-07. Repetir hasta el cansancio. No somos un protocolo.
+Actualizado: 2026-10-09. Repetir hasta el cansancio. **No** somos solo un checkout UI.
 
 ## Tesis (15 s)
 
-> Local402 y Honorarios son **aplicaciones de nicho** (FX de un request / reserva fiscal).  
-> ViaPay es la **pasarela de cobro completa** en Stellar: panel → un link → humano o agente → split en contrato → hash → historial.
+> ViaPay es **infraestructura de settlement** en Stellar: `payment_intent` + `payment-router`, **proof-or-nothing** (anti-comprobante), **exact-split**, **rail-parity** (humano ≡ agente ≡ cadena).  
+> Local402 nombró FX; nosotros atacamos el JPG falso y la paridad del riel. El panel/`/pay` son consumers.
 
-De punta a cabo. Eso es lo que el ecosistema e-commerce / marketplace / agente **necesita** para cobrar.
+De punta a cabo y **demostrable** (`pnpm verify`, `/evidence`, `/v1/rails`).
 
-## Tabla de una slide
+## Tabla de una slide (riel)
 
-| | Local402 | Honorarios | **ViaPay** |
-|---|---|---|---|
-| Qué vende | Precio local + x402 FX | Tax split freelance | **Checkout comercio** |
-| Panel crear cobro | No | No (recibo fiscal) | **Sí** |
-| Link pagable humano | No foco | Demo walletless fiscal | **Sí `/pay`** |
-| Mismo link → agente 402 | Sí (su esquema) | No | **Sí (unificado)** |
-| Cobro desde WhatsApp (comercio) | No | No | **Sí (bot + panel)** |
-| Split marketplace (reseller) | No | No | **Sí (3 patas)** |
-| SDK + webhooks + redirect shop | No | No | **Sí** |
-| Contrato verifica el pago | Su FxPay | Su tax contract | **payment-router** |
+| Superficie | Qué prueba |
+|---|---|
+| `payment_intent` + un URL | Humano **o** agente (402) |
+| Soroban `pay()` + `Paid` | Split atómico on-chain (hasta 3 patas) |
+| `GET /v1/verify` · `pnpm verify` | Cualquiera re-chequea sin API key |
+| `/evidence` · `/v1/rails` · MCP | Empaque estilo top (Habeas / Proved / Local402 ideas) |
+| Panel + WA + shop redirect | Consumers reales del mismo riel |
 
 ## Frases de cierre (elegir 2)
 
-1. “Ellos resuelven un problema fino. Nosotros cobramos el negocio.”  
-2. “Si Setareh / Vitrinee / un agente necesitan **cobrar**, usan ViaPay — no un oracle ni un carnê-leão.”  
-3. “No somos más Local402. Somos la caja registradora.”
+1. “No vendemos un workflow vertical. Vendemos el settle.”  
+2. “Si un marketplace o un agente necesita **cobrar con split**, usa el riel — no un oracle ni un carnê-leão.”  
+3. “Verify sin confiar en nuestra DB: eso es infraestructura.”
 
 ## Stellar en tiempo récord (solo lo que mata, no features nuevas)
 
@@ -34,23 +31,24 @@ Orden de impacto vs esfuerzo. **No** clonar Reflector ni tax.
 
 | # | Qué | Por qué parte el campo | Tiempo |
 |---|---|---|---|
-| 1 | **1–2 txs mainnet** router + hash en evidence | Iguala “estamos en mainnet” de Local402/Honorarios | Ops (vos) |
-| 2 | **SEP-55** verified build del wasm | Honorarios lo luce; vos lo igualás | CI + Lab |
-| 3 | **Video 90s** con tabla de arriba | El jurado recuerda el contraste | 1 ensayo |
-| 4 | **SEP-1 toml** + health `payment_router` en demo | Identidad Stellar “seria” en 5 s | Ya vivo — mostrar |
-| 5 | **SEP-41 SAC** en el pitch (“token Circle / nativo vía SAC”) | Hablar el idioma del jurado Soroban | Copy |
-| 6 | **Evento `Paid` del contrato** en stellar.expert (si se ve) | Prueba que el contrato emitió, no solo “hubo una tx” | Al pagar |
-| 7 | **SEP-10/24** 10 s en Integración | “Ancla al mundo fiat” sin prometer offramp real | Ya demo |
-| 8 | Rates CLP en UI (CoinGecko) | “El comercio piensa en pesos” sin mentir oracle Reflector | Ya vivo — decirlo |
+| 1 | **1–2 txs mainnet** router + hash en evidence | ~~Pendiente~~ → **HECHO** `CA4FJAYS…` + pay `b28aafbd…` (Paid) · falta env Vercel para cobros panel | Hecho 2026-10-09 |
+| 2 | **Public verify + rails + /evidence** | Empaque Local402/Proved/Habeas | Código listo · **deploy prod** |
+| 3 | **SEP-55** verified build del wasm | Iguala el bar de “verified” | CI + Lab ops |
+| 4 | **Video 90s** riel + verify | El jurado recuerda settle demostrable | 1 ensayo |
+| 5 | **SEP-1 toml** + health `evidence` | Identidad Stellar en 5 s | Ya vivo — mostrar |
+| 6 | **SEP-41 SAC** en el pitch | Idioma Soroban | Copy |
+| 7 | **Evento `Paid`** en stellar.expert | Contrato emitió, no solo “hubo tx” | Al pagar |
+| 8 | **SEP-10/24** 10 s en Integración | Fiat path sin mentir offramp | Ya demo |
 
 ### Explicitamente NO en récord
 
-exact-fx · Reflector · @username · passkeys nuevas · KYC · plugins Shopify · clonar allowance.
+exact-fx · Reflector · @username · passkeys nuevas · KYC · plugins Shopify · clonar allowance / ZK tax.
 
-## Guión 90 s (versión “pasarela”)
+## Guión 90 s (versión “riel”)
 
-1. “No somos un protocolo. Somos el checkout.”  
-2. Crear cobro + reseller → un link.  
-3. Pagar Freighter → recibo 3 patas → hash.  
+1. “Somos settlement infrastructure: un payment_intent, un URL.”  
+2. Crear cobro (+ reseller) → link.  
+3. Pagar Freighter → recibo + hash + `Paid`.  
 4. Mismo link `curl` → 402.  
-5. “Local402 = FX del request. Honorarios = tax del freelance. ViaPay = pasarela completa.”
+5. `pnpm verify` / `/evidence` → `verified: true` sin API key.  
+6. “Eso es el riel. El panel es un consumer.”

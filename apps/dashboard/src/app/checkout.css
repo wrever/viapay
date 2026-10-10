@@ -351,6 +351,14 @@
   font-weight: 700;
 }
 
+.checkout-page a.pay-chip {
+  text-decoration: none;
+}
+
+.checkout-page a.pay-chip:hover {
+  filter: brightness(1.05);
+}
+
 .checkout-page .pay-notice {
   border-radius: var(--r-md);
   border: 1px solid color-mix(in srgb, var(--warning) 38%, transparent);

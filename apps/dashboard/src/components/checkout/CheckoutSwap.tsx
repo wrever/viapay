@@ -89,6 +89,7 @@ export function CheckoutSwap({
           asset_in: assetIn,
           asset_out: assetOut,
           amount: amount.trim().replace(",", "."),
+          network: kitNetwork,
         }),
       });
       const body = await res.json();
@@ -118,6 +119,7 @@ export function CheckoutSwap({
           quote: quote.quote,
           from: address,
           to: address,
+          network: kitNetwork,
         }),
       });
       const built = await buildRes.json();
@@ -131,7 +133,7 @@ export function CheckoutSwap({
       const sendRes = await fetch(`${API}/v1/swap/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ xdr: signedXdr }),
+        body: JSON.stringify({ xdr: signedXdr, network: kitNetwork }),
       });
       const sent = await sendRes.json();
       if (!sendRes.ok) throw new Error(sent.error ?? t.swapSendFail);

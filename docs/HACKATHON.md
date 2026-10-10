@@ -1,8 +1,10 @@
 # ViaPay — paquete para jurado
 
-**Un cobro en Stellar que puede pagar una persona en un checkout o un agente IA por HTTP 402, con el reparto a tres patas dentro de la misma transacción.**
+**Settlement rail:** un `payment_intent` lo paga una persona (checkout) o un agente (HTTP 402), con reparto hasta tres patas en Soroban `payment-router` (`pay` + `Paid`).
 
-Todo lo de abajo corre en testnet y se puede verificar en Horizon. Lo que no está conectado está marcado como tal.
+**Auditar sin confiar en nosotros:** [`VERIFY.md`](./VERIFY.md) (curls + expect). UI: https://viapay.vercel.app/evidence · CLI: `pnpm verify`.
+
+Demos de producto día a día: **testnet**. Evidencia on-chain **mainnet** viva (fila #7). Lo no conectado está marcado.
 
 ---
 
@@ -37,12 +39,11 @@ La matemática está en `calcFeeSplit` (`packages/shared`): unidades atómicas e
 
 ## Cómo usa Stellar
 
-- **Pagos clásicos multi-operación.** Una transacción con 2 o 3 `payment` ops y el id del cobro en el memo. `payoutLegs` arma las patas y descarta las de monto cero.
-- **Verificación server-side antes de Horizon.** `assertSplitXdr` desarma el XDR firmado y consume una operación por pata esperada; si falta una o el monto no cuadra, se rechaza. Un cliente no puede firmar una versión con menos fee.
-- **SEP-7 `web+stellar:tx`** con `replace=sourceAccount` para el QR, con callback a la API. No usamos `web+stellar:pay`, que mandaría el 100% al comercio y rompería el reparto.
-- **Trustlines SEP-41/SAC.** Con USDC, si al pagador le falta la trustline, el mismo XDR incluye el `changeTrust`. Y como la comisión del revendedor va en la misma transacción, el comercio **y** la tesorería **y** el revendedor tienen que poder recibir: el dashboard lo comprueba y avisa antes de dejar cobrar.
-- **Reconciliación.** Horizon no indexa memos, así que al abrir el checkout o el dashboard se revisan las últimas 40 transacciones del comercio y se marca `succeeded` solo si el memo y las tres patas coinciden.
-- **Cómo usa Stellar / Soroban.** `contracts/payment-router` hace el mismo reparto de tres patas on-chain sobre un token SEP-41. Desplegado en testnet. Con `PAYMENT_ROUTER_CONTRACT_ID`, `prepare`/`submit` lo invocan; sin esa env, path clásico multi-op. SEP-7 sigue clásico.
+- **Path canónico: Soroban `payment-router`.** `pay(token, payer, merchant, treasury, reseller?, net, fee, reseller_fee, intent_id)` sobre SAC SEP-41. Hasta tres patas + evento `Paid`. Testnet `CDI6XC5Q…` · mainnet `CA4FJAYS…` (mismo wasm `2ef55539…`). `prepare` arma la invoke; `assertRouterPayXdr` valida contrato + patas + `intent_id` antes del RPC.
+- **Verificación server-side.** Con router, un XDR que no sea esa invoke se rechaza. Path clásico multi-op (`assertSplitXdr`) solo si `STELLAR_MODE=simulated` sin contract id.
+- **SEP-7.** Con router onchain el QR clásico se desactiva (Freighter = path canónico). Sin router, SEP-7 `web+stellar:tx` con `replace=sourceAccount` (nunca `web+stellar:pay`, que rompería el split).
+- **Trustlines SEP-41/SAC.** USDC exige trustline en comercio, tesorería y revendedor; el dashboard avisa antes de cobrar.
+- **Reconciliación.** Cobros router quedan `succeeded` vía `submit`. Horizon por memo (últimas 40 txs) sigue siendo fallback del path clásico.
 
 ## x402, sin facilitator
 
@@ -73,7 +74,7 @@ La matemática está en `calcFeeSplit` (`packages/shared`): unidades atómicas e
 
 El agente pide el XDR a `prepare`, lo firma local y hace `POST /v1/x402/:id` con `X-PAYMENT` (base64 JSON). La respuesta 200 lleva `X-PAYMENT-RESPONSE` con el hash.
 
-**Decisión consciente:** no hay facilitator. El pagador firma un envelope completo de Stellar, no auth entries de un contrato, porque el reparto de hoy es clásico. Eso mantiene el esquema `exact` honesto: el monto que ves en `accepts[0]` es exactamente lo que se mueve.
+**Decisión consciente:** no hay facilitator. El agente firma el mismo envelope Soroban (`pay`) que el humano en checkout. El esquema `exact` sigue honesto: `accepts[0].maxAmountRequired` es el total que se mueve; el split vive en `extra.payouts` y en el contrato.
 
 ## Demo de 90 segundos
 
@@ -81,10 +82,10 @@ El agente pide el XDR a `prepare`, lo firma local y hace `POST /v1/x402/:id` con
 pnpm install && pnpm db:seed && pnpm dev
 ```
 
-1. **(0:00)** Landing en `:3003`. Una frase: un cobro, lo paga una persona o su agente. Scroll hasta el reparto: el recibo y el diagrama de tres patas.
-2. **(0:20)** Dashboard en `:3000` → *Continuar en local*. Monto `100`, asset `USDC`, marcar **Reparte una comisión con un revendedor**, `3%` y la wallet del partner. El preview muestra en vivo: ViaPay 1,00 · revendedor 3,00 · tú recibes 96,00. Crear link.
-3. **(0:40)** Abrir el link: checkout en `:3004`. El recibo desglosa las tres patas y el total que se firma. Conectar wallet, firmar. Una sola firma.
-4. **(1:00)** Vuelta al dashboard: el cobro pasa a **Pagado** con el hash. Abrirlo en stellar.expert: **tres** operaciones de pago en **una** transacción.
+1. **(0:00)** Landing en https://viapay.vercel.app (o `:3000` local). Una frase: un cobro, lo paga una persona o su agente.
+2. **(0:20)** Panel `/app` → Cobros. Monto + revendedor → crear → copiar **un** link. Chip “Soroban router”.
+3. **(0:40)** Abrir el link `/pay/…`. Freighter → firmar. Recibo de patas + link stellar.expert (invoke `pay` + evento `Paid`).
+4. **(1:00)** Historial: **Pagado** + hash. Opcional: Integración → matriz SEPs + contrato mainnet evidencia.
 5. **(1:15)** El mismo cobro, pero para un agente:
 
    ```bash
@@ -92,13 +93,22 @@ pnpm install && pnpm db:seed && pnpm dev
      node examples/agent-pay.mjs
    ```
 
-   Imprime el 402 con el desglose, firma, liquida con `X-PAYMENT` y devuelve el hash. Cero intervención humana.
+   Imprime el 402 con el desglose, firma el mismo `pay` del router, liquida con `X-PAYMENT`. Cero intervención humana.
 
-## Evidencia on-chain (testnet)
+## Evidencia on-chain
 
-**Pago de un agente vía x402, 100 XLM con revendedor al 3%:**
+**Mainnet (2026-10-09)** — deploy + pay con evento `Paid`:
 
-tx `9046dc9b3d107f1eb069c86b8d34252c667cd07f2ef13c7ac04ea1303caa3b0d`
+| | |
+|---|---|
+| contract | `CA4FJAYS6WBH2JWGLIOT4PBV3FDCPWUYMPDRY2SKD5UYJYRGGZP7LQ2U` |
+| deploy | [`058c3502…`](https://stellar.expert/explorer/public/tx/058c3502c840ae6d70edd4f8a00ffa301ab9537fa0b8a1f879a05b8f22b6f1b6) |
+| pay | [`b28aafbd…`](https://stellar.expert/explorer/public/tx/b28aafbdce81e0b01e9cb3d2e3d0c037d3f5742a4d7a1b557612d6e12028380e) · 0.099 + 0.001 XLM |
+| wasm | `2ef55539…` (= testnet) |
+
+**Testnet** — split clásico histórico (agente x402, 100 XLM, 96/1/3) + deploy router:
+
+tx clásico `9046dc9b3d107f1eb069c86b8d34252c667cd07f2ef13c7ac04ea1303caa3b0d` (path actual = **router**)
 
 | Operación | Monto | Destino | Rol |
 |---|---|---|---|
@@ -106,9 +116,7 @@ tx `9046dc9b3d107f1eb069c86b8d34252c667cd07f2ef13c7ac04ea1303caa3b0d`
 | payment | `1.0000000` | `GDIN7HCR4PKKWS6MO57N7NF7VLGPO27GUQDR64TIK3CYRMPBCKUQDCT5` | tesorería ViaPay (1%) |
 | payment | `3.0000000` | `GCKAC7MNMVWK5HISZDCY7QJQ6ICSPQJ6PSX3NJCSLJBQLC5QXJNCYLNP` | revendedor (3%) |
 
-<https://stellar.expert/explorer/testnet/tx/9046dc9b3d107f1eb069c86b8d34252c667cd07f2ef13c7ac04ea1303caa3b0d>
-
-**Contrato Soroban `payment-router` (reparto de 3 patas):**
+**Contrato Soroban `payment-router` (testnet):**
 
 | | |
 |---|---|
@@ -127,11 +135,11 @@ stellar contract info interface \
 
 Dicho sin maquillaje, porque un jurado lo va a preguntar:
 
-- **Soroban payment-router.** Desplegado y, con `PAYMENT_ROUTER_CONTRACT_ID`, el checkout `prepare`/`submit` lo invoca. SEP-7 QR y reconcile Horizon siguen en path clásico.
+- **SEP-55 Lab registration** pendiente (CI + attest ya en GitHub Actions).
 - **No hay facilitator x402.** ViaPay liquida por su cuenta.
-- **Anchor SEP-24, escrow de Trustless Work y wallet embebida Pollar**: el código existe y se activa por env, pero sin credenciales no hacen nada. No están vivos.
-- **Es testnet.** No hay fondos reales, ni KYC, ni límites, ni auditoría.
-- **La reconciliación es un escaneo**, no un índice: 40 transacciones recientes del comercio. Suficiente para una demo, no para volumen.
+- **Anchor SEP-24** = demo SDF Test Anchor (fiat simulado). Escrow Trustless Work / Pollar: código listo, sin credenciales productivas.
+- **Demo día a día en testnet**; mainnet vivo para evidencia (cobros panel mainnet cuando `PAYMENT_ROUTER_CONTRACT_ID_MAINNET` está en la API). Sin KYC, sin audit.
+- **Reconcile Horizon por memo** es escaneo (40 txs), no índice — solo path clásico; router usa submit.
 
 ## Dónde mirar el código
 

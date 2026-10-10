@@ -23,6 +23,7 @@ import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
 import { SwapPanel } from "@/components/SwapPanel";
 import { TrustlineGateModal } from "@/components/TrustlineGateModal";
 import { WalletGateModal } from "@/components/WalletGateModal";
+import { WebhooksSection } from "@/components/WebhooksSection";
 import { Button } from "@/components/ui/button";
 import type { DashboardPayment } from "@/lib/payment-types";
 import type { Readiness } from "@/lib/readiness";
@@ -358,6 +359,7 @@ export function DashboardHome({
                   apiKey={apiKey}
                   feeBps={feeBps}
                   hasWallet={hasWallet}
+                  merchantWallet={merchantWallet}
                   merchantUsdcReady={merchantUsdcReady}
                   onNeedWallet={() => go(WALLET_REQUIRED_SECTION)}
                   onNeedUsdcTrustline={() => setTrustlineGateOpen(true)}
@@ -423,20 +425,25 @@ export function DashboardHome({
                   <h2 className="panel-title">{t.noticesTitle}</h2>
                   <p>{t.noticesDesc}</p>
                 </div>
-                <div className="panel__body grid gap-3">
-                  <p className="text-sm text-[var(--text-2)]">{t.noticesPoll}</p>
-                  <code className="perf text-xs block break-all">
-                    GET /v1/payment_intents/:id
-                  </code>
-                  <p className="text-sm text-[var(--text-2)]">
-                    {t.noticesPollList}
-                  </p>
-                  <code className="perf text-xs block break-all">
-                    GET /v1/payment_intents
-                  </code>
-                  <p className="text-sm text-[var(--text-2)]">
-                    {t.noticesNoWebhook}
-                  </p>
+                <div className="panel__body grid gap-6">
+                  <WebhooksSection apiKey={apiKey} />
+                  <div className="grid gap-3">
+                    <h3 className="text-sm font-medium text-[var(--text)]">
+                      {t.noticesPollTitle}
+                    </h3>
+                    <p className="text-sm text-[var(--text-2)]">
+                      {t.noticesPoll}
+                    </p>
+                    <code className="perf text-xs block break-all">
+                      GET /v1/payment_intents/:id
+                    </code>
+                    <p className="text-sm text-[var(--text-2)]">
+                      {t.noticesPollList}
+                    </p>
+                    <code className="perf text-xs block break-all">
+                      GET /v1/payment_intents
+                    </code>
+                  </div>
                 </div>
               </section>
             )}

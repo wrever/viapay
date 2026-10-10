@@ -89,6 +89,41 @@ export async function findContactsByName(
   return all.filter((c) => c.display_name.toLowerCase().includes(q));
 }
 
+export async function findContactsByEmail(
+  accountId: string,
+  emailRaw: string,
+): Promise<ContactRow[]> {
+  const email = normalizeEmail(emailRaw);
+  if (!email) return [];
+  const all = await listContacts(accountId);
+  return all.filter((c) => c.email === email);
+}
+
+export async function findContactsByPhone(
+  accountId: string,
+  phoneRaw: string,
+): Promise<ContactRow[]> {
+  const phone = normalizePhone(phoneRaw);
+  if (!phone) return [];
+  const all = await listContacts(accountId);
+  return all.filter((c) => c.phone_e164 === phone);
+}
+
+export type ChargeDestination =
+  | { kind: "email"; email: string; label: string }
+  | { kind: "phone"; phone: string; label: string }
+  | { kind: "name"; query: string };
+
+/** Detect email / E.164 phone / contact name from NL destination fragment. */
+export function classifyChargeDestination(raw: string): ChargeDestination {
+  const q = raw.trim().replace(/[.?!,]+$/, "");
+  const email = normalizeEmail(q);
+  if (email) return { kind: "email", email, label: email };
+  const phone = normalizePhone(q);
+  if (phone) return { kind: "phone", phone, label: phone };
+  return { kind: "name", query: q };
+}
+
 export async function getContact(
   accountId: string,
   id: string,

@@ -8,6 +8,7 @@ const schema = z.object({
   asset_out: z.enum(["XLM", "USDC"]),
   amount: z.string().min(1).max(32),
   slippage_bps: z.number().int().min(1).max(5000).optional(),
+  network: z.enum(["testnet", "mainnet"]).optional(),
 });
 
 /** Public quote XLM↔USDC via Soroswap (SOROSWAP_API_KEY stays server-side). */
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
       assetOut: body.asset_out,
       amountHuman: body.amount,
       slippageBps: body.slippage_bps,
+      network: body.network,
     });
     return jsonOk({
       asset_in: quoted.asset_in,

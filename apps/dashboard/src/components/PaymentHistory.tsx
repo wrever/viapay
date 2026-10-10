@@ -103,6 +103,13 @@ export function PaymentHistory({
                           </span>
                         )}
                         <span className="history-table__sub perf">{p.id}</span>
+                        {p.network && (
+                          <span className="history-table__sub">
+                            {p.network === "mainnet"
+                              ? "Stellar mainnet"
+                              : `Stellar ${p.network}`}
+                          </span>
+                        )}
                         {p.reseller_address && (
                           <span className="history-table__sub">
                             {t.resellerLine(
@@ -116,7 +123,10 @@ export function PaymentHistory({
                         {p.stellar_tx_hash && (
                           <a
                             className="history-table__tx perf"
-                            href={explorerTxUrl(network, p.stellar_tx_hash)}
+                            href={explorerTxUrl(
+                              p.network ?? network,
+                              p.stellar_tx_hash,
+                            )}
                             target="_blank"
                             rel="noreferrer"
                           >

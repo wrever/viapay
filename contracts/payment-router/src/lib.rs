@@ -1,5 +1,8 @@
 #![no_std]
 
+#[cfg(test)]
+mod test;
+
 use soroban_sdk::{contract, contracterror, contractevent, contractimpl, Address, BytesN, Env, token};
 
 /// Splits a SAC (SEP-41) payment three ways: net to the merchant, ViaPay's fee to

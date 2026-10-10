@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { submitSignedXdr } from "@viapay/stellar";
 import { jsonError, jsonOk, requireAuth } from "@/lib/http";
-import { stellarNetwork } from "@/lib/chain";
+import { parseNetwork, stellarNetwork } from "@/lib/chain";
 
 const schema = z.object({
   signed_xdr: z.string().min(1),
+  network: z.enum(["testnet", "mainnet", "local"]).optional(),
 });
 
 /** Submit a Freighter-signed changeTrust for the authenticated merchant. */
@@ -18,7 +19,9 @@ export async function POST(req: Request) {
       );
     }
     const body = schema.parse(await req.json());
-    const network = stellarNetwork();
+    const network = body.network
+      ? parseNetwork(body.network)
+      : stellarNetwork();
     const result = await submitSignedXdr(network, body.signed_xdr);
     if (result.source !== auth.merchantWallet) {
       throw Object.assign(

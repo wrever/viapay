@@ -2,5 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && corepack enable && corepack pnpm install",
-  "buildCommand": "cd ../.. && corepack pnpm --filter @viapay/api build"
+  "buildCommand": "cd ../.. && corepack pnpm --filter @viapay/api build",
+  "crons": [
+    {
+      "path": "/v1/cron/plan-reminders",
+      "schedule": "0 14 * * *"
+    }
+  ]
 }

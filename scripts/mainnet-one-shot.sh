@@ -56,13 +56,25 @@ if [[ -n "${PAYMENT_ROUTER_MAINNET_ID:-}" ]]; then
   CONTRACT_ID="$PAYMENT_ROUTER_MAINNET_ID"
   echo "Using existing CONTRACT_ID=$CONTRACT_ID"
 else
-  echo "Deploying payment-router…"
-  CONTRACT_ID="$(
-    stellar contract deploy \
+  echo "Uploading wasm (mainnet needs higher --fee than CLI default)…"
+  WASM_HASH="$(
+    stellar contract upload \
       --wasm "$WASM" \
       --network mainnet \
       --source "$DEPLOY_ID" \
-      --alias viapay-payment-router-mainnet
+      --fee "${VIAPAY_MAINNET_FEE_STROOPS_TX:-50000000}" \
+      --no-cache
+  )"
+  echo "wasm_hash=$WASM_HASH"
+  echo "Deploying payment-router…"
+  CONTRACT_ID="$(
+    stellar contract deploy \
+      --wasm-hash "$WASM_HASH" \
+      --network mainnet \
+      --source "$DEPLOY_ID" \
+      --alias viapay-payment-router-mainnet \
+      --fee "${VIAPAY_MAINNET_FEE_STROOPS_TX:-30000000}" \
+      --no-cache
   )"
   echo "DEPLOYED contract_id=$CONTRACT_ID"
 fi
@@ -71,16 +83,17 @@ fi
 NATIVE_SAC="$(stellar contract id asset --asset native --network mainnet)"
 echo "Native SAC: $NATIVE_SAC"
 
-INTENT_HEX="$(printf '%s' "$INTENT_TEXT" | openssl dgst -sha256 -hex | awk '{print $2}')"
+INTENT_HEX="$(printf '%s' "$INTENT_TEXT" | shasum -a 256 | awk '{print $1}')"
 echo "intent_id sha256=$INTENT_HEX ($INTENT_TEXT)"
 
 echo "Invoking pay…"
-# stellar contract invoke --send=yes
 OUT="$(
   stellar contract invoke \
     --id "$CONTRACT_ID" \
     --source "$PAYER_ID" \
     --network mainnet \
+    --fee "${VIAPAY_MAINNET_FEE_STROOPS_TX:-10000000}" \
+    --no-cache \
     --send=yes \
     -- \
     pay \

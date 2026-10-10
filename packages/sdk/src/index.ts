@@ -79,6 +79,8 @@ export type CreatePaymentLinkInput = {
   resellerFeeBps?: number;
   /** Stellar account (G…) that receives the reseller cut. */
   resellerAddress?: string;
+  /** Settle on testnet or mainnet (requires API router env for that network). */
+  network?: "testnet" | "mainnet";
 };
 
 /** Snake_case body for `createCheckout` (HTTP-shaped). */
@@ -93,6 +95,7 @@ export type CreateCheckoutInput = {
   external_user_id?: string;
   customer_id?: string;
   metadata?: Record<string, unknown>;
+  network?: "testnet" | "mainnet";
 };
 
 export type PaymentLink = {
@@ -107,6 +110,7 @@ export type PaymentLink = {
   resellerAddress: string | null;
   externalUserId: string | null;
   metadata: Record<string, unknown> | null;
+  network: string | null;
   raw: unknown;
 };
 
@@ -123,6 +127,7 @@ function mapPaymentLink(body: Record<string, unknown>): PaymentLink {
     resellerAddress: (body.reseller_address ?? null) as string | null,
     externalUserId: (body.external_user_id ?? null) as string | null,
     metadata: (body.metadata ?? null) as Record<string, unknown> | null,
+    network: (body.network ?? null) as string | null,
     raw: body,
   };
 }
@@ -160,6 +165,7 @@ export class ViaPay {
       reseller_address: input.resellerAddress,
       external_user_id: externalUserId,
       metadata,
+      network: input.network,
     });
   }
 
@@ -188,6 +194,7 @@ export class ViaPay {
         reseller_address: input.reseller_address,
         external_user_id: input.external_user_id ?? input.customer_id,
         metadata: input.metadata,
+        ...(input.network ? { network: input.network } : {}),
       }),
     });
     const body = (await res.json()) as Record<string, unknown> & { error?: string };

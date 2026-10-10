@@ -1,6 +1,17 @@
 # ViaPay
 
-Pagos **non-custodial** en Stellar. Un cobro, pagado por una persona en el checkout hosted **o** por un agente IA vía HTTP **402 (x402)**.
+**Settlement infrastructure** on Stellar: `payment_intent` + Soroban `payment-router` (`pay` / `Paid`). Humans and agents settle the same charge; anyone can re-check on-chain.
+
+**Audit claims (copy-paste):** [`docs/VERIFY.md`](docs/VERIFY.md)
+
+```bash
+pnpm verify -- --kit
+curl -sS 'https://viapay-api.vercel.app/v1/verify?network=mainnet&tx_hash=83926d934e77d2598299d9cf59d2e597e448277b984412fdeb83047d3e03b75f' \
+  | jq '{verified, event, merchant, treasury, net, fee}'
+# /evidence · GET /v1/rails · GET /v1/health
+```
+
+Pagos **non-custodial**. Un cobro, pagado por una persona en el checkout hosted **o** por un agente IA vía HTTP **402 (x402)**.
 
 El reparto va en una sola transacción, hasta tres patas:
 
@@ -40,7 +51,7 @@ packages/
   stellar/     # XDR split, SEP-7, Horizon
 docs/          # Producto e integración
 examples/      # Snippets + agent-pay.mjs (demo x402)
-contracts/     # Soroban payment-router (desplegado en testnet; el checkout no lo invoca)
+contracts/     # Soroban payment-router (testnet vivo; checkout prepare/submit lo invoca si PAYMENT_ROUTER_CONTRACT_ID)
 ```
 
 ## Quickstart
@@ -68,11 +79,11 @@ Login demo: **Continuar** en `/login` (modo local).
 - [x] QR SEP-7 tx con split + trustline USDC  
 - [x] Webhooks firmados (`ViaPay-Signature`)  
 - [x] Pagos de agentes IA con x402 (`GET/POST /v1/x402/:id`, demo en `examples/`)  
-- [x] Contrato Soroban de 3 patas desplegado en testnet  
+- [x] Contrato Soroban de 3 patas desplegado en **testnet + mainnet** (mismo wasm)  
+- [x] Checkout liquida por `payment-router` (`pay()` + evento `Paid`) cuando hay contract id  
 - [x] OAuth Supabase cuando hay proyecto (si no, login local)  
-- [ ] Checkout liquidando por el contrato Soroban en vez de pagos clásicos  
 - [ ] Facilitator x402 (hoy ViaPay liquida por su cuenta)  
-- [ ] Anchor SEP-24, escrow Trustless Work, wallet embebida Pollar (código listo, sin credenciales)  
+- [ ] Anchor SEP-24 productivo, escrow Trustless Work, wallet embebida Pollar (código listo; SEP-10/24 = demo SDF)  
 
 ## Licencia
 

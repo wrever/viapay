@@ -20,8 +20,9 @@ Hoy: crear link en el panel y redirigir al cliente al checkout, o llamar la API.
 Motivo: cada conector es un producto aparte; primero se demuestra el riel.
 
 ### Infra más pesada (después de ganar tracción)
-- Mainnet production + ops
-- Checkout liquida por Soroban (hoy el path vivo es clásico; el router está desplegado en testnet)
+- Mainnet cobros de producto a volumen (contrato + env `PAYMENT_ROUTER_CONTRACT_ID_MAINNET` ya vivos; prod diario sigue testnet)
+- SEP-55 Verified Build registrado en Stellar Lab (CI/workflow local; falta push + attest + click Lab)
+
 - Anchors SEP-24/31 de punta a punta
 - Escrow Trustless Work en flujo de producto
 - Slugs bonitos (`pay.viapay.app/curso-x`)

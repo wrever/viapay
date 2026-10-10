@@ -1,4 +1,5 @@
 import {
+  formatAssetAmount,
   parseAssetAmount,
   type AssetCode,
 } from "@viapay/shared";
@@ -9,6 +10,7 @@ import {
   BASE_FEE,
   Contract,
   Horizon,
+  Keypair,
   Memo,
   Networks,
   Operation,
@@ -39,7 +41,7 @@ export const NETWORKS = {
   },
   mainnet: {
     horizonUrl: "https://horizon.stellar.org",
-    rpcUrl: "https://soroban.stellar.org",
+    rpcUrl: "https://mainnet.sorobanrpc.com",
     networkPassphrase: Networks.PUBLIC,
     usdcIssuer: USDC_ISSUERS.mainnet,
     friendbotUrl: null,
@@ -967,16 +969,163 @@ async function pollRpcTransaction(
   );
 }
 
+function toHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function envelopeToBase64(raw: unknown): string {
+  if (typeof raw === "string" && raw.length > 0) return raw;
+  if (raw && typeof raw === "object") {
+    const maybe = raw as { toXDR?: (format?: string) => string | Buffer };
+    if (typeof maybe.toXDR === "function") {
+      const out = maybe.toXDR("base64");
+      if (typeof out === "string" && out.length > 0) return out;
+      if (Buffer.isBuffer(out)) return out.toString("base64");
+    }
+  }
+  throw Object.assign(new Error("RPC no devolvió envelopeXdr usable"), {
+    status: 502,
+  });
+}
+
+/**
+ * Public verifier: load a confirmed Soroban tx and decode payment-router `pay`.
+ * Anyone can check settlement without trusting ViaPay's database.
+ */
+export async function verifyRouterPayTx(input: {
+  network: Network;
+  txHash: string;
+  /** When set, require this contract id (testnet/mainnet router). */
+  expectedContractId?: string | null;
+}): Promise<{
+  verified: true;
+  network: Network;
+  tx_hash: string;
+  ledger: number | null;
+  status: string;
+  settlement: "payment-router";
+  event: "Paid";
+  contract_id: string;
+  token: string;
+  payer: string;
+  merchant: string;
+  treasury: string;
+  reseller: string | null;
+  net: string;
+  fee: string;
+  reseller_fee: string;
+  intent_id: string;
+  explorer_tx: string;
+  explorer_contract: string;
+}> {
+  const hash = input.txHash.trim().toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(hash)) {
+    throw Object.assign(new Error("tx_hash inválido (64 hex)"), { status: 400 });
+  }
+  const server = rpcServer(input.network);
+  const got = await server.getTransaction(hash);
+  if (got.status === rpc.Api.GetTransactionStatus.NOT_FOUND) {
+    throw Object.assign(
+      new Error("Transacción no encontrada en este RPC / red"),
+      { status: 404 },
+    );
+  }
+  if (got.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
+    throw Object.assign(
+      new Error(`Transacción no exitosa: ${got.status}`),
+      { status: 400 },
+    );
+  }
+  const rawEnvelope =
+    got.status === rpc.Api.GetTransactionStatus.SUCCESS
+      ? (got as { envelopeXdr?: unknown }).envelopeXdr
+      : undefined;
+  const envelopeXdr = envelopeToBase64(rawEnvelope);
+  const passphrase = NETWORKS[input.network].networkPassphrase;
+  const parsed = TransactionBuilder.fromXDR(envelopeXdr, passphrase);
+  if (!(parsed instanceof Transaction)) {
+    throw Object.assign(new Error("Envelope no es una Transaction"), {
+      status: 400,
+    });
+  }
+  const invoke = readRouterPayInvoke(parsed);
+  if (
+    input.expectedContractId &&
+    invoke.contractId !== input.expectedContractId
+  ) {
+    throw Object.assign(
+      new Error("La tx no invoca el payment-router esperado"),
+      { status: 400 },
+    );
+  }
+  const explorer =
+    input.network === "mainnet" ? "public" : input.network === "local" ? "testnet" : "testnet";
+  return {
+    verified: true,
+    network: input.network,
+    tx_hash: hash,
+    ledger: got.ledger ?? null,
+    status: "SUCCESS",
+    settlement: "payment-router",
+    event: "Paid",
+    contract_id: invoke.contractId,
+    token: invoke.token,
+    payer: invoke.payer,
+    merchant: invoke.merchant,
+    treasury: invoke.treasury,
+    reseller: invoke.reseller,
+    net: formatAssetAmount(invoke.net),
+    fee: formatAssetAmount(invoke.fee),
+    reseller_fee: formatAssetAmount(invoke.resellerFee),
+    intent_id: toHex(invoke.intentId),
+    explorer_tx: `https://stellar.expert/explorer/${explorer}/tx/${hash}`,
+    explorer_contract: `https://stellar.expert/explorer/${explorer}/contract/${invoke.contractId}`,
+  };
+}
+
+/**
+ * Optional fee-bump: set VIAPAY_FEE_SPONSOR_SECRET (S…) so payers without XLM
+ * can still land USDC/router pays. Sponsor pays network fees only.
+ */
+export function maybeFeeBumpTransaction(
+  inner: Transaction,
+  network: Network,
+): Transaction {
+  const secret = process.env.VIAPAY_FEE_SPONSOR_SECRET?.trim();
+  if (!secret || !secret.startsWith("S")) return inner;
+  try {
+    const sponsor = Keypair.fromSecret(secret);
+    const fee =
+      BigInt(BASE_FEE) * 3n > 1000n ? (BigInt(BASE_FEE) * 3n).toString() : "1000";
+    const bump = TransactionBuilder.buildFeeBumpTransaction(
+      sponsor,
+      fee,
+      inner,
+      NETWORKS[network].networkPassphrase,
+    );
+    bump.sign(sponsor);
+    return bump as unknown as Transaction;
+  } catch (e) {
+    console.warn(
+      "[fee-bump]",
+      e instanceof Error ? e.message : e,
+      "— submitting inner tx",
+    );
+    return inner;
+  }
+}
+
 export async function submitVerifiedRouter(
   signedXdr: string,
   expected: SplitLeg,
   contractId: string,
 ): Promise<{ hash: string; ledger: number; source: string }> {
   const tx = await assertRouterPayXdr(signedXdr, expected, contractId);
+  const toSend = maybeFeeBumpTransaction(tx, expected.network);
   const server = rpcServer(expected.network);
   let send: rpc.Api.SendTransactionResponse;
   try {
-    send = await server.sendTransaction(tx);
+    send = await server.sendTransaction(toSend);
   } catch (error) {
     throw Object.assign(
       new Error(error instanceof Error ? error.message : "RPC send falló"),

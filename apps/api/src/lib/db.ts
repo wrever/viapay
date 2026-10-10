@@ -156,6 +156,14 @@ export function migrate(db = getDb()): void {
       phone_number_id text,
       created_at text not null
     );
+
+    create table if not exists payment_codes (
+      code text primary key,
+      payment_intent_id text not null references payment_intents(id),
+      created_at text not null
+    );
+    create index if not exists idx_payment_codes_intent
+      on payment_codes(payment_intent_id);
   `);
 
   addColumns(db, "payment_intents", {
@@ -164,6 +172,7 @@ export function migrate(db = getDb()): void {
     reseller_address: "text",
     external_user_id: "text",
     metadata: "text",
+    network: "text not null default 'testnet'",
   });
 }
 

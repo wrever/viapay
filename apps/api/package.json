@@ -6,7 +6,8 @@
     "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start --port 3001",
-    "db:seed": "tsx src/scripts/seed.ts"
+    "db:seed": "tsx src/scripts/seed.ts",
+    "test": "node --import tsx --test $(find src -name '*.test.ts' | tr '\\n' ' ')"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

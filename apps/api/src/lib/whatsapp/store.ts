@@ -21,10 +21,18 @@ export type WaDraft = {
   asset?: "XLM" | "USDC";
   /** NL disambiguation query */
   contact_query?: string;
+  /** exact_pay lock from fiat quote (metadata.exact_pay) */
+  exact_pay?: Record<string, unknown>;
+  fiat_label?: string;
+  /** exact-split reseller */
+  reseller_fee_bps?: number;
+  reseller_address?: string;
+  reseller_label?: string;
   /** After charge created — delivery chooser */
   payment_intent_id?: string;
   checkout_url?: string;
   share_text?: string;
+  cobro_code?: string;
 };
 
 export type WaSession = {

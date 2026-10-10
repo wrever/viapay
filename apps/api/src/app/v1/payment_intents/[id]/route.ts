@@ -1,6 +1,6 @@
 import {
   getPaymentIntentById,
-  serializePaymentIntent,
+  serializePaymentIntentAsync,
 } from "@/lib/payments";
 import { jsonError, jsonOk, requireAuth } from "@/lib/http";
 import { reconcileCheckoutPayment } from "@/lib/chain";
@@ -23,7 +23,7 @@ export async function GET(
         // Horizon/RPC down should not hide the intent.
       }
     }
-    return jsonOk(serializePaymentIntent(row));
+    return jsonOk(await serializePaymentIntentAsync(row));
   } catch (e) {
     return jsonError(e);
   }

@@ -11,6 +11,11 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 5. **Webhooks firmados** — `payment_intent.succeeded` + `ViaPay-Signature`.
 6. **Landing** — un solo bloque con modos de uso (link simple, split marketplace, agente).
 7. **Invoices** — contactos + asistente WhatsApp (NL + deliver) + email Resend (key pendiente) + páginas legales Meta.
+8. **Riel verificable** — kit [`VERIFY.md`](./VERIFY.md) · `pnpm verify` · `/v1/verify` · `/v1/rails` · `/evidence` · MCP.
+9. **Cobros a destino** — panel: agenda **o** email/WhatsApp suelto (XLM/USDC). Bot NL: `cobro N xlm|usdc a nombre|mail|tel` (Meta Live pendiente para inbound real).
+10. **exact-pay** — cotizar en CLP/ARS/… y trabar crypto al crear (`scheme: exact_pay`). WA: `cobro 20000 pesos a juanito`. Spec: [`submission/EXACT_PAY.md`](./submission/EXACT_PAY.md).
+11. **proof-or-nothing + rail-parity + exact-split** — anti-comprobante; `GET /v1/parity/:id`; split multi-pata nombrado; códigos `VP-XXXX`; recibo `/r/:id`; WA `estado VP-…` / `con hubby 7%`. Specs: [`PROOF_OR_NOTHING`](./submission/PROOF_OR_NOTHING.md) · [`RAIL_PARITY`](./submission/RAIL_PARITY.md) · [`EXACT_SPLIT`](./submission/EXACT_SPLIT.md).
+12. **Abonos + enlace firmado** — fiado/layaway con varios `Paid` mismo `intent_id` (sin redeploy wasm); firma ed25519 anti-phishing en `/pay`. Spec: [`ABONOS_SIGNED_LINK.md`](./submission/ABONOS_SIGNED_LINK.md).
 
 ## Mejoras de esta fase (sin tocar FUTURO)
 
@@ -24,8 +29,9 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 ## Excepción hackathon (esta semana)
 
 - Paquete jurado: [`WIN_PLAN.md`](./WIN_PLAN.md) + [`submission/`](./submission/).
-- **1 pago mainnet** de prueba (evidencia) permitido; no “ops mainnet” de producto.
-- SEP-1 toml + SEP-24 test anchor demo + path SEP-55 CI.
+- **Mainnet evidencia** (self-pay + third-party) permitida; producto diario = testnet; cobros mainnet opt-in.
+- SEP-1/10/24/41 live (probes) · SEP-55 CI (push+Lab pendiente) · SEP-7 = wallet_path.
+
 - **Invoices por contacto + asistente WhatsApp** (Meta Cloud API, NL `cobro 20 xlm a juanito`, deliver WA/email) → mismo `payment_intent` / `checkout_url`.
 - **Email invoices Resend** — `POST /v1/payment_intents/:id/send_email` + opción 2 en el chat (sin key → mailto).
 

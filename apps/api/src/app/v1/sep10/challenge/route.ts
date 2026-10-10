@@ -6,12 +6,16 @@ export async function POST(req: Request) {
   try {
     const body = z
       .object({
-        web_auth: z.string().url(),
+        web_auth: z.string().url().optional(),
         account: z.string().min(1),
       })
       .parse(await req.json());
 
-    const url = new URL(body.web_auth);
+    const webAuth =
+      body.web_auth ??
+      process.env.ANCHOR_WEB_AUTH ??
+      "https://testanchor.stellar.org/auth";
+    const url = new URL(webAuth);
     url.searchParams.set("account", body.account);
     const res = await fetch(url.toString(), {
       headers: { Accept: "application/json" },

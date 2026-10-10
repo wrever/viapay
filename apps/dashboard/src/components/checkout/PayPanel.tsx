@@ -13,6 +13,7 @@ import { LOCALE_TAG } from "@viapay/prefs";
 import { Logo } from "@/components/Logo";
 import {
   PollarLoginButton,
+  PollarShell,
   type PollarSession,
 } from "@/components/checkout/PollarShell";
 import { CheckoutSwap } from "@/components/checkout/CheckoutSwap";
@@ -65,11 +66,13 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState(intent.status);
   const [txHash, setTxHash] = useState(intent.stellar_tx_hash);
+  const [abonoAmount, setAbonoAmount] = useState(
+    intent.amount_remaining ?? intent.amount,
+  );
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const networkRaw = intent.stellar?.network ?? intent.network;
   const network =
-    intent.stellar?.network === "mainnet" || intent.stellar?.network === "local"
-      ? intent.stellar.network
-      : "testnet";
+    networkRaw === "mainnet" || networkRaw === "local" ? networkRaw : "testnet";
   const walletKit = useStellarWallet(network);
   const [pollar, setPollar] = useState<PollarSession | null>(null);
 
@@ -154,12 +157,16 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
     setBusy(true);
     setError(null);
     try {
+      const payAmt = intent.abonos_enabled
+        ? Number(abonoAmount.replace(",", ".")).toFixed(7)
+        : undefined;
       const prep = await fetch(`${API}/v1/checkout/${intent.id}/prepare`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           client_secret: intent.client_secret,
           source: payer,
+          ...(payAmt ? { amount: payAmt } : {}),
         }),
       });
       const prepared = await prep.json();
@@ -174,13 +181,15 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
         body: JSON.stringify({
           client_secret: intent.client_secret,
           signed_xdr: signed,
+          ...(payAmt ? { amount: payAmt } : {}),
         }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? t.submitFailed);
       setStatus(body.status);
       setTxHash(body.stellar_tx_hash);
-      redirectIfNeeded(body);
+      if (body.amount_remaining) setAbonoAmount(body.amount_remaining);
+      if (body.status === "succeeded") redirectIfNeeded(body);
     } catch (e) {
       setError(e instanceof Error ? e.message : t.genericError);
     } finally {
@@ -197,9 +206,10 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [method, status, intent.id, intent.client_secret, locale]);
 
-  if (status === "succeeded") {
+  if (status === "succeeded" || status === "partially_paid") {
+    const partial = status === "partially_paid";
     return (
-      <>
+      <PollarShell network={network}>
         <div className="prefs-bar">
           <CheckoutSiteControls />
         </div>
@@ -211,7 +221,14 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
               style={{ color: "var(--success)" }}
               aria-hidden="true"
             />
-            <h1 className="pay-title mt-4 text-2xl">{t.paidTitle}</h1>
+            <h1 className="pay-title mt-4 text-2xl">
+              {partial ? "Abono confirmado" : t.paidTitle}
+            </h1>
+            <p className="mt-2 text-sm" style={{ color: "var(--text-2)" }}>
+              {partial
+                ? "Pago parcial on-chain. Todavía hay saldo pendiente."
+                : "Confirmado on-chain. Las capturas no son prueba."}
+            </p>
             <p className="pay-amount pay-amount--hero mt-3">
               {totalAmount(intent.amount, localeTag)}
               <span className="pay-amount__asset">{intent.asset}</span>
@@ -242,37 +259,101 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
               />
             </div>
 
+            <div className="mt-4 flex flex-col gap-2 items-center">
+              <a
+                className="text-sm font-medium"
+                style={{ color: "var(--primary)" }}
+                href={`/r/${intent.id}`}
+              >
+                Abrir recibo verificable
+              </a>
+              <a
+                className="text-xs opacity-70"
+                href={`${process.env.NEXT_PUBLIC_VIAPAY_API_URL || "https://viapay-api.vercel.app"}/v1/parity/${intent.id}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                rail-parity
+              </a>
+            </div>
+
             {txHash && (
               <div className="mt-6 text-left">
                 <p className="via-label" style={{ color: "var(--text-2)" }}>
                   {t.txLabel}
                 </p>
-                <p className="mono mt-1">{txHash}</p>
+                <p className="mono mt-1 break-all">{txHash}</p>
                 {network !== "local" && (
-                  <a
-                    className="mt-2 inline-block text-sm font-medium"
-                    style={{ color: "var(--primary)" }}
-                    href={`https://stellar.expert/explorer/${
-                      network === "mainnet" ? "public" : "testnet"
-                    }/tx/${txHash}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {t.viewOnExpert}
-                  </a>
+                  <div className="mt-2 flex flex-col gap-1.5 items-start">
+                    <a
+                      className="text-sm font-medium"
+                      style={{ color: "var(--primary)" }}
+                      href={`https://stellar.expert/explorer/${
+                        network === "mainnet" ? "public" : "testnet"
+                      }/tx/${txHash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {t.viewOnExpert}
+                    </a>
+                    {routerMode && (
+                      <a
+                        className="text-sm font-medium"
+                        style={{ color: "var(--primary)" }}
+                        href={`https://stellar.expert/explorer/${
+                          network === "mainnet" ? "public" : "testnet"
+                        }/tx/${txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {t.viewPaidEvent}
+                      </a>
+                    )}
+                    {routerMode && (
+                      <a
+                        className="text-sm font-medium"
+                        style={{ color: "var(--primary)" }}
+                        href={`${API}/v1/verify?network=${
+                          network === "mainnet" ? "mainnet" : "testnet"
+                        }&tx_hash=${txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {t.verifyRail}
+                      </a>
+                    )}
+                    {routerMode &&
+                      (intent.contract_id ??
+                        intent.stellar?.payment_router) && (
+                        <a
+                          className="text-sm font-medium"
+                          style={{ color: "var(--primary)" }}
+                          href={`https://stellar.expert/explorer/${
+                            network === "mainnet" ? "public" : "testnet"
+                          }/contract/${
+                            intent.contract_id ??
+                            intent.stellar?.payment_router
+                          }`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {t.viewRouterContract}
+                        </a>
+                      )}
+                  </div>
                 )}
               </div>
             )}
           </div>
         </div>
-      </>
+      </PollarShell>
     );
   }
 
   const canPay = Boolean(walletKit.address || pollar);
 
   return (
-    <>
+    <PollarShell network={network}>
       <div className="prefs-bar">
         <CheckoutSiteControls />
       </div>
@@ -285,10 +366,30 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
             </span>
             <span className="pay-chip-row">
               <span className="pay-chip">
-                {network === "mainnet" ? "Stellar" : `Stellar ${network}`}
+                {network === "mainnet"
+                  ? "Stellar mainnet"
+                  : `Stellar ${network}`}
+              </span>
+              <span className="pay-chip" title="Solo Paid on-chain confirma">
+                sin capturas
               </span>
               {routerMode && (
-                <span className="pay-chip pay-chip--router">{t.routerChip}</span>
+                (intent.contract_id ?? intent.stellar?.payment_router) ? (
+                  <a
+                    className="pay-chip pay-chip--router"
+                    href={`https://stellar.expert/explorer/${
+                      network === "mainnet" ? "public" : "testnet"
+                    }/contract/${intent.contract_id ?? intent.stellar?.payment_router}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t.routerChip}
+                  </a>
+                ) : (
+                  <span className="pay-chip pay-chip--router">
+                    {t.routerChip}
+                  </span>
+                )
               )}
             </span>
           </div>
@@ -296,13 +397,85 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
           <p className="via-label" style={{ color: "var(--text-2)" }}>
             {t.totalLabel}
           </p>
+          {intent.link_sig_status === "verified" ||
+          intent.link_verified === true ? (
+            <p className="mt-2 text-xs" style={{ color: "var(--success)" }}>
+              Comercio verificado: destino {intent.merchant_wallet.slice(0, 4)}…
+              {intent.merchant_wallet.slice(-4)} firmó este cobro.
+            </p>
+          ) : intent.link_sig_status === "expired" ? (
+            <p className="mt-2 text-xs" style={{ color: "var(--text-2)" }}>
+              Firma del enlace vencida — el destino ya no está verificado.
+            </p>
+          ) : intent.link_sig_status === "invalid" ? (
+            <p className="mt-2 text-xs" style={{ color: "var(--text-2)" }}>
+              Firma del enlace no válida.
+            </p>
+          ) : null}
+          {intent.plan_enabled && intent.plan_summary?.role === "parent" && (
+            <div className="mt-2 space-y-2">
+              <p className="text-xs" style={{ color: "var(--text-2)" }}>
+                Plan en cuotas · {intent.plan_summary.paid_count}/
+                {intent.plan_summary.installment_count} pagadas
+                {intent.plan_summary.overdue_count > 0
+                  ? ` · ${intent.plan_summary.overdue_count} vencida(s)`
+                  : ""}
+              </p>
+              {intent.plan_summary.next_pay_url && status !== "succeeded" && (
+                <a
+                  className="inline-block text-sm underline"
+                  href={intent.plan_summary.next_pay_url}
+                  style={{ color: "var(--text)" }}
+                >
+                  Pagar próxima cuota
+                </a>
+              )}
+            </div>
+          )}
+          {intent.plan_enabled &&
+            intent.plan_summary?.role === "child" &&
+            intent.plan_summary.installment_index != null && (
+              <p className="mt-2 text-xs" style={{ color: "var(--text-2)" }}>
+                Cuota {intent.plan_summary.installment_index} de{" "}
+                {intent.plan_summary.installment_count}
+              </p>
+            )}
           <p className="pay-amount pay-amount--hero mt-2">
-            {totalAmount(intent.amount, localeTag)}
+            {totalAmount(
+              intent.abonos_enabled && intent.amount_remaining
+                ? intent.amount_remaining
+                : intent.amount,
+              localeTag,
+            )}
             <span className="pay-amount__asset">{intent.asset}</span>
           </p>
+          {intent.abonos_enabled && (
+            <div className="mt-2 space-y-2">
+              <p className="text-xs" style={{ color: "var(--text-2)" }}>
+                Abonos · total {totalAmount(intent.amount, localeTag)} · pagado{" "}
+                {totalAmount(intent.amount_paid ?? "0", localeTag)} · resta{" "}
+                {totalAmount(
+                  intent.amount_remaining ?? intent.amount,
+                  localeTag,
+                )}
+                {status === "partially_paid" ? " · en curso" : ""}
+              </p>
+              <label className="block text-xs text-[var(--text-2)]">
+                Monto de este abono
+                <input
+                  className="mt-1 w-full rounded border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-sm text-[var(--text)]"
+                  value={abonoAmount}
+                  onChange={(e) => setAbonoAmount(e.target.value)}
+                  inputMode="decimal"
+                />
+              </label>
+            </div>
+          )}
           <div className="pay-fiat">
             <FiatEquivalent
-              amount={intent.amount}
+              amount={
+                intent.abonos_enabled ? abonoAmount || intent.amount : intent.amount
+              }
               asset={intent.asset}
               locale={locale}
               approx={t.fiatApprox}
@@ -322,7 +495,73 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
 
           {warning && <p className="pay-notice mt-4">{warning}</p>}
 
-          {view === "swap" ? (
+          <section
+            className="mt-5 rounded-[var(--r-lg)] px-3 py-3 text-xs"
+            style={{
+              border: "1px solid var(--border)",
+              color: "var(--text-2)",
+            }}
+            aria-label="Checklist del cobro"
+          >
+            <p
+              className="font-medium"
+              style={{ color: "var(--text)" }}
+            >
+              Antes de firmar, revisá
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-4">
+              <li>
+                Cobrado por{" "}
+                <span className="font-mono">
+                  {intent.merchant_wallet.slice(0, 4)}…
+                  {intent.merchant_wallet.slice(-4)}
+                </span>
+                {intent.link_sig_status === "verified" ||
+                intent.link_verified === true
+                  ? " · firma del comercio OK"
+                  : intent.link_sig_status === "invalid"
+                    ? " · ⚠ firma inválida (link alterado)"
+                    : intent.link_sig_status === "expired"
+                      ? " · firma vencida"
+                      : " · sin firma de enlace"}
+              </li>
+              <li>
+                Total{" "}
+                {totalAmount(
+                  intent.abonos_enabled && intent.amount_remaining
+                    ? intent.amount_remaining
+                    : intent.amount,
+                  localeTag,
+                )}{" "}
+                {intent.asset}
+                {intent.fee_amount
+                  ? ` · fee ${intent.fee_amount} · neto comercio ${intent.net_amount}`
+                  : ""}
+              </li>
+              <li>
+                Red{" "}
+                {network === "mainnet" ? "mainnet" : network}
+                {" · "}
+                {status === "succeeded"
+                  ? "ya pagado"
+                  : intent.plan_enabled &&
+                      intent.plan_summary?.role === "child"
+                    ? `cuota ${intent.plan_summary.installment_index}/${intent.plan_summary.installment_count}`
+                    : intent.abonos_enabled
+                      ? "acepta abonos"
+                      : "un pago"}
+              </li>
+            </ul>
+          </section>
+
+          {intent.plan_enabled &&
+          intent.plan_summary?.role === "parent" &&
+          status !== "succeeded" ? (
+            <p className="mt-6 text-sm" style={{ color: "var(--text-2)" }}>
+              Este link es el plan completo. Abrí “Pagar próxima cuota” para
+              liquidar on-chain.
+            </p>
+          ) : view === "swap" ? (
             <div className="mt-6 space-y-4">
               <CheckoutSwap
                 t={t}
@@ -425,6 +664,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                   )}
 
                   <PollarLoginButton
+                    network={network}
                     onSession={(session) =>
                       setPollar((prev) =>
                         prev?.address === session.address ? prev : session,
@@ -591,6 +831,6 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
           )}
         </div>
       </div>
-    </>
+    </PollarShell>
   );
 }

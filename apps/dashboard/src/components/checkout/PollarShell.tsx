@@ -6,10 +6,24 @@ import { useCheckoutLocale } from "@/lib/checkout/i18n";
 
 const POLLAR_KEY = process.env.NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY;
 
-export function PollarShell({ children }: { children: ReactNode }) {
+type PollarNetwork = "testnet" | "mainnet";
+
+/**
+ * Embed Pollar only when a publishable key exists.
+ * `network` must match the charge (layout defaults to testnet; PayPanel overrides).
+ */
+export function PollarShell({
+  children,
+  network = "testnet",
+}: {
+  children: ReactNode;
+  network?: "testnet" | "mainnet" | "local";
+}) {
   if (!POLLAR_KEY) return children;
+  const stellarNetwork: PollarNetwork =
+    network === "mainnet" ? "mainnet" : "testnet";
   return (
-    <PollarProvider client={{ apiKey: POLLAR_KEY, stellarNetwork: "testnet" }}>
+    <PollarProvider client={{ apiKey: POLLAR_KEY, stellarNetwork }}>
       {children}
     </PollarProvider>
   );
@@ -22,10 +36,14 @@ export type PollarSession = {
 
 export function PollarLoginButton({
   onSession,
+  network = "testnet",
 }: {
   onSession: (session: PollarSession) => void;
+  /** Mainnet cobros use Freighter; hide Pollar until the key is mainnet-capable. */
+  network?: "testnet" | "mainnet" | "local";
 }) {
   if (!POLLAR_KEY) return null;
+  if (network === "mainnet") return null;
   return <PollarLoginInner onSession={onSession} />;
 }
 
