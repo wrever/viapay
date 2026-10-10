@@ -73,6 +73,7 @@ export function ProfilePassword() {
             minLength={8}
             required
           />
+          <p className="profile-field-hint">{t.profilePasswordTooShort}</p>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="profile-pass2">{t.profilePasswordConfirm}</Label>
