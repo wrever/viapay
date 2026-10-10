@@ -424,6 +424,87 @@
   gap: 0.4rem;
 }
 
+.profile-theme-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-theme-preview {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--r-md, 0.65rem);
+  border: 1px solid var(--border);
+}
+
+.profile-theme-preview__bg,
+.profile-theme-preview__fg,
+.profile-theme-preview__accent {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+}
+
+.profile-theme-preview.is-light .profile-theme-preview__bg {
+  background: #f4f4f2;
+}
+.profile-theme-preview.is-light .profile-theme-preview__fg {
+  background: #1a1a1a;
+}
+.profile-theme-preview.is-light .profile-theme-preview__accent {
+  background: var(--primary);
+}
+
+.profile-theme-preview.is-dark .profile-theme-preview__bg {
+  background: #141414;
+}
+.profile-theme-preview.is-dark .profile-theme-preview__fg {
+  background: #ececec;
+}
+.profile-theme-preview.is-dark .profile-theme-preview__accent {
+  background: var(--primary);
+}
+
+.profile-providers {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.profile-providers__pill {
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--text-2);
+}
+
+.profile-providers__pill.is-google {
+  background: #4285f4;
+}
+
+.profile-providers__pill.is-github {
+  background: #24292f;
+}
+
+.profile-mobile-hint {
+  display: none;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+@media (max-width: 720px) {
+  .profile-mobile-hint {
+    display: block;
+  }
+}
+
 .profile-seg__btn:focus-visible,
 .profile-shortcut:focus-visible,
 .profile-scroll-nav__link:focus-visible {
