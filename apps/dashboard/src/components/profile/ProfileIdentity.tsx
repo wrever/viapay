@@ -9,6 +9,7 @@ import { patchAccountProfile } from "@/lib/me-client";
 import { useLocale } from "@/lib/i18n";
 import { isValidE164, sanitizePhoneInput } from "@/lib/phone-e164";
 import { syncSessionDisplayName } from "@/lib/session-name-client";
+import { ProfileSaveBar } from "./ProfileSaveBar";
 import { ProfileSection } from "./ProfileSection";
 import { useClearFlash } from "./useClearFlash";
 
@@ -133,11 +134,11 @@ export function ProfileIdentity({
             </p>
           ) : null}
         </div>
-        <div className="profile-form__actions">
+        <ProfileSaveBar>
           <Button type="submit" disabled={saving || !dirty}>
             {saving ? t.profileSaving : t.profileSave}
           </Button>
-        </div>
+        </ProfileSaveBar>
       </form>
     </ProfileSection>
   );
