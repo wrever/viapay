@@ -8,6 +8,9 @@ import type { AccountProfile } from "@/lib/account-types";
 import { patchAccountProfile } from "@/lib/me-client";
 import { useLocale } from "@/lib/i18n";
 import { isValidE164, sanitizePhoneInput } from "@/lib/phone-e164";
+import { syncSessionDisplayName } from "@/lib/session-name-client";
+import { ProfileSection } from "./ProfileSection";
+import { useClearFlash } from "./useClearFlash";
 
 export function ProfileIdentity({
   apiKey,
@@ -24,7 +27,7 @@ export function ProfileIdentity({
   const [phone, setPhone] = useState(profile.phone_e164 ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ok, setOk] = useState(false);
+  const [ok, setOk] = useClearFlash();
   const dirty =
     name.trim() !== profile.name ||
     (businessName.trim() || "") !== (profile.business_name ?? "") ||
@@ -53,14 +56,9 @@ export function ProfileIdentity({
         business_name: businessName.trim() || null,
         phone_e164: phoneTrim || null,
       });
-      await fetch("/auth/session-name", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: account.name }),
-      });
+      await syncSessionDisplayName(account.name);
       onUpdated(account);
       setOk(true);
-      window.setTimeout(() => setOk(false), 2500);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.profileSaveError);
     } finally {
@@ -69,12 +67,13 @@ export function ProfileIdentity({
   }
 
   return (
-    <section className="profile-card" id="profile-identity">
-      <header className="profile-card__head">
-        <h3 className="profile-card__title">{t.profileIdentityTitle}</h3>
-        <p className="profile-card__desc">{t.profileIdentityDesc}</p>
-      </header>
-      <form className="profile-card__body profile-form" onSubmit={save}>
+    <ProfileSection
+      id="profile-identity"
+      title={t.profileIdentityTitle}
+      desc={t.profileIdentityDesc}
+      testId="profile-identity"
+    >
+      <form className="profile-form" onSubmit={save}>
         <div className="grid gap-2">
           <Label htmlFor="profile-name">{t.profileNameLabel}</Label>
           <Input
@@ -140,6 +139,6 @@ export function ProfileIdentity({
           </Button>
         </div>
       </form>
-    </section>
+    </ProfileSection>
   );
 }
