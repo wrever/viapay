@@ -2,6 +2,7 @@
 
 import { Bell, KeyRound, Wallet } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
+import { ProfileSection } from "./ProfileSection";
 
 export function ProfileShortcuts({
   wallet,
@@ -19,12 +20,12 @@ export function ProfileShortcuts({
       : wallet;
 
   return (
-    <section className="profile-card">
-      <header className="profile-card__head">
-        <h3 className="profile-card__title">{t.profileShortcutsTitle}</h3>
-        <p className="profile-card__desc">{t.profileShortcutsDesc}</p>
-      </header>
-      <div className="profile-card__body profile-shortcuts">
+    <ProfileSection
+      title={t.profileShortcutsTitle}
+      desc={t.profileShortcutsDesc}
+      testId="profile-shortcuts"
+    >
+      <div className="profile-shortcuts">
         <button type="button" className="profile-shortcut" onClick={onGoWallet}>
           <Wallet className="size-4" aria-hidden />
           <span>
@@ -51,6 +52,6 @@ export function ProfileShortcuts({
           </span>
         </button>
       </div>
-    </section>
+    </ProfileSection>
   );
 }
