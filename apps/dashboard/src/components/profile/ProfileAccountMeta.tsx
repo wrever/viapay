@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/lib/account-types";
 import { useLocale } from "@/lib/i18n";
+import { formatRelativeTime } from "@/lib/relative-time";
 
 function fmtDate(iso: string, locale: string): string {
   try {
@@ -63,7 +64,13 @@ export function ProfileAccountMeta({ profile }: { profile: AccountProfile }) {
           </div>
           <div>
             <dt>{t.profileMetaUpdated}</dt>
-            <dd>{fmtDate(profile.updated_at, tag)}</dd>
+            <dd>
+              {fmtDate(profile.updated_at, tag)}
+              <span className="profile-meta__rel">
+                {" "}
+                ({formatRelativeTime(profile.updated_at, tag)})
+              </span>
+            </dd>
           </div>
         </dl>
       </div>
