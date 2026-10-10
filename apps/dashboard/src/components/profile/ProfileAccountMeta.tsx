@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/lib/account-types";
 import { useLocale } from "@/lib/i18n";
 
@@ -17,6 +19,17 @@ function fmtDate(iso: string, locale: string): string {
 export function ProfileAccountMeta({ profile }: { profile: AccountProfile }) {
   const { t, locale } = useLocale();
   const tag = locale === "en" ? "en" : locale === "pt" ? "pt-BR" : "es";
+  const [copied, setCopied] = useState(false);
+
+  async function copyId() {
+    try {
+      await navigator.clipboard.writeText(profile.id);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  }
 
   return (
     <section className="profile-card">
@@ -28,7 +41,17 @@ export function ProfileAccountMeta({ profile }: { profile: AccountProfile }) {
         <dl className="profile-meta">
           <div>
             <dt>{t.profileMetaId}</dt>
-            <dd className="profile-mono">{profile.id}</dd>
+            <dd className="profile-meta__row">
+              <span className="profile-mono">{profile.id}</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => void copyId()}
+              >
+                {copied ? t.copied : t.copy}
+              </Button>
+            </dd>
           </div>
           <div>
             <dt>{t.profileMetaStatus}</dt>
