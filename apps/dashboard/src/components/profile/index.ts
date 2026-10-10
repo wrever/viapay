@@ -16,3 +16,4 @@ export { ProfileStatusBadge } from "./ProfileStatusBadge";
 export { ProfileWalletChip } from "./ProfileWalletChip";
 export { scrollToProfileAnchor } from "./scrollToProfileAnchor";
 export { ProfileSaveBar } from "./ProfileSaveBar";
+export { PROFILE_ANCHORS, type ProfileAnchor } from "./profile-anchors";
