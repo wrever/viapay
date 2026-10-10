@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Shield } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLocale } from "@/lib/i18n";
+import { ProfileSection } from "./ProfileSection";
 
 export function ProfileSecurity() {
   const { t } = useLocale();
@@ -28,39 +29,40 @@ export function ProfileSecurity() {
   }, []);
 
   return (
-    <section className="profile-card" id="profile-security">
-      <header className="profile-card__head">
-        <h3 className="profile-card__title">
+    <ProfileSection
+      id="profile-security"
+      title={
+        <>
           <Shield className="inline size-4 mr-1.5 align-[-2px]" aria-hidden />
           {t.profileSecurityTitle}
-        </h3>
-        <p className="profile-card__desc">{t.profileSecurityDesc}</p>
-      </header>
-      <div className="profile-card__body">
-        <dl className="profile-meta">
+        </>
+      }
+      desc={t.profileSecurityDesc}
+      testId="profile-security"
+    >
+      <dl className="profile-meta">
+        <div>
+          <dt>{t.profileSecurityLogin}</dt>
+          <dd>
+            {providers.length
+              ? providers.map((p) => t.profileProviderLabel(p)).join(" · ")
+              : t.profileSecurityUnknown}
+          </dd>
+        </div>
+        {email ? (
           <div>
-            <dt>{t.profileSecurityLogin}</dt>
-            <dd>
-              {providers.length
-                ? providers.map((p) => t.profileProviderLabel(p)).join(" · ")
-                : t.profileSecurityUnknown}
-            </dd>
+            <dt>{t.profileSecurityAuthEmail}</dt>
+            <dd>{email}</dd>
           </div>
-          {email ? (
-            <div>
-              <dt>{t.profileSecurityAuthEmail}</dt>
-              <dd>{email}</dd>
-            </div>
-          ) : null}
-          {lastSignIn ? (
-            <div>
-              <dt>{t.profileSecurityLastSignIn}</dt>
-              <dd>{new Date(lastSignIn).toLocaleString()}</dd>
-            </div>
-          ) : null}
-        </dl>
-        <p className="profile-field-hint">{t.profileSecurityOauthNote}</p>
-      </div>
-    </section>
+        ) : null}
+        {lastSignIn ? (
+          <div>
+            <dt>{t.profileSecurityLastSignIn}</dt>
+            <dd>{new Date(lastSignIn).toLocaleString()}</dd>
+          </div>
+        ) : null}
+      </dl>
+      <p className="profile-field-hint">{t.profileSecurityOauthNote}</p>
+    </ProfileSection>
   );
 }
