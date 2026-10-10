@@ -19,6 +19,7 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 
 ## Mejoras de esta fase (sin tocar FUTURO)
 
+- Panel: tab **Perfil** (identidad, prefs, avisos, seguridad OAuth, password opt-in, `GET/PATCH /v1/me`).
 - Landing: modos gráficos en un solo lugar (tabs).
 - Dashboard: crear + copiar link claro; preview de split al crear (solo comercio).
 - Un solo `checkout_url` (gateway): humano → `/pay`, agente → 402. Recibo post-pago en UI.
