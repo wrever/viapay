@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/lib/account-types";
 import { API } from "@/lib/config";
 import { useLocale } from "@/lib/i18n";
@@ -8,6 +9,7 @@ import { ProfileAccountMeta } from "./ProfileAccountMeta";
 import { ProfileDangerZone } from "./ProfileDangerZone";
 import { ProfileHero } from "./ProfileHero";
 import { ProfileIdentity } from "./ProfileIdentity";
+import { ProfileLoading } from "./ProfileLoading";
 import { ProfileNotifications } from "./ProfileNotifications";
 import { ProfilePassword } from "./ProfilePassword";
 import { ProfilePreferences } from "./ProfilePreferences";
@@ -88,15 +90,19 @@ export function ProfilePanel({
         />
         <ProfileScrollNav />
 
-        {loading ? (
-          <p className="profile-loading" role="status">
-            {t.profileLoading}
-          </p>
-        ) : null}
+        {loading ? <ProfileLoading /> : null}
         {error ? (
-          <p className="tone tone--error" role="alert">
-            {error}
-          </p>
+          <div className="profile-error" role="alert">
+            <p className="tone tone--error">{error}</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void load()}
+            >
+              {t.webhooksRefresh}
+            </Button>
+          </div>
         ) : null}
 
         {!apiKey ? (
