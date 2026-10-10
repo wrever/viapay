@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/lib/account-types";
 import { API } from "@/lib/config";
@@ -24,6 +24,11 @@ export function ProfileNotifications({
   const dirty =
     emailPaid !== profile.notify_email_paid ||
     waPaid !== profile.notify_wa_paid;
+
+  useEffect(() => {
+    setEmailPaid(profile.notify_email_paid);
+    setWaPaid(profile.notify_wa_paid);
+  }, [profile.id, profile.notify_email_paid, profile.notify_wa_paid]);
 
   async function save() {
     setSaving(true);
