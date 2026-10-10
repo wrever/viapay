@@ -3,7 +3,17 @@ import { publicOrigin } from "@/lib/origin";
 import { API_KEY_COOKIE, SESSION_COOKIE } from "@/lib/session";
 import { createSupabase, supabaseConfigured } from "@/lib/supabase";
 
+/**
+ * Sign-out must be POST. A GET handler used to clear cookies, and Next.js
+ * <Link prefetch> was hitting it when the dashboard mounted — wiping the session.
+ */
 export async function GET(req: Request) {
+  const origin = publicOrigin(req);
+  // Do NOT clear cookies on GET (prefetch / accidental navigation).
+  return NextResponse.redirect(`${origin}/app`);
+}
+
+export async function POST(req: Request) {
   const origin = publicOrigin(req);
   if (supabaseConfigured()) {
     try {
@@ -13,7 +23,7 @@ export async function GET(req: Request) {
       // still clear cookies
     }
   }
-  const res = NextResponse.redirect(`${origin}/login`);
+  const res = NextResponse.redirect(`${origin}/login`, { status: 303 });
   const clear = {
     path: "/",
     maxAge: 0,

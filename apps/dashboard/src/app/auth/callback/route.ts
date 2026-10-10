@@ -1,26 +1,57 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 import { linkAccountFromEmail } from "@/lib/link-account";
-import { publicOrigin } from "@/lib/origin";
-import { API_KEY_COOKIE, applyPanelCookies } from "@/lib/session";
-import { createSupabase } from "@/lib/supabase";
+import { applyPanelCookies, API_KEY_COOKIE } from "@/lib/session";
 
-export async function GET(req: Request) {
-  const origin = publicOrigin(req);
-  const url = new URL(req.url);
+function supabaseKey() {
+  return (
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
+
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  if (!code) return NextResponse.redirect(`${origin}/login?error=oauth`);
+  if (!code) {
+    return NextResponse.redirect(new URL("/login?error=oauth", request.url));
+  }
 
-  const supabase = await createSupabase();
+  const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const sbKey = supabaseKey();
+  if (!sbUrl || !sbKey) {
+    return NextResponse.redirect(new URL("/login?error=supabase", request.url));
+  }
+
+  // Bind auth cookies to the redirect response (official SSR pattern).
+  let response = NextResponse.redirect(new URL("/app", request.url));
+
+  const supabase = createServerClient(sbUrl, sbKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        response = NextResponse.redirect(new URL("/app", request.url));
+        for (const { name, value, options } of cookiesToSet) {
+          response.cookies.set(name, value, options);
+        }
+      },
+    },
+  });
+
   const exchanged = await supabase.auth.exchangeCodeForSession(code);
   if (exchanged.error || !exchanged.data.session?.user) {
-    return NextResponse.redirect(`${origin}/login?error=oauth`);
+    return NextResponse.redirect(new URL("/login?error=oauth", request.url));
   }
 
   const user = exchanged.data.session.user;
   const email = user.email;
   if (!email) {
-    return NextResponse.redirect(`${origin}/login?error=oauth`);
+    return NextResponse.redirect(new URL("/login?error=oauth", request.url));
   }
   const name =
     (user.user_metadata?.full_name as string | undefined) ??
@@ -28,11 +59,9 @@ export async function GET(req: Request) {
     email;
 
   try {
-    const jar = await cookies();
-    const existingKey = jar.get(API_KEY_COOKIE)?.value ?? null;
+    const existingKey = request.cookies.get(API_KEY_COOKIE)?.value ?? null;
     let linked = await linkAccountFromEmail(email, name);
 
-    // Reused key has no recoverable secret: keep cookie, or rotate if missing.
     if (!linked.api_key) {
       if (existingKey) {
         linked = { ...linked, api_key: existingKey };
@@ -42,22 +71,23 @@ export async function GET(req: Request) {
     }
 
     if (!linked.api_key) {
-      return NextResponse.redirect(`${origin}/login?error=link`);
+      return NextResponse.redirect(new URL("/login?error=link", request.url));
     }
 
-    // Relative /app so Set-Cookie binds to this host (not a mismatched absolute origin).
-    const res = NextResponse.redirect(new URL("/app", req.url));
+    // Panel cookies after setAll may have rebuilt `response`.
+    const secure =
+      request.nextUrl.protocol === "https:" || Boolean(process.env.VERCEL);
     await applyPanelCookies(
-      res,
+      response,
       {
         name: linked.name,
         email: linked.email,
         apiKey: linked.api_key,
       },
-      { secure: origin.startsWith("https") || Boolean(process.env.VERCEL) },
+      { secure, alsoJar: false },
     );
-    return res;
+    return response;
   } catch {
-    return NextResponse.redirect(`${origin}/login?error=link`);
+    return NextResponse.redirect(new URL("/login?error=link", request.url));
   }
 }

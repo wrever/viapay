@@ -393,9 +393,11 @@ export function DashboardHome({
             <span className="dash-bar__name" title={sessionName}>
               {sessionName}
             </span>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/auth/signout">{t.signOut}</Link>
-            </Button>
+            <form action="/auth/signout" method="post">
+              <Button variant="ghost" size="sm" type="submit">
+                {t.signOut}
+              </Button>
+            </form>
           </div>
         </div>
       </header>

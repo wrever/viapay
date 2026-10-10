@@ -232,7 +232,7 @@ Webhooks: `POST/GET /v1/webhook_endpoints`, entregas, HMAC. Header `ViaPay-Signa
 
 - Solo OAuth (Google / GitHub). Registro y login son el **mismo** lugar: primera vez `linkAccountFromEmail` crea la cuenta comercio; siguientes = login. Sin “Continuar en local” en producto.
 - `/login`: volver a `/`, card con tokens brand, iconos Google/GitHub, hint i18n de “misma cuenta”.
-- Flujo: `/auth/oauth` → Supabase → `/auth/callback` → upsert `accounts` + `api_keys` → cookies panel (`viapay_demo_session` + `viapay_test_api_key`, **maxAge/expires 30 días**, httpOnly, Secure en HTTPS; redirect relativo `/app`). Si faltan cookies panel pero Supabase Auth sigue vivo → `/auth/restore` las re-hidrata (también desde `/login` y `/app`). Sin sliding renewal a 30d. Sign-out limpia ambas + `supabase.auth.signOut()`.
+- Flujo: `/auth/oauth` → Supabase → `/auth/callback` → upsert `accounts` + `api_keys` → cookies panel (`viapay_demo_session` + `viapay_test_api_key`, **maxAge/expires 30 días**, httpOnly, Secure en HTTPS; redirect relativo `/app`). Si faltan cookies panel pero Supabase Auth sigue vivo → `/auth/restore`. **Sign-out = POST `/auth/signout`** (form en el panel). GET no borra cookies — un `<Link href="/auth/signout">` con prefetch de Next.js te cerraba la sesión al montar el dashboard.
 - Site URL de Supabase Auth debe ser `https://viapay.vercel.app` (nunca localhost ni subdomain).
 - `VIAPAY_ALLOW_LOCAL_LOGIN=1` solo para emergencia en máquina local; en Vercel está apagado.
 
