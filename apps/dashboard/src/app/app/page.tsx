@@ -74,6 +74,7 @@ export default async function HomePage() {
   return (
     <DashboardHome
       sessionName={session.name}
+      sessionEmail={session.email}
       apiKey={apiKey}
       payments={payments as DashboardPayment[]}
       readiness={readiness}

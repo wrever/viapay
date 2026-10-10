@@ -25,6 +25,7 @@ import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
 import { SwapPanel } from "@/components/SwapPanel";
 import { TrustlineGateModal } from "@/components/TrustlineGateModal";
+import { UserMenu } from "@/components/UserMenu";
 import { WalletGateModal } from "@/components/WalletGateModal";
 import { WebhooksSection } from "@/components/WebhooksSection";
 import { Button } from "@/components/ui/button";
@@ -84,12 +85,14 @@ function writeSectionToLocation(next: DashSection) {
 
 export function DashboardHome({
   sessionName,
+  sessionEmail,
   apiKey,
   payments: initialPayments,
   readiness,
   feeBps,
 }: {
   sessionName: string;
+  sessionEmail: string;
   apiKey: string | null;
   payments: DashboardPayment[];
   readiness: Readiness | null;
@@ -390,14 +393,12 @@ export function DashboardHome({
               )}
             </div>
             <SiteControls />
-            <span className="dash-bar__name" title={sessionName}>
-              {sessionName}
-            </span>
-            <form action="/auth/signout" method="post">
-              <Button variant="ghost" size="sm" type="submit">
-                {t.signOut}
-              </Button>
-            </form>
+            <UserMenu
+              name={sessionName}
+              email={sessionEmail}
+              onGoProfile={() => go(WALLET_REQUIRED_SECTION)}
+              onGoIntegracion={() => go(WALLET_REQUIRED_SECTION)}
+            />
           </div>
         </div>
       </header>

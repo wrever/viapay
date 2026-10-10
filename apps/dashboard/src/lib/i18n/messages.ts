@@ -5,6 +5,9 @@ export type Messages = {
   locale: { switch: string };
   homeAria: string;
   signOut: string;
+  profileMenuAria: string;
+  profileMenuProfile: string;
+  profileMenuWallet: string;
   mastheadTitle: (name: string) => string;
   missingKey: string;
   footerNetwork: (network: string, fee: string) => string;
@@ -326,6 +329,9 @@ const es: Messages = {
   locale: { switch: "Elegir idioma" },
   homeAria: "ViaPay, inicio",
   signOut: "Cerrar sesión",
+  profileMenuAria: "Menú de cuenta",
+  profileMenuProfile: "Perfil e integración",
+  profileMenuWallet: "Billetera de destino",
   mastheadTitle: (name) => `Hola, ${name}`,
   missingKey: "Tu sesión no tiene clave de API. Cerrá sesión y volvé a entrar con Google o GitHub.",
   footerNetwork: (network, fee) => `Red ${network} · fee ViaPay ${fee}`,
@@ -704,6 +710,9 @@ const en: Messages = {
   locale: { switch: "Choose language" },
   homeAria: "ViaPay, home",
   signOut: "Sign out",
+  profileMenuAria: "Account menu",
+  profileMenuProfile: "Profile & integration",
+  profileMenuWallet: "Destination wallet",
   mastheadTitle: (name) => `Hi, ${name}`,
   missingKey: "Your session has no API key. Sign out and sign in again with Google or GitHub.",
   footerNetwork: (network, fee) => `Network ${network} · ViaPay fee ${fee}`,
@@ -1079,6 +1088,9 @@ const pt: Messages = {
   locale: { switch: "Escolher idioma" },
   homeAria: "ViaPay, início",
   signOut: "Sair",
+  profileMenuAria: "Menu da conta",
+  profileMenuProfile: "Perfil e integração",
+  profileMenuWallet: "Carteira de destino",
   mastheadTitle: (name) => `Olá, ${name}`,
   missingKey: "Sua sessão não tem API key. Saia e entre de novo com Google ou GitHub.",
   footerNetwork: (network, fee) => `Rede ${network} · taxa ViaPay ${fee}`,
