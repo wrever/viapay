@@ -24,7 +24,7 @@ import { NetworkToggle } from "@/components/NetworkToggle";
 import { OverviewPanel } from "@/components/OverviewPanel";
 import { PaymentHistory } from "@/components/PaymentHistory";
 import { PaymentStatsDetail } from "@/components/PaymentStatsDetail";
-import { ProfilePanel } from "@/components/profile/ProfilePanel";
+import { ProfilePanel } from "@/components/profile";
 import { SwapPanel } from "@/components/SwapPanel";
 import { TrustlineGateModal } from "@/components/TrustlineGateModal";
 import { UserMenu } from "@/components/UserMenu";
@@ -406,6 +406,14 @@ export function DashboardHome({
               name={displayName}
               email={sessionEmail}
               onGoProfile={() => go("perfil")}
+              onGoSettings={() => {
+                go("perfil");
+                window.requestAnimationFrame(() => {
+                  document
+                    .getElementById("profile-prefs")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+              }}
               onGoIntegracion={() => go(WALLET_REQUIRED_SECTION)}
             />
           </div>
