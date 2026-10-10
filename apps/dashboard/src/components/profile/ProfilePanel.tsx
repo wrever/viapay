@@ -90,7 +90,7 @@ export function ProfilePanel({
         <ProfileScrollNav />
         <ProfileMobileHint />
 
-        {loading ? <ProfileLoading /> : null}
+        {loading ? <ProfileLoading cards={3} /> : null}
         {error ? (
           <div className="profile-error" role="alert">
             <p className="tone tone--error">{error}</p>
