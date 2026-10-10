@@ -166,6 +166,17 @@ export type Messages = {
   noticesBellAria: string;
   noticesBellPending: (n: number) => string;
   noticesBellHint: string;
+  noticesBellOpen: string;
+  activityTitle: string;
+  activityBody: string;
+  activityEmpty: string;
+  activityPaid: (amount: string, asset: string) => string;
+  activityPartial: (amount: string, asset: string) => string;
+  activityPending: (amount: string, asset: string) => string;
+  activityCanceled: (amount: string, asset: string) => string;
+  activityWebhookOk: (type: string) => string;
+  activityWebhookFail: (type: string) => string;
+  activityNoRecipient: string;
   fiatSelectLabel: string;
   fiatSelectHint: string;
   fiatApprox: (formatted: string) => string;
@@ -473,7 +484,7 @@ const es: Messages = {
     "Mainnet aún no habilitado en la API (falta contrato payment-router mainnet).",
   noticesTitle: "Notificaciones",
   noticesDesc:
-    "Recibí payment_intent.succeeded en tu URL, o consultá el estado por API.",
+    "Actividad de cobros y entregas webhook. También podés escuchar events en tu URL o consultar por API.",
   noticesPollTitle: "Consultar por API",
   noticesPoll:
     "Tras el pago, pedí el intent por id. status: succeeded y stellar_tx_hash confirman.",
@@ -507,8 +518,22 @@ const es: Messages = {
   walletGateLockedHint: "Guardá tu billetera de destino para usar esta sección.",
   noticesBellAria: "Notificaciones",
   noticesBellPending: (n) =>
-    n === 1 ? "1 cobro pendiente" : `${n} cobros pendientes`,
-  noticesBellHint: "Abrí Notificaciones para configurar webhooks o consultar por API.",
+    n === 1
+      ? "1 cobro necesita atención"
+      : `${n} cobros necesitan atención`,
+  noticesBellHint: "Sin actividad reciente. Creá un cobro o configurá un webhook.",
+  noticesBellOpen: "Ir a ver notificaciones",
+  activityTitle: "Actividad reciente",
+  activityBody:
+    "Pagos, abonos y entregas webhook. Se actualiza solo cada ~20 s.",
+  activityEmpty: "Todavía no hay actividad. Cuando paguen o falle un webhook, aparece acá.",
+  activityPaid: (amount, asset) => `Pagado ${amount} ${asset}`,
+  activityPartial: (amount, asset) => `Abono / parcial ${amount} ${asset}`,
+  activityPending: (amount, asset) => `Pendiente ${amount} ${asset}`,
+  activityCanceled: (amount, asset) => `Cancelado ${amount} ${asset}`,
+  activityWebhookOk: (type) => `Webhook OK · ${type}`,
+  activityWebhookFail: (type) => `Webhook falló · ${type}`,
+  activityNoRecipient: "Sin destinatario",
   fiatSelectLabel: "Moneda local",
   fiatSelectHint:
     "Se usa para mostrar equivalencias aproximadas de XLM/USDC en el panel y el checkout de este navegador.",
@@ -834,7 +859,7 @@ const en: Messages = {
     "Mainnet is not enabled on the API yet (missing payment-router mainnet contract).",
   noticesTitle: "Notifications",
   noticesDesc:
-    "Receive payment_intent.succeeded at your URL, or poll charge status via the API.",
+    "Charge activity and webhook deliveries. You can also listen on your URL or poll via the API.",
   noticesPollTitle: "Poll via API",
   noticesPoll:
     "After payment, GET the intent by id. status: succeeded and stellar_tx_hash confirm.",
@@ -867,8 +892,23 @@ const en: Messages = {
   walletGateLockedHint: "Save your destination wallet to use this section.",
   noticesBellAria: "Notifications",
   noticesBellPending: (n) =>
-    n === 1 ? "1 pending charge" : `${n} pending charges`,
-  noticesBellHint: "Open Notifications to configure webhooks or poll via the API.",
+    n === 1
+      ? "1 charge needs attention"
+      : `${n} charges need attention`,
+  noticesBellHint: "No recent activity. Create a charge or configure a webhook.",
+  noticesBellOpen: "Go to notifications",
+  activityTitle: "Recent activity",
+  activityBody:
+    "Payments, installments, and webhook deliveries. Auto-refreshes every ~20s.",
+  activityEmpty:
+    "No activity yet. When someone pays or a webhook fails, it shows up here.",
+  activityPaid: (amount, asset) => `Paid ${amount} ${asset}`,
+  activityPartial: (amount, asset) => `Partial / layaway ${amount} ${asset}`,
+  activityPending: (amount, asset) => `Pending ${amount} ${asset}`,
+  activityCanceled: (amount, asset) => `Canceled ${amount} ${asset}`,
+  activityWebhookOk: (type) => `Webhook OK · ${type}`,
+  activityWebhookFail: (type) => `Webhook failed · ${type}`,
+  activityNoRecipient: "No recipient",
   fiatSelectLabel: "Local currency",
   fiatSelectHint:
     "Used for approximate XLM/USDC equivalents in the panel and checkout on this browser.",
@@ -1197,7 +1237,7 @@ const pt: Messages = {
     "Mainnet ainda não habilitado na API (falta contrato payment-router mainnet).",
   noticesTitle: "Notificações",
   noticesDesc:
-    "Receba payment_intent.succeeded na sua URL, ou consulte o status pela API.",
+    "Atividade de cobranças e entregas webhook. Também pode ouvir events na sua URL ou consultar pela API.",
   noticesPollTitle: "Consultar pela API",
   noticesPoll:
     "Após o pagamento, peça o intent por id. status: succeeded e stellar_tx_hash confirmam.",
@@ -1230,9 +1270,24 @@ const pt: Messages = {
   walletGateLockedHint: "Salve sua carteira de destino para usar esta seção.",
   noticesBellAria: "Notificações",
   noticesBellPending: (n) =>
-    n === 1 ? "1 cobrança pendente" : `${n} cobranças pendentes`,
+    n === 1
+      ? "1 cobrança precisa de atenção"
+      : `${n} cobranças precisam de atenção`,
   noticesBellHint:
-    "Abra Notificações para configurar webhooks ou consultar pela API.",
+    "Sem atividade recente. Crie uma cobrança ou configure um webhook.",
+  noticesBellOpen: "Ir ver notificações",
+  activityTitle: "Atividade recente",
+  activityBody:
+    "Pagamentos, abonos e entregas webhook. Atualiza sozinho a cada ~20 s.",
+  activityEmpty:
+    "Ainda não há atividade. Quando pagarem ou falhar um webhook, aparece aqui.",
+  activityPaid: (amount, asset) => `Pago ${amount} ${asset}`,
+  activityPartial: (amount, asset) => `Parcial / fiado ${amount} ${asset}`,
+  activityPending: (amount, asset) => `Pendente ${amount} ${asset}`,
+  activityCanceled: (amount, asset) => `Cancelado ${amount} ${asset}`,
+  activityWebhookOk: (type) => `Webhook OK · ${type}`,
+  activityWebhookFail: (type) => `Webhook falhou · ${type}`,
+  activityNoRecipient: "Sem destinatário",
   fiatSelectLabel: "Moeda local",
   fiatSelectHint:
     "Usada para mostrar equivalentes aproximados de XLM/USDC no painel e no checkout neste navegador.",

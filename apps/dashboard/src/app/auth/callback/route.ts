@@ -46,21 +46,24 @@ export async function GET(req: Request) {
     }
 
     const res = NextResponse.redirect(`${origin}/app`);
+    // Panel session = cookies propias (no depende del JWT Supabase en cada request).
+    // TTL 30 días desde el login; no hay sliding renewal (re-login renueva).
+    const cookieOpts = {
+      httpOnly: true,
+      sameSite: "lax" as const,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+      secure: origin.startsWith("https"),
+    };
     res.cookies.set(
       SESSION_COOKIE,
       Buffer.from(
         JSON.stringify({ name: linked.name, email: linked.email }),
         "utf8",
       ).toString("base64url"),
-      { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 },
+      cookieOpts,
     );
-    res.cookies.set(API_KEY_COOKIE, linked.api_key, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-      secure: origin.startsWith("https"),
-    });
+    res.cookies.set(API_KEY_COOKIE, linked.api_key, cookieOpts);
     return res;
   } catch {
     return NextResponse.redirect(`${origin}/login?error=link`);

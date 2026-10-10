@@ -13,6 +13,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { ActivityFeed } from "@/components/ActivityFeed";
 import { CreatePaymentLink } from "@/components/CreatePaymentLink";
 import { ContactsSection } from "@/components/ContactsSection";
 import { WhatsAppAssistantCard } from "@/components/WhatsAppAssistantCard";
@@ -27,6 +28,11 @@ import { TrustlineGateModal } from "@/components/TrustlineGateModal";
 import { WalletGateModal } from "@/components/WalletGateModal";
 import { WebhooksSection } from "@/components/WebhooksSection";
 import { Button } from "@/components/ui/button";
+import {
+  activityAttentionCount,
+  buildActivityFeed,
+  type WebhookDeliveryRow,
+} from "@/lib/activity";
 import type { DashboardPayment } from "@/lib/payment-types";
 import type { Readiness } from "@/lib/readiness";
 import { API } from "@/lib/config";
@@ -107,11 +113,66 @@ export function DashboardHome({
   );
   const [trustlineGateOpen, setTrustlineGateOpen] = useState(false);
   const [noticesOpen, setNoticesOpen] = useState(false);
+  const [deliveries, setDeliveries] = useState<WebhookDeliveryRow[]>([]);
+  const bellRef = useRef<HTMLDivElement | null>(null);
 
   const hasWallet = Boolean(merchantWallet);
   const walletLocked = Boolean(apiKey) && !hasWallet;
   const merchantWalletRef = useRef(merchantWallet);
   merchantWalletRef.current = merchantWallet;
+
+  const refreshActivity = useCallback(async () => {
+    if (!apiKey) return;
+    try {
+      const headers = { Authorization: `Bearer ${apiKey}` };
+      const [pRes, dRes] = await Promise.all([
+        fetch(`${API}/v1/payment_intents`, {
+          headers,
+          cache: "no-store",
+        }),
+        fetch(`${API}/v1/webhook_deliveries`, {
+          headers,
+          cache: "no-store",
+        }),
+      ]);
+      if (pRes.ok) {
+        const body = (await pRes.json()) as { data?: DashboardPayment[] };
+        setPayments(body.data ?? []);
+      }
+      if (dRes.ok) {
+        const body = (await dRes.json()) as { data?: WebhookDeliveryRow[] };
+        setDeliveries(body.data ?? []);
+      }
+    } catch {
+      /* keep last known */
+    }
+  }, [apiKey]);
+
+  useEffect(() => {
+    if (!apiKey || walletLocked) return;
+    void refreshActivity();
+    const id = window.setInterval(() => void refreshActivity(), 20_000);
+    return () => window.clearInterval(id);
+  }, [apiKey, walletLocked, refreshActivity]);
+
+  useEffect(() => {
+    if (!noticesOpen) return;
+    void refreshActivity();
+    const onDoc = (e: MouseEvent) => {
+      if (!bellRef.current?.contains(e.target as Node)) {
+        setNoticesOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNoticesOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [noticesOpen, refreshActivity]);
 
   const refreshMerchantUsdc = useCallback(async () => {
     if (!apiKey) return;
@@ -223,10 +284,28 @@ export function DashboardHome({
     () => payments.filter((p) => p.status === "succeeded"),
     [payments],
   );
-  const pendingCount = useMemo(
-    () => payments.filter((p) => p.status === "requires_payment").length,
+  const attentionCount = useMemo(
+    () => activityAttentionCount(payments),
     [payments],
   );
+  const activityLabels = useMemo(
+    () => ({
+      paid: t.activityPaid,
+      partial: t.activityPartial,
+      pending: t.activityPending,
+      canceled: t.activityCanceled,
+      webhookOk: t.activityWebhookOk,
+      webhookFail: t.activityWebhookFail,
+      webhookAttempts: t.webhooksAttempts,
+      noRecipient: t.activityNoRecipient,
+    }),
+    [t],
+  );
+  const activityItems = useMemo(
+    () => buildActivityFeed(payments, deliveries, activityLabels, 30),
+    [payments, deliveries, activityLabels],
+  );
+  const bellItems = useMemo(() => activityItems.slice(0, 6), [activityItems]);
 
   const navItems: {
     id: DashSection;
@@ -258,7 +337,7 @@ export function DashboardHome({
                 mainnetReady={mainnetReady}
               />
             )}
-            <div className="notices-bell">
+            <div className="notices-bell" ref={bellRef}>
               <button
                 type="button"
                 className="notices-bell__btn"
@@ -271,25 +350,41 @@ export function DashboardHome({
                 }}
               >
                 <Bell className="size-4" aria-hidden />
-                {pendingCount > 0 && (
-                  <span className="notices-bell__dot" aria-hidden />
+                {attentionCount > 0 && (
+                  <span className="notices-bell__badge" aria-hidden>
+                    {attentionCount > 9 ? "9+" : attentionCount}
+                  </span>
                 )}
               </button>
               {noticesOpen && !walletLocked && (
                 <div className="notices-bell__menu" role="menu">
-                  <p className="notices-bell__title">{t.noticesTitle}</p>
-                  <p className="notices-bell__body">
-                    {pendingCount > 0
-                      ? t.noticesBellPending(pendingCount)
-                      : t.noticesBellHint}
-                  </p>
+                  <div className="notices-bell__head">
+                    <p className="notices-bell__title">{t.noticesTitle}</p>
+                    {attentionCount > 0 && (
+                      <p className="notices-bell__body">
+                        {t.noticesBellPending(attentionCount)}
+                      </p>
+                    )}
+                  </div>
+                  <ActivityFeed
+                    items={bellItems}
+                    empty={t.activityEmpty}
+                    compact
+                    onOpenPayment={(id) => {
+                      setNoticesOpen(false);
+                      window.open(`/recibo?id=${encodeURIComponent(id)}`, "_blank");
+                    }}
+                  />
                   <button
                     type="button"
                     className="notices-bell__cta"
                     role="menuitem"
-                    onClick={() => go("notificaciones")}
+                    onClick={() => {
+                      setNoticesOpen(false);
+                      go("notificaciones");
+                    }}
                   >
-                    {t.navNotificaciones}
+                    {t.noticesBellOpen}
                   </button>
                 </div>
               )}
@@ -459,24 +554,54 @@ export function DashboardHome({
                   <p>{t.noticesDesc}</p>
                 </div>
                 <div className="panel__body grid gap-6">
-                  <WebhooksSection apiKey={apiKey} />
                   <div className="grid gap-3">
-                    <h3 className="text-sm font-medium text-[var(--text)]">
-                      {t.noticesPollTitle}
-                    </h3>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-sm font-medium text-[var(--text)]">
+                        {t.activityTitle}
+                      </h3>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => void refreshActivity()}
+                      >
+                        {t.webhooksRefresh}
+                      </Button>
+                    </div>
                     <p className="text-sm text-[var(--text-2)]">
-                      {t.noticesPoll}
+                      {t.activityBody}
                     </p>
-                    <code className="perf text-xs block break-all">
-                      GET /v1/payment_intents/:id
-                    </code>
-                    <p className="text-sm text-[var(--text-2)]">
-                      {t.noticesPollList}
-                    </p>
-                    <code className="perf text-xs block break-all">
-                      GET /v1/payment_intents
-                    </code>
+                    <ActivityFeed
+                      items={activityItems}
+                      empty={t.activityEmpty}
+                      onOpenPayment={(id) => {
+                        window.open(
+                          `/recibo?id=${encodeURIComponent(id)}`,
+                          "_blank",
+                        );
+                      }}
+                    />
                   </div>
+                  <WebhooksSection apiKey={apiKey} />
+                  <details className="notices-api">
+                    <summary className="notices-api__summary">
+                      {t.noticesPollTitle}
+                    </summary>
+                    <div className="grid gap-3 pt-2">
+                      <p className="text-sm text-[var(--text-2)]">
+                        {t.noticesPoll}
+                      </p>
+                      <code className="perf text-xs block break-all">
+                        GET /v1/payment_intents/:id
+                      </code>
+                      <p className="text-sm text-[var(--text-2)]">
+                        {t.noticesPollList}
+                      </p>
+                      <code className="perf text-xs block break-all">
+                        GET /v1/payment_intents
+                      </code>
+                    </div>
+                  </details>
                 </div>
               </section>
             )}
