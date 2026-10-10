@@ -82,6 +82,40 @@ export async function getAccountEmail(
   return typeof e === "string" && e.includes("@") ? e.trim().toLowerCase() : null;
 }
 
+export type AccountNotifyPrefs = {
+  notify_email_paid: boolean;
+  notify_wa_paid: boolean;
+};
+
+export async function getAccountNotifyPrefs(
+  accountId: string,
+): Promise<AccountNotifyPrefs> {
+  if (usesSupabase()) {
+    const res = await getSupabaseAdmin()
+      .from("accounts")
+      .select("notify_email_paid, notify_wa_paid")
+      .eq("id", accountId)
+      .maybeSingle();
+    throwSb(res.error, "account notify prefs lookup failed");
+    return {
+      notify_email_paid: res.data?.notify_email_paid !== false,
+      notify_wa_paid: res.data?.notify_wa_paid !== false,
+    };
+  }
+  const row = getDb()
+    .prepare(
+      `select notify_email_paid, notify_wa_paid from accounts where id = ?`,
+    )
+    .get(accountId) as
+    | { notify_email_paid?: number | boolean; notify_wa_paid?: number | boolean }
+    | undefined;
+  return {
+    notify_email_paid:
+      row?.notify_email_paid !== 0 && row?.notify_email_paid !== false,
+    notify_wa_paid: row?.notify_wa_paid !== 0 && row?.notify_wa_paid !== false,
+  };
+}
+
 export async function getAccountName(accountId: string): Promise<string> {
   if (usesSupabase()) {
     const res = await getSupabaseAdmin()
@@ -180,14 +214,22 @@ export async function notifyPaymentSucceeded(
     } catch (e) {
       result.errors.push(`wa_link:${e instanceof Error ? e.message : String(e)}`);
     }
+    let prefs: AccountNotifyPrefs = {
+      notify_email_paid: true,
+      notify_wa_paid: true,
+    };
     try {
       merchantEmail = await getAccountEmail(row.account_id);
       merchantName = await getAccountName(row.account_id);
+      prefs = await getAccountNotifyPrefs(row.account_id);
     } catch (e) {
       result.errors.push(
         `account:${e instanceof Error ? e.message : String(e)}`,
       );
     }
+
+    if (!prefs.notify_wa_paid) merchantWa = null;
+    if (!prefs.notify_email_paid) merchantEmail = null;
 
     const plan = planNotifyChannels({ merchantWa, merchantEmail, invoice });
     const txUrl = explorerTx(row.network, row.stellar_tx_hash);
@@ -205,7 +247,9 @@ export async function notifyPaymentSucceeded(
         );
       }
     } else {
-      result.skipped.push("merchant_wa");
+      result.skipped.push(
+        prefs.notify_wa_paid ? "merchant_wa" : "merchant_wa_opt_out",
+      );
     }
 
     if (plan.merchantEmail && emailConfigured()) {
@@ -222,7 +266,9 @@ export async function notifyPaymentSucceeded(
       });
       if (!r.ok) result.errors.push(`merchant_email:${r.error}`);
     } else {
-      result.skipped.push("merchant_email");
+      result.skipped.push(
+        prefs.notify_email_paid ? "merchant_email" : "merchant_email_opt_out",
+      );
     }
 
     if (plan.payerWa) {
