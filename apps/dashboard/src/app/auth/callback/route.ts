@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { linkAccountFromEmail } from "@/lib/link-account";
 import { publicOrigin } from "@/lib/origin";
-import { API_KEY_COOKIE, SESSION_COOKIE } from "@/lib/session";
+import { API_KEY_COOKIE, applyPanelCookies } from "@/lib/session";
 import { createSupabase } from "@/lib/supabase";
 
 export async function GET(req: Request) {
@@ -45,25 +45,17 @@ export async function GET(req: Request) {
       return NextResponse.redirect(`${origin}/login?error=link`);
     }
 
-    const res = NextResponse.redirect(`${origin}/app`);
-    // Panel session = cookies propias (no depende del JWT Supabase en cada request).
-    // TTL 30 días desde el login; no hay sliding renewal (re-login renueva).
-    const cookieOpts = {
-      httpOnly: true,
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-      secure: origin.startsWith("https"),
-    };
-    res.cookies.set(
-      SESSION_COOKIE,
-      Buffer.from(
-        JSON.stringify({ name: linked.name, email: linked.email }),
-        "utf8",
-      ).toString("base64url"),
-      cookieOpts,
+    // Relative /app so Set-Cookie binds to this host (not a mismatched absolute origin).
+    const res = NextResponse.redirect(new URL("/app", req.url));
+    await applyPanelCookies(
+      res,
+      {
+        name: linked.name,
+        email: linked.email,
+        apiKey: linked.api_key,
+      },
+      { secure: origin.startsWith("https") || Boolean(process.env.VERCEL) },
     );
-    res.cookies.set(API_KEY_COOKIE, linked.api_key, cookieOpts);
     return res;
   } catch {
     return NextResponse.redirect(`${origin}/login?error=link`);

@@ -5,6 +5,9 @@ import type { DashboardPayment } from "@/lib/payment-types";
 import type { Readiness } from "@/lib/readiness";
 import { API } from "@/lib/config";
 import { getApiKey, getDemoSession } from "@/lib/session";
+import { createSupabase, supabaseConfigured } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 function apiReachable() {
   // En Vercel, localhost no existe: no intentar fetch (evita Application error).
@@ -33,8 +36,25 @@ async function loadPanelData(apiKey: string) {
   return { payments, readiness };
 }
 
-export default async function HomePage() {
+/** If panel cookies vanished but Supabase Auth is still alive, re-hydrate. */
+async function ensurePanelSession() {
   const session = await getDemoSession();
+  if (session) return session;
+  if (!supabaseConfigured()) return null;
+  try {
+    const supabase = await createSupabase();
+    const { data } = await supabase.auth.getUser();
+    if (data.user?.email) {
+      redirect("/auth/restore?next=/app");
+    }
+  } catch {
+    /* fall through to login */
+  }
+  return null;
+}
+
+export default async function HomePage() {
+  const session = await ensurePanelSession();
   if (!session) redirect("/login");
   const apiKey = await getApiKey();
 

@@ -14,7 +14,15 @@ export async function GET(req: Request) {
     }
   }
   const res = NextResponse.redirect(`${origin}/login`);
-  res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
-  res.cookies.set(API_KEY_COOKIE, "", { path: "/", maxAge: 0 });
+  const clear = {
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: origin.startsWith("https") || Boolean(process.env.VERCEL),
+  };
+  res.cookies.set(SESSION_COOKIE, "", clear);
+  res.cookies.set(API_KEY_COOKIE, "", clear);
   return res;
 }
