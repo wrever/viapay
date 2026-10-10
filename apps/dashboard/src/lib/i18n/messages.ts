@@ -47,7 +47,11 @@ export type Messages = {
   profileSecurityAuthEmail: string;
   profileSecurityUnknown: string;
   profileSecurityOauthNote: string;
+  profileSecurityLastSignIn: string;
   profileProviderLabel: (provider: string) => string;
+  profileSignOutConfirm: string;
+  profileCancel: string;
+  profileNameCount: (n: number) => string;
   profilePasswordTitle: string;
   profilePasswordDesc: string;
   profilePasswordNew: string;
@@ -440,6 +444,7 @@ const es: Messages = {
   profileSecurityUnknown: "Sesión activa",
   profileSecurityOauthNote:
     "ViaPay usa Google o GitHub. Podés agregar una contraseña abajo para otro factor de acceso al mismo email.",
+  profileSecurityLastSignIn: "Último acceso",
   profileProviderLabel: (provider) => {
     const p = provider.toLowerCase();
     if (p === "google") return "Google";
@@ -458,6 +463,9 @@ const es: Messages = {
   profilePasswordTooShort: "Mínimo 8 caracteres.",
   profilePasswordMismatch: "Las contraseñas no coinciden.",
   profilePasswordNoAuth: "Auth no está configurado en este entorno.",
+  profileSignOutConfirm: "¿Cerrar sesión en este navegador?",
+  profileCancel: "Cancelar",
+  profileNameCount: (n) => `${n}/80`,
   profileShortcutsTitle: "Atajos de cuenta",
   profileShortcutsDesc: "Ir a billetera, API key o notificaciones.",
   profileShortcutWallet: "Billetera de destino",
@@ -896,6 +904,7 @@ const en: Messages = {
   profileSecurityUnknown: "Active session",
   profileSecurityOauthNote:
     "ViaPay uses Google or GitHub. You can add a password below as another way into the same email.",
+  profileSecurityLastSignIn: "Last sign-in",
   profileProviderLabel: (provider) => {
     const p = provider.toLowerCase();
     if (p === "google") return "Google";
@@ -914,6 +923,9 @@ const en: Messages = {
   profilePasswordTooShort: "At least 8 characters.",
   profilePasswordMismatch: "Passwords do not match.",
   profilePasswordNoAuth: "Auth is not configured in this environment.",
+  profileSignOutConfirm: "Sign out on this browser?",
+  profileCancel: "Cancel",
+  profileNameCount: (n) => `${n}/80`,
   profileShortcutsTitle: "Account shortcuts",
   profileShortcutsDesc: "Jump to wallet, API key, or notifications.",
   profileShortcutWallet: "Destination wallet",
@@ -1349,6 +1361,7 @@ const pt: Messages = {
   profileSecurityUnknown: "Sessão ativa",
   profileSecurityOauthNote:
     "ViaPay usa Google ou GitHub. Você pode adicionar uma senha abaixo como outro fator no mesmo email.",
+  profileSecurityLastSignIn: "Último acesso",
   profileProviderLabel: (provider) => {
     const p = provider.toLowerCase();
     if (p === "google") return "Google";
@@ -1367,6 +1380,9 @@ const pt: Messages = {
   profilePasswordTooShort: "Mínimo 8 caracteres.",
   profilePasswordMismatch: "As senhas não coincidem.",
   profilePasswordNoAuth: "Auth não está configurado neste ambiente.",
+  profileSignOutConfirm: "Sair neste navegador?",
+  profileCancel: "Cancelar",
+  profileNameCount: (n) => `${n}/80`,
   profileShortcutsTitle: "Atalhos da conta",
   profileShortcutsDesc: "Ir à carteira, API key ou notificações.",
   profileShortcutWallet: "Carteira de destino",
