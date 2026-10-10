@@ -74,6 +74,7 @@ export function ProfileIdentity({
       });
       onUpdated(data.account);
       setOk(true);
+      window.setTimeout(() => setOk(false), 2500);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.profileSaveError);
     } finally {
@@ -97,7 +98,11 @@ export function ProfileIdentity({
             autoComplete="name"
             required
             maxLength={80}
+            data-testid="profile-name"
           />
+          <p className="profile-field-hint profile-field-hint--end">
+            {t.profileNameCount(name.trim().length)}
+          </p>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="profile-biz">{t.profileBusinessLabel}</Label>
