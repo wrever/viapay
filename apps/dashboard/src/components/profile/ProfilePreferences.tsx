@@ -13,6 +13,7 @@ import {
 import { FiatCurrencySelect } from "@/components/FiatCurrencySelect";
 import { Label } from "@/components/ui/label";
 import { useLocale } from "@/lib/i18n";
+import { ProfileSection } from "./ProfileSection";
 
 export function ProfilePreferences() {
   const { t, locale, setLocale } = useLocale();
@@ -34,12 +35,13 @@ export function ProfilePreferences() {
   }
 
   return (
-    <section className="profile-card" id="profile-prefs">
-      <header className="profile-card__head">
-        <h3 className="profile-card__title">{t.profilePrefsTitle}</h3>
-        <p className="profile-card__desc">{t.profilePrefsDesc}</p>
-      </header>
-      <div className="profile-card__body profile-form">
+    <ProfileSection
+      id="profile-prefs"
+      title={t.profilePrefsTitle}
+      desc={t.profilePrefsDesc}
+      testId="profile-prefs"
+    >
+      <div className="profile-form">
         <div className="grid gap-2">
           <Label htmlFor="profile-locale">{t.profileLocaleLabel}</Label>
           <select
@@ -84,6 +86,6 @@ export function ProfilePreferences() {
           hint={t.profileFiatHint}
         />
       </div>
-    </section>
+    </ProfileSection>
   );
 }
