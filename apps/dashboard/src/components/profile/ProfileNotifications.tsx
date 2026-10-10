@@ -21,6 +21,9 @@ export function ProfileNotifications({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
+  const dirty =
+    emailPaid !== profile.notify_email_paid ||
+    waPaid !== profile.notify_wa_paid;
 
   async function save() {
     setSaving(true);
@@ -94,7 +97,12 @@ export function ProfileNotifications({
           </p>
         ) : null}
         <div className="profile-form__actions">
-          <Button type="button" variant="secondary" disabled={saving} onClick={() => void save()}>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={saving || !dirty}
+            onClick={() => void save()}
+          >
             {saving ? t.profileSaving : t.profileSave}
           </Button>
         </div>
