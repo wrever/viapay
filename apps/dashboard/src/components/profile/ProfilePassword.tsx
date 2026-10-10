@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import { useLocale } from "@/lib/i18n";
+import { ProfileSection } from "./ProfileSection";
+import { useClearFlash } from "./useClearFlash";
 
 export function ProfilePassword() {
   const { t } = useLocale();
@@ -14,7 +16,7 @@ export function ProfilePassword() {
   const [confirm, setConfirm] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ok, setOk] = useState(false);
+  const [ok, setOk] = useClearFlash();
   const mismatch = confirm.length > 0 && password !== confirm;
 
   async function save(e: FormEvent) {
@@ -54,15 +56,18 @@ export function ProfilePassword() {
   }
 
   return (
-    <section className="profile-card" id="profile-password">
-      <header className="profile-card__head">
-        <h3 className="profile-card__title">
+    <ProfileSection
+      id="profile-password"
+      title={
+        <>
           <KeyRound className="inline size-4 mr-1.5 align-[-2px]" aria-hidden />
           {t.profilePasswordTitle}
-        </h3>
-        <p className="profile-card__desc">{t.profilePasswordDesc}</p>
-      </header>
-      <form className="profile-card__body profile-form" onSubmit={save}>
+        </>
+      }
+      desc={t.profilePasswordDesc}
+      testId="profile-password"
+    >
+      <form className="profile-form" onSubmit={save}>
         <div className="grid gap-2">
           <Label htmlFor="profile-pass">{t.profilePasswordNew}</Label>
           <Input
@@ -114,6 +119,6 @@ export function ProfilePassword() {
           </Button>
         </div>
       </form>
-    </section>
+    </ProfileSection>
   );
 }
