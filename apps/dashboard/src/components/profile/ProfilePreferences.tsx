@@ -14,6 +14,7 @@ import { FiatCurrencySelect } from "@/components/FiatCurrencySelect";
 import { Label } from "@/components/ui/label";
 import { useLocale } from "@/lib/i18n";
 import { ProfileSection } from "./ProfileSection";
+import { ProfileThemePreview } from "./ProfileThemePreview";
 
 export function ProfilePreferences() {
   const { t, locale, setLocale } = useLocale();
@@ -62,21 +63,24 @@ export function ProfilePreferences() {
           <span className="text-sm font-medium text-[var(--text)]">
             {t.profileThemeLabel}
           </span>
-          <div className="profile-seg" role="group" aria-label={t.profileThemeLabel}>
-            <button
-              type="button"
-              className={`profile-seg__btn${theme === "light" ? " is-active" : ""}`}
-              onClick={() => pickTheme("light")}
-            >
-              {t.profileThemeLight}
-            </button>
-            <button
-              type="button"
-              className={`profile-seg__btn${theme === "dark" ? " is-active" : ""}`}
-              onClick={() => pickTheme("dark")}
-            >
-              {t.profileThemeDark}
-            </button>
+          <div className="profile-theme-row">
+            <div className="profile-seg" role="group" aria-label={t.profileThemeLabel}>
+              <button
+                type="button"
+                className={`profile-seg__btn${theme === "light" ? " is-active" : ""}`}
+                onClick={() => pickTheme("light")}
+              >
+                {t.profileThemeLight}
+              </button>
+              <button
+                type="button"
+                className={`profile-seg__btn${theme === "dark" ? " is-active" : ""}`}
+                onClick={() => pickTheme("dark")}
+              >
+                {t.profileThemeDark}
+              </button>
+            </div>
+            <ProfileThemePreview theme={theme} />
           </div>
         </div>
 
