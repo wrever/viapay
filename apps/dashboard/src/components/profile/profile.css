@@ -181,7 +181,8 @@
   gap: 0.9rem;
 }
 
-.profile-form__actions {
+.profile-form__actions,
+.profile-save-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
