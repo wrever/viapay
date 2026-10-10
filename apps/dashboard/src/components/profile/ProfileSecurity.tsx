@@ -9,6 +9,7 @@ export function ProfileSecurity() {
   const { t } = useLocale();
   const [providers, setProviders] = useState<string[]>([]);
   const [email, setEmail] = useState<string | null>(null);
+  const [lastSignIn, setLastSignIn] = useState<string | null>(null);
 
   useEffect(() => {
     const sb = createSupabaseBrowser();
@@ -21,6 +22,8 @@ export function ProfileSecurity() {
         .map((i) => i.provider)
         .filter(Boolean) as string[];
       setProviders(ids.length ? ids : ["oauth"]);
+      const at = user.last_sign_in_at ?? user.created_at ?? null;
+      setLastSignIn(at);
     });
   }, []);
 
@@ -47,6 +50,12 @@ export function ProfileSecurity() {
             <div>
               <dt>{t.profileSecurityAuthEmail}</dt>
               <dd>{email}</dd>
+            </div>
+          ) : null}
+          {lastSignIn ? (
+            <div>
+              <dt>{t.profileSecurityLastSignIn}</dt>
+              <dd>{new Date(lastSignIn).toLocaleString()}</dd>
             </div>
           ) : null}
         </dl>
