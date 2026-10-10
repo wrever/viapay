@@ -1,15 +1,21 @@
 "use client";
 
 import { useLocale } from "@/lib/i18n";
+import { PROFILE_ANCHORS } from "./profile-anchors";
 import { scrollToProfileAnchor } from "./scrollToProfileAnchor";
 
-const ANCHORS = [
-  { id: "profile-identity", key: "identity" as const },
-  { id: "profile-prefs", key: "prefs" as const },
-  { id: "profile-notify", key: "notify" as const },
-  { id: "profile-security", key: "security" as const },
-  { id: "profile-password", key: "password" as const },
+const ANCHOR_KEYS = [
+  "identity",
+  "prefs",
+  "notify",
+  "security",
+  "password",
 ] as const;
+
+const ANCHORS = PROFILE_ANCHORS.map((id, i) => ({
+  id,
+  key: ANCHOR_KEYS[i]!,
+}));
 
 export function ProfileScrollNav() {
   const { t } = useLocale();
