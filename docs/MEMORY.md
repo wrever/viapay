@@ -1,6 +1,6 @@
 # ViaPay — memoria de proyecto
 
-Actualizado: 2026-10-10 (**Perfil/configuración** tab · `GET/PATCH /v1/me` · password opcional Supabase · UserMenu · session fix · notificaciones feed). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
+Actualizado: 2026-10-10 (**Perfil completo** tab · identidad/prefs/avisos/seguridad/password · `GET/PATCH /v1/me` · UserMenu · session fix · notificaciones feed). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
 **Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `git commit-tree` (sin hooks; Cursor inyecta Co-authored-by en `git commit`). Repo: https://github.com/wrever/viapay. Workflow `.github/workflows/*` queda **local** (push rechazado sin scope `workflow` en el token OAuth; reintentar con PAT que tenga `workflow`).
 
