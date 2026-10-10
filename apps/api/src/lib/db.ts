@@ -174,6 +174,13 @@ export function migrate(db = getDb()): void {
     metadata: "text",
     network: "text not null default 'testnet'",
   });
+
+  addColumns(db, "accounts", {
+    business_name: "text",
+    phone_e164: "text",
+    notify_email_paid: "integer not null default 1",
+    notify_wa_paid: "integer not null default 1",
+  });
 }
 
 /** sqlite has no `add column if not exists`, so check the table first. */
