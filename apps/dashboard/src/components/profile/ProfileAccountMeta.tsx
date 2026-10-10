@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/lib/account-types";
 import { useLocale } from "@/lib/i18n";
 import { formatRelativeTime } from "@/lib/relative-time";
+import { ProfileSection } from "./ProfileSection";
 
 function fmtDate(iso: string, locale: string): string {
   try {
@@ -33,47 +34,45 @@ export function ProfileAccountMeta({ profile }: { profile: AccountProfile }) {
   }
 
   return (
-    <section className="profile-card">
-      <header className="profile-card__head">
-        <h3 className="profile-card__title">{t.profileMetaTitle}</h3>
-        <p className="profile-card__desc">{t.profileMetaDesc}</p>
-      </header>
-      <div className="profile-card__body">
-        <dl className="profile-meta">
-          <div>
-            <dt>{t.profileMetaId}</dt>
-            <dd className="profile-meta__row">
-              <span className="profile-mono">{profile.id}</span>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => void copyId()}
-              >
-                {copied ? t.copied : t.copy}
-              </Button>
-            </dd>
-          </div>
-          <div>
-            <dt>{t.profileMetaStatus}</dt>
-            <dd>{profile.status}</dd>
-          </div>
-          <div>
-            <dt>{t.profileMetaCreated}</dt>
-            <dd>{fmtDate(profile.created_at, tag)}</dd>
-          </div>
-          <div>
-            <dt>{t.profileMetaUpdated}</dt>
-            <dd>
-              {fmtDate(profile.updated_at, tag)}
-              <span className="profile-meta__rel">
-                {" "}
-                ({formatRelativeTime(profile.updated_at, tag)})
-              </span>
-            </dd>
-          </div>
-        </dl>
-      </div>
-    </section>
+    <ProfileSection
+      title={t.profileMetaTitle}
+      desc={t.profileMetaDesc}
+      testId="profile-meta"
+    >
+      <dl className="profile-meta">
+        <div>
+          <dt>{t.profileMetaId}</dt>
+          <dd className="profile-meta__row">
+            <span className="profile-mono">{profile.id}</span>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => void copyId()}
+            >
+              {copied ? t.copied : t.copy}
+            </Button>
+          </dd>
+        </div>
+        <div>
+          <dt>{t.profileMetaStatus}</dt>
+          <dd>{profile.status}</dd>
+        </div>
+        <div>
+          <dt>{t.profileMetaCreated}</dt>
+          <dd>{fmtDate(profile.created_at, tag)}</dd>
+        </div>
+        <div>
+          <dt>{t.profileMetaUpdated}</dt>
+          <dd>
+            {fmtDate(profile.updated_at, tag)}
+            <span className="profile-meta__rel">
+              {" "}
+              ({formatRelativeTime(profile.updated_at, tag)})
+            </span>
+          </dd>
+        </div>
+      </dl>
+    </ProfileSection>
   );
 }
