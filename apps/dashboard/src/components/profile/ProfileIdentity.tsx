@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AccountProfile } from "@/lib/account-types";
-import { API } from "@/lib/config";
+import { patchAccountProfile } from "@/lib/me-client";
 import { useLocale } from "@/lib/i18n";
 import { isValidE164, sanitizePhoneInput } from "@/lib/phone-e164";
 
@@ -48,31 +48,17 @@ export function ProfileIdentity({
       return;
     }
     try {
-      const res = await fetch(`${API}/v1/me`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          business_name: businessName.trim() || null,
-          phone_e164: phoneTrim || null,
-        }),
+      const account = await patchAccountProfile(apiKey, {
+        name: name.trim(),
+        business_name: businessName.trim() || null,
+        phone_e164: phoneTrim || null,
       });
-      const data = (await res.json()) as {
-        account?: AccountProfile;
-        error?: string;
-      };
-      if (!res.ok || !data.account) {
-        throw new Error(data.error || t.profileSaveError);
-      }
       await fetch("/auth/session-name", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: data.account.name }),
+        body: JSON.stringify({ name: account.name }),
       });
-      onUpdated(data.account);
+      onUpdated(account);
       setOk(true);
       window.setTimeout(() => setOk(false), 2500);
     } catch (err) {
