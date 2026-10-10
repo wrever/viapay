@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { AccountProfile } from "@/lib/account-types";
 import { patchAccountProfile } from "@/lib/me-client";
 import { useLocale } from "@/lib/i18n";
+import { ProfileSection } from "./ProfileSection";
 import { useClearFlash } from "./useClearFlash";
 
 export function ProfileNotifications({
@@ -50,12 +51,13 @@ export function ProfileNotifications({
   }
 
   return (
-    <section className="profile-card" id="profile-notify">
-      <header className="profile-card__head">
-        <h3 className="profile-card__title">{t.profileNotifyTitle}</h3>
-        <p className="profile-card__desc">{t.profileNotifyDesc}</p>
-      </header>
-      <div className="profile-card__body profile-form">
+    <ProfileSection
+      id="profile-notify"
+      title={t.profileNotifyTitle}
+      desc={t.profileNotifyDesc}
+      testId="profile-notify"
+    >
+      <div className="profile-form">
         <label className="profile-switch">
           <input
             type="checkbox"
@@ -99,6 +101,6 @@ export function ProfileNotifications({
           </Button>
         </div>
       </div>
-    </section>
+    </ProfileSection>
   );
 }
