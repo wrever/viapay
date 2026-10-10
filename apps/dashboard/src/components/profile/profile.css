@@ -264,10 +264,23 @@
   font-size: 0.8rem;
 }
 
+.profile-meta__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .profile-scroll-nav {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 2;
+  padding: 0.35rem 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
 }
 
 .profile-scroll-nav__list {
@@ -299,4 +312,60 @@
 
 .profile-card[id] {
   scroll-margin-top: 5.5rem;
+}
+
+.profile-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-hero,
+  .profile-card,
+  .profile-shortcut {
+    transition: none !important;
+  }
+}
+
+.profile-skeleton {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.profile-skeleton__bar {
+  height: 0.7rem;
+  width: 55%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tint) 80%, var(--border));
+  animation: profile-pulse 1.2s ease-in-out infinite;
+}
+
+.profile-skeleton__bar--short {
+  width: 35%;
+}
+
+.profile-skeleton__card {
+  height: 7.5rem;
+  border-radius: var(--r-lg, 1rem);
+  background: color-mix(in srgb, var(--tint) 70%, var(--border));
+  animation: profile-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes profile-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-skeleton__bar,
+  .profile-skeleton__card {
+    animation: none;
+  }
 }
