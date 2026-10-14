@@ -380,8 +380,19 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
       <div className="prefs-bar">
         <CheckoutSiteControls />
       </div>
+      <div className={`pay-stage${helpOpen ? " is-help-open" : ""}`}>
       <div className="pay-card">
         <Logo variant="icon" width={208} className="pay-card__mark" alt="" />
+        <button
+          type="button"
+          className="pay-help-fab"
+          aria-expanded={helpOpen}
+          aria-controls="pay-help-drawer"
+          aria-label="Antes de firmar, revisá"
+          onClick={() => setHelpOpen((open) => !open)}
+        >
+          <CircleHelp className="h-5 w-5" aria-hidden="true" />
+        </button>
         <div className="pay-card__body">
           <div className="mb-6 flex items-center justify-between gap-3">
             <span className="brand-lockup">
@@ -797,17 +808,6 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
         </div>
       </div>
 
-      <button
-        type="button"
-        className="pay-help-fab"
-        aria-expanded={helpOpen}
-        aria-controls="pay-help-drawer"
-        aria-label="Antes de firmar, revisá"
-        onClick={() => setHelpOpen((open) => !open)}
-      >
-        <CircleHelp className="h-5 w-5" aria-hidden="true" />
-      </button>
-
       <div
         className={`pay-help-backdrop${helpOpen ? " is-open" : ""}`}
         aria-hidden={!helpOpen}
@@ -878,6 +878,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
           </li>
         </ul>
       </aside>
+      </div>
     </PollarShell>
   );
 }
