@@ -8,7 +8,16 @@ export type Messages = {
   walletTab: string;
   qrTab: string;
   routerChip: string;
-  qrRouterOnly: string;
+  /** Router: need payer G… before building contract SEP-7 QR. */
+  qrNeedPayer: string;
+  qrGenerate: string;
+  qrGeneratingContract: string;
+  qrRouterReady: string;
+  qrRouterHint: string;
+  qrPayerLabel: string;
+  qrPayerPlaceholder: string;
+  copyPayLink: string;
+  payLinkCopied: string;
   splitTitle: string;
   splitHint: string;
   receiptTitle: string;
@@ -108,8 +117,18 @@ const es: Messages = {
   walletTab: "Billetera",
   qrTab: "Código QR",
   routerChip: "Soroban router",
-  qrRouterOnly:
-    "Este cobro liquida por el contrato payment-router. Usá Billetera (Freighter); el QR clásico no aplica.",
+  qrNeedPayer:
+    "Para el QR del contrato necesitamos la cuenta que paga (misma G… que va a escanear).",
+  qrGenerate: "Generar QR del contrato",
+  qrGeneratingContract: "Armando pay() del router…",
+  qrRouterReady:
+    "Escaneá con Lobstr o Freighter Mobile. Firmás el pay() del payment-router (mismo path que Billetera).",
+  qrRouterHint:
+    "Wallet y QR liquidan por el mismo contrato. El QR es SEP-7 con el XDR de prepare (no un pago clásico).",
+  qrPayerLabel: "Cuenta que paga (G…)",
+  qrPayerPlaceholder: "G… de la billetera del teléfono",
+  copyPayLink: "Copiar link del cobro",
+  payLinkCopied: "Link copiado",
   splitTitle: "En esta firma se reparte",
   splitHint: "Una transacción, varias transferencias on-chain. El % de ViaPay lo fija el servidor.",
   receiptTitle: "Recibo on-chain",
@@ -213,8 +232,18 @@ const en: Messages = {
   walletTab: "Wallet",
   qrTab: "QR code",
   routerChip: "Soroban router",
-  qrRouterOnly:
-    "This charge settles via the payment-router contract. Use Wallet (Freighter); classic QR does not apply.",
+  qrNeedPayer:
+    "For the contract QR we need the paying account (same G… that will scan).",
+  qrGenerate: "Generate contract QR",
+  qrGeneratingContract: "Building router pay()…",
+  qrRouterReady:
+    "Scan with Lobstr or Freighter Mobile. You sign payment-router pay() — same path as Wallet.",
+  qrRouterHint:
+    "Wallet and QR both settle via the contract. The QR is SEP-7 with the prepare XDR (not a classic payment).",
+  qrPayerLabel: "Paying account (G…)",
+  qrPayerPlaceholder: "G… of the phone wallet",
+  copyPayLink: "Copy charge link",
+  payLinkCopied: "Link copied",
   splitTitle: "This signature splits to",
   splitHint: "One transaction, multiple on-chain transfers. ViaPay’s % is server-fixed.",
   receiptTitle: "On-chain receipt",
@@ -318,8 +347,18 @@ const pt: Messages = {
   walletTab: "Carteira",
   qrTab: "Código QR",
   routerChip: "Soroban router",
-  qrRouterOnly:
-    "Esta cobrança liquida pelo contrato payment-router. Use Carteira (Freighter); o QR clássico não se aplica.",
+  qrNeedPayer:
+    "Para o QR do contrato precisamos da conta que paga (a mesma G… que vai escanear).",
+  qrGenerate: "Gerar QR do contrato",
+  qrGeneratingContract: "Montando pay() do router…",
+  qrRouterReady:
+    "Escaneie com Lobstr ou Freighter Mobile. Você assina o pay() do payment-router — mesmo caminho que Carteira.",
+  qrRouterHint:
+    "Carteira e QR liquidam pelo mesmo contrato. O QR é SEP-7 com o XDR do prepare (não um pagamento clássico).",
+  qrPayerLabel: "Conta que paga (G…)",
+  qrPayerPlaceholder: "G… da carteira do telefone",
+  copyPayLink: "Copiar link da cobrança",
+  payLinkCopied: "Link copiado",
   splitTitle: "Nesta assinatura o valor vai para",
   splitHint: "Uma transação, várias transferências on-chain. O % da ViaPay é fixo no servidor.",
   receiptTitle: "Recibo on-chain",

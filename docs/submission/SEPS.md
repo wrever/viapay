@@ -5,7 +5,7 @@ Actualizado: 2026-10-10. Runtime: `GET /v1/health` → `seps` (probes live) + `s
 | SEP | Encaje | Decisión | Estado |
 |---|---|---|---|
 | SEP-1 stellar.toml | Identidad dominio | LIVE | `https://viapay.vercel.app/.well-known/stellar.toml` (probe en health) |
-| SEP-7 tx URI | QR checkout | wallet_path | Con router onchain → Freighter / wallets kit (QR clásico off a propósito) |
+| SEP-7 tx URI | QR checkout (classic GET o router via `prepare.sep7_tx`) | live | Con router: SEP-7 = XDR `pay()` post-prepare (misma G… que escanea) |
 | SEP-10 | Auth anchor | LIVE (demo cash-out) | SDF Test Anchor WEB_AUTH; panel `POST /v1/sep10/challenge` + `/token` · health sonda challenge |
 | SEP-24 | Cash-out | LIVE (fiat simulado) | Proxy `POST /v1/sep24/withdraw` · health sonda `/sep24/info` · UI declara fiat simulado |
 | SEP-11 KYC | Anchor customer | SKIP | Sin KYC producto; toml apunta SEP-12 del test anchor |
@@ -26,6 +26,6 @@ UI: panel **Integración** → `StellarSepsStatus` + `AnchorCashOut`.
 **Qué no activamos a propósito**
 
 - SEP-11 KYC producto (fuera de scope).  
-- SEP-7 clásico con router (rompería settlement atómico `pay()`).  
+- SEP-7 clásico multi-op con router (rompería settlement atómico `pay()`); el QR router usa el XDR de `prepare`, no el path clásico.  
 - Fiat SEP-24 real (sigue simulado en Test Anchor).  
 - Lab Verified Build click-ops (tras attest GitHub).

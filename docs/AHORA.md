@@ -25,13 +25,14 @@ Foco de producto **antes** de volvernos infra pesada. Lo diferido está en [`FUT
 - Un solo `checkout_url` (gateway): humano → `/pay`, agente → 402. Recibo post-pago en UI.
 - Evidencia on-chain y docs de jurado al día (`HACKATHON.md`, `MEMORY.md`).
 - Pulir copy y CTAs hacia demo en testnet.
-- Path Soroban **obligatorio** onchain; badge “Soroban router” en checkout; QR clásico off con router.
+- Path Soroban **obligatorio** onchain; badge “Soroban router” en checkout; **Billetera + QR** = mismo `pay()` (`prepare` → firmar / SEP-7).
 
 ## Excepción hackathon (esta semana)
 
 - Paquete jurado: [`WIN_PLAN.md`](./WIN_PLAN.md) + [`submission/`](./submission/).
 - **Mainnet evidencia** (self-pay + third-party) permitida; producto diario = testnet; cobros mainnet opt-in.
-- SEP-1/10/24/41 live (probes) · SEP-55 CI (push+Lab pendiente) · SEP-7 = wallet_path.
+- SEP-1/10/24/41 live (probes) · SEP-55 CI (push+Lab pendiente) · SEP-7 router = XDR de `prepare` (QR contrato).
+- **Fuera de demo jurado:** WA Meta Live inbound + Resend (sin dominio DNS propio).
 
 - **Invoices por contacto + asistente WhatsApp** (Meta Cloud API, NL `cobro 20 xlm a juanito`, deliver WA/email) → mismo `payment_intent` / `checkout_url`.
 - **Email invoices Resend** — `POST /v1/payment_intents/:id/send_email` + opción 2 en el chat (sin key → mailto).

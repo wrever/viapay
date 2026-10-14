@@ -269,6 +269,24 @@ export async function buildSplitPaymentXdr(input: SplitLeg): Promise<{
 }
 
 /**
+ * SEP-7 `tx` URI from an already-built XDR (classic split or Soroban router `pay`).
+ * Use after `prepare` so the source/payer matches the account that will scan & sign.
+ */
+export function buildSep7TxUri(opts: {
+  xdr: string;
+  callbackUrl: string;
+  networkPassphrase: string;
+  msg: string;
+}): string {
+  const params = new URLSearchParams();
+  params.set("xdr", opts.xdr);
+  params.set("callback", `url:${opts.callbackUrl}`);
+  params.set("msg", opts.msg);
+  params.set("network_passphrase", opts.networkPassphrase);
+  return `web+stellar:tx?${params.toString()}`;
+}
+
+/**
  * SEP-7 `tx` URI carrying the whole split. `replace=sourceAccount` lets Lobstr /
  * Freighter Mobile swap in the scanner's account (SEP-7 cannot split via `pay`).
  * Sequence is a placeholder; wallets that implement `replace` must refresh it.

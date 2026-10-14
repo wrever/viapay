@@ -1,6 +1,6 @@
 # ViaPay — memoria de proyecto
 
-Actualizado: 2026-10-10 (**Perfil completo** tab · identidad/prefs/avisos/seguridad/password · `GET/PATCH /v1/me` · UserMenu · session fix · notificaciones feed). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
+Actualizado: 2026-10-13 (**QR contrato = SEP-7 del prepare/router** · wallet+QR mismo path · WA/Resend fuera · perfil listo). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
 **Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `git commit-tree` (sin hooks; Cursor inyecta Co-authored-by en `git commit`). Repo: https://github.com/wrever/viapay. Workflow `.github/workflows/*` queda **local** (push rechazado sin scope `workflow` en el token OAuth; reintentar con PAT que tenga `workflow`).
 
@@ -31,7 +31,7 @@ Fuente viva: `GET /v1/health` · checklist hashes: [`submission/evidence-index.m
 | x402 mismo `checkout_url` | LISTO (código; hash evidencia fila #5 **pendiente documentar**) |
 | Parity / settle-proof / VP-codes / `/r` / kit `pnpm verify -- --kit` | LISTO |
 | SEP-1 / 10 / 24 (fiat simulado) / 41 | LISTO (probes live) |
-| SEP-7 clásico | OFF a propósito (`wallet_path`) |
+| SEP-7 / QR router | LISTO: `prepare` → `sep7_tx` (XDR `pay()`); tab QR pide G… pagadora |
 | USDC trustline + cobro | CÓDIGO listo; evidencia fila #4/#6 **pendiente** |
 | Shop consumer | Solo local `:3005` (no deploy) |
 
@@ -68,12 +68,13 @@ Todo opt-in del comercio al crear el link (default = cobro simple).
 
 ### Ops / producto que aún mueven aguja (prioridad)
 
-1. **Video 2 min** abonos + link firmado + plan cuotas + kit ([`demo-90s.md`](./submission/demo-90s.md)).
+**Fuera de scope hackathon (2026-10-12):** Meta WhatsApp Live (Facebook Developers no desbloqueó) y Resend (sin dominio propio de pago → no verify). Código WA/email queda; demo jurado = panel + Freighter + recibo + kit, sin inbound WA ni invoices Resend. Reminders de cuotas / cron siguen dry-run.
+
+1. **Video 2 min** cobro panel → Paid → recibo vs captura falsa (+ abonos/link firmado si cabe) ([`demo-90s.md`](./submission/demo-90s.md)).
 2. Evidence testnet Freighter/x402 documentada (#3–#5).
-3. **`RESEND_API_KEY`** + Meta Live `META_WA_APP_LIVE=1` (también desbloquea reminders de cuotas — **hoy no activos** sin eso).
-4. `CRON_SECRET` en viapay-api para cron de plan-reminders en prod.
-5. Push workflow SEP-55 + Lab (**Lab no registrado** aún).
-6. Opcional: mainnet USDC · shop deploy · fee-sponsor · caso cobro con tercero no-equipo.
+3. Dora copy + University track: honest limits (sin WA Live / sin Resend).
+4. Push workflow SEP-55 + Lab (**Lab no registrado** aún) — opcional si hay tiempo.
+5. Opcional: mainnet USDC · shop deploy · fee-sponsor · caso cobro con tercero no-equipo.
 
 ### No construir ahora (FUTURO)
 
@@ -102,7 +103,7 @@ cd node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3 && npx 
 
 Pagos non-custodial en Stellar. El cliente paga en un checkout hosted. El comercio no custodia la clave del pagador. Un agente IA puede pagar lo mismo por HTTP 402 (x402).
 
-**Tesis de producto (demo):** un mismo `payment_intent` → **un `checkout_url`** → humano (billetera / QR) o agente (x402) → split hasta 3 patas → un hash. El link compartido es la gateway `/v1/x402/:id` (`Sec-Fetch-Dest: document` / HTML → 302 a `pay_url`; JSON/agente → 402). UI `/pay` sin tab agente; recibo post-pago sí.
+**Tesis de producto (demo):** un mismo `payment_intent` → **un `checkout_url`** → humano (billetera / QR SEP-7) o agente (x402) → split hasta 3 patas → un hash. El link compartido es la gateway `/v1/x402/:id` (`Sec-Fetch-Dest: document` / HTML → 302 a `pay_url`; JSON/agente → 402). UI `/pay` sin tab agente; recibo post-pago sí. Con payment-router, **Billetera y QR** liquidan por el mismo `pay()`: QR = SEP-7 con XDR de `prepare` (hace falta la G… pagadora para simular Soroban); callback `/v1/checkout/:id/sep7`.
 
 **El reparto es de hasta tres patas, en una sola transacción:**
 
@@ -122,20 +123,20 @@ Monorepo pnpm. Puertos: dashboard (:3000, incluye checkout `/pay/[id]`), API `:3
 
 ## Qué está vivo
 
-En **onchain**, la liquidación **exige** Soroban `payment-router` (`PAYMENT_ROUTER_CONTRACT_ID`). Prepare arma `pay(...)`; submit llama `assertRouterPayXdr` (contrato, merchant, treasury, reseller, montos, intent_id) antes del RPC. Sin contract id en onchain → 503. Clásico multi-op solo si `STELLAR_MODE=simulated` sin router. Con router activo, SEP-7 clásico **no** se ofrece (error en QR: usá Billetera).
+En **onchain**, la liquidación **exige** Soroban `payment-router` (`PAYMENT_ROUTER_CONTRACT_ID`). Prepare arma `pay(...)` y también devuelve `sep7_tx` (SEP-7 del mismo XDR) para QR móvil; submit llama `assertRouterPayXdr` antes del RPC. Sin contract id en onchain → 503. Clásico multi-op solo si `STELLAR_MODE=simulated` sin router. GET checkout **no** arma SEP-7 con router (falta pagador); el tab QR llama `prepare` con la G… conectada o pegada.
 
 1. El dashboard crea un payment intent (`POST /v1/payment_intents`), con o sin revendedor (preview del split al crear).
 2. Quien abre `checkout_url`: si es navegador → 302 a `pay_url` (`/pay/[id]`); si es agente → 402. El hosted carga `GET /v1/checkout/:id` (breakdown, preflight). Tabs **Billetera | QR**.
 3. El checkout pide un XDR (`POST /v1/checkout/:id/prepare`):
    - **Con router:** simula `pay(...)` vía RPC (SAC SEP-41) y devuelve `settlement: "router"`.
    - **Sin router:** XDR clásico con 2–3 `payment` (+ `changeTrust` USDC si falta). `payoutLegs` arma las patas.
-4. Firma con Stellar Wallets Kit (Freighter, Lobstr, xBull, …) o Pollar si hay key. Alternativa: QR SEP-7. Agente: `GET/POST` al mismo `checkout_url` (`/v1/x402/:id`).
+4. Firma con Stellar Wallets Kit (Freighter, Lobstr, xBull, …) o Pollar si hay key. Alternativa móvil: QR SEP-7 del XDR de `prepare` (router o clásico) → callback `/sep7`. Agente: `GET/POST` al mismo `checkout_url` (`/v1/x402/:id`).
 5. La API verifica destinos/montos (clásico: ops; router: args de `pay`) y envía (`POST /v1/checkout/:id/submit`) → `status: succeeded` + `stellar_tx_hash`. UI de éxito = recibo de patas + link stellar.expert.
 6. El comercio consulta por id: `GET /v1/payment_intents/:id` (Bearer) o la lista. Polling, no webhooks obligatorios.
-7. SEP-7 QR sigue el path **clásico** (placeholder + callback). La reconciliación Horizon por memo también es clásica; cobros router quedan `succeeded` vía submit (o poll tras submit).
+7. SEP-7: clásico desde GET (placeholder + replace); router desde `prepare.sep7_tx` (`buildSep7TxUri`). Cobros router quedan `succeeded` vía submit/callback (o poll).
 8. Al marcar pagado se dispara `payment_intent.succeeded` a los webhooks del comercio (configurables en panel → Notificaciones).
 
-**No en roadmap cercano (decisión):** memo/tag de exchanges (Binance) como destino de cobro; tarjetas/onramp fiat. El comercio cobra a G… propia; el pagador usa wallet/QR/agente.
+**No en roadmap cercano (decisión):** memo/tag de exchanges (Binance) como destino de cobro; tarjetas/onramp fiat. El comercio cobra a G… propia; el pagador usa wallet / QR SEP-7 / agente.
 
 La verificación (`assertSplitXdr`, `findConfirmedSplits`) consume una operación por pata, así que un revendedor que además sea el comercio sigue cobrando las dos veces. Toda la validación es server-side: el XDR firmado que no tenga exactamente las patas esperadas se rechaza antes de Horizon.
 
@@ -258,22 +259,22 @@ Webhooks: `POST/GET /v1/webhook_endpoints`, entregas, HMAC. Header `ViaPay-Signa
 | hash del wasm | `2ef555396732f7866186932864a3564fbf2bf410cd85ed2cac21b0a2209bf383` |
 | mainnet | **vivo** · `CA4FJAYS…LQ2U` · deploy `058c3502…` · **third-party** pay `83926d93…` ledger 64864011 merchant GCXX… ≠ treasury GDIN7H… · self-pay `b28aafbd…` · env MAINNET set · `pnpm verify -- --kit` · Meta Live / Resend / Lab SEP-55 = ops. |
 
-Onchain + `PAYMENT_ROUTER_CONTRACT_ID`: `prepare` / `submit` / x402 solo router; un XDR clásico se rechaza. SEP-7 clásico desactivado si hay router. Reconcile Horizon por memo sigue siendo path clásico (no marca cobros router). Código: `requirePaymentRouterContractId`, `buildRouterPayXdr`, `assertRouterPayXdr`, `submitVerifiedRouter`.
+Onchain + `PAYMENT_ROUTER_CONTRACT_ID`: `prepare` / `submit` / x402 solo router; un XDR clásico se rechaza. `prepare` devuelve `sep7_tx` vía `buildSep7TxUri` para QR móvil del mismo `pay()`. GET checkout no arma SEP-7 con router. Reconcile Horizon por memo sigue path clásico. Código: `requirePaymentRouterContractId`, `buildRouterPayXdr`, `buildSep7TxUri`, `assertRouterPayXdr`, `submitVerifiedRouter`.
 
 ## Lo que no está desplegado / parcial
 
 - **Anchor SEP-10/24**: probes **live** en health contra SDF Test Anchor; proxies API + panel cash-out. Fiat payout **simulado**. `web_auth` default en challenge si se omite.
 - **Escrow Trustless Work**: el POST existe. Sin `TRUSTLESSWORK_API_KEY` no llama a su API. Testnet: `https://beta.api.trustlesswork.com` (`/escrow/single-release/v2/deploy`). Mainnet legacy: `https://api.trustlesswork.com`.
 - **Pollar**: el checkout monta `PollarProvider` solo si hay `NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY`. Sin key, el botón no aparece. Hace falta una key de `dashboard.pollar.xyz`.
-- **Swap (público en checkout + plus en panel)**: `POST /v1/swap/quote|build|send` son **públicos** (sin cuenta ViaPay); `SOROSWAP_API_KEY` solo server-side; rate-limit básico por IP. **Checkout pagador** `/pay/[id]`: tabs **Billetera | QR**; debajo del flujo, link «¿No tienes el token? Swappear» cambia `view` a swap (reemplaza el área de pago con `CheckoutSwap` + CTA «Volver a pagar»). Copy visible sin marca del agregador ni link externo (feature ViaPay). Swap no es tab ni liquida el `payment_intent`. Panel `#swap` (`SwapPanel`) usa los mismos endpoints; sin hint de API key / login ni link externo. **Prod:** `SOROSWAP_API_KEY` en Vercel `viapay-api` → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje genérico).
+- **Swap (público en checkout + plus en panel)**: `POST /v1/swap/quote|build|send` son **públicos** (sin cuenta ViaPay); `SOROSWAP_API_KEY` solo server-side; rate-limit básico por IP. **Checkout pagador** `/pay/[id]`: tabs **Billetera | QR** (ambos → `prepare` / router `pay()`; QR = SEP-7 del XDR); debajo del flujo, link «¿No tienes el token? Swappear» cambia `view` a swap (reemplaza el área de pago con `CheckoutSwap` + CTA «Volver a pagar»). Copy visible sin marca del agregador ni link externo (feature ViaPay). Swap no es tab ni liquida el `payment_intent`. Panel `#swap` (`SwapPanel`) usa los mismos endpoints; sin hint de API key / login ni link externo. **Prod:** `SOROSWAP_API_KEY` en Vercel `viapay-api` → `GET /v1/swap` `configured: true`. Sin key la UI degrada (mensaje genérico).
 - **x402 con facilitator**: el endpoint propio está vivo (ver arriba), pero ViaPay liquida por su cuenta. No hay integración con un facilitator x402 ni con el esquema de auth entries de Soroban.
 - **Checkout unificado:** un `checkout_url` (gateway x402). Navegador → `/pay`; agente → 402. Panel Cobros copia ese único link. `pay_url` = UI directa. Detección: `apps/api/src/lib/accept.ts`.
 
 ## Límites reales
 
 - Horizon no indexa memos. La reconciliación mira 40 txs recientes del comercio.
-- El QR del teléfono no llega a `localhost`. Usa `VIAPAY_API_PUBLIC_URL`.
-- El `replace` de SEP-7 depende de que la wallet refresque la secuencia. Si no, `tx_bad_seq`. El camino de navegador (prepare con la cuenta real) es el sólido.
+- El QR-link del teléfono no sirve contra `localhost` (el móvil no alcanza tu máquina). En local usá tunnel o compartí el `pay_url` de prod.
+- SEP-7 clásico (solo sin router): el `replace` depende de que la wallet refresque la secuencia. Si no, `tx_bad_seq`. El camino de navegador (prepare con la cuenta real) es el sólido.
 - Comercio, tesorería y revendedor tienen que existir en la red. USDC exige trustline en los tres: si al revendedor le falta, **el cobro entero falla**, no solo su pata. En el panel, al teclear la wallet del revendedor el formulario avisa si no puede recibir; no hay bloque de readiness/Friendbot/faucet.
 - `STELLAR_MODE=simulated` sigue en el endpoint viejo `/confirm`. La UI no lo usa. `.env.example` está en `onchain`.
 

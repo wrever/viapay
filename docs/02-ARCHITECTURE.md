@@ -11,7 +11,7 @@
 
 - **Non-custodial:** ViaPay construye y verifica la transacción, no la recibe. El dinero va directo del pagador a comercio, tesorería y (si hay) revendedor, en la misma tx.
 - **Reparto:** ViaPay 1% fijo desde el entorno del servidor, revendedor opcional desde el body del cobro, comercio el resto. 2 o 3 operaciones de pago según haya revendedor o no.
-- **Dos puertas, un `payment_intent`:** checkout hosted para personas (Stellar Wallets Kit o QR SEP-7 `tx` con `replace=sourceAccount` + callback, nunca `pay`, que no parte el fee) y `GET/POST /v1/x402/:id` para agentes (402 con los requisitos, liquidación con el header `X-PAYMENT`). Las dos llaman al mismo `prepare` / `submit`.
+- **Dos puertas, un `payment_intent`:** checkout hosted para personas (Stellar Wallets Kit; con router el QR es el link `pay_url`; sin router, QR SEP-7 `tx` con `replace=sourceAccount` + callback, nunca `pay`) y `GET/POST /v1/x402/:id` para agentes (402 con los requisitos, liquidación con el header `X-PAYMENT`). Las dos llaman al mismo `prepare` / `submit`.
 - **Verificación:** el XDR firmado se desarma y se consume una operación por pata esperada antes de tocar Horizon. Además, al cargar el checkout o el dashboard se buscan txs recientes del comercio cuyo memo sea el id del cobro y cuyas patas coincidan, así que el callback SEP-7 no es el único camino.
 - **Webhooks:** `payment_intent.succeeded` firmado con `ViaPay-Signature`. OAuth Supabase opcional.
 - **Soroban:** `contracts/payment-router` hace el reparto de 3 patas on-chain. En onchain con `PAYMENT_ROUTER_CONTRACT_ID`, checkout `prepare`/`submit` lo invocan (path vivo en testnet). Mainnet vía `PAYMENT_ROUTER_CONTRACT_ID_MAINNET` cuando hay deploy.

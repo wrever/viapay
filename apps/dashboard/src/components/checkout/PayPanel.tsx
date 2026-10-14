@@ -70,6 +70,11 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
     intent.amount_remaining ?? intent.amount,
   );
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [payLinkCopied, setPayLinkCopied] = useState(false);
+  const [pageUrl, setPageUrl] = useState(intent.pay_url ?? "");
+  const [manualPayer, setManualPayer] = useState("");
+  const [routerSep7, setRouterSep7] = useState<string | null>(null);
+  const [qrPreparing, setQrPreparing] = useState(false);
   const networkRaw = intent.stellar?.network ?? intent.network;
   const network =
     networkRaw === "mainnet" || networkRaw === "local" ? networkRaw : "testnet";
@@ -83,8 +88,9 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
     intent.settlement === "router" ||
     Boolean(intent.contract_id ?? intent.stellar?.payment_router);
 
-  const sep7 = useMemo(() => {
+  const classicSep7 = useMemo(() => {
     if (intent.sep7_tx) return intent.sep7_tx;
+    if (routerMode) return null;
     return buildSep7PayUri({
       destination: intent.merchant_wallet,
       amount: intent.amount,
@@ -92,20 +98,74 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
       assetIssuer: intent.stellar?.asset_issuer,
       memo: intent.id,
     });
-  }, [intent]);
+  }, [intent, routerMode]);
   const splitReady = Boolean(intent.sep7_tx) && !routerMode;
 
-  useEffect(() => {
-    if (routerMode && method === "qr") setMethod("wallet");
-  }, [routerMode, method]);
+  const connectedPayer = pollar?.address ?? walletKit.address;
+  const manualOk =
+    manualPayer.trim().startsWith("G") && manualPayer.trim().length >= 56;
+  const qrPayer = connectedPayer ?? (manualOk ? manualPayer.trim() : null);
 
   useEffect(() => {
-    if (routerMode) return;
+    setPageUrl(intent.pay_url || window.location.href);
+  }, [intent.pay_url]);
+
+  async function prepareRouterSep7(source: string) {
+    setQrPreparing(true);
+    setError(null);
+    try {
+      const payAmt = intent.abonos_enabled
+        ? Number(abonoAmount.replace(",", ".")).toFixed(7)
+        : undefined;
+      const prep = await fetch(`${API}/v1/checkout/${intent.id}/prepare`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_secret: intent.client_secret,
+          source,
+          ...(payAmt ? { amount: payAmt } : {}),
+        }),
+      });
+      const prepared = await prep.json();
+      if (!prep.ok) throw new Error(prepared.error ?? t.prepareFailed);
+      if (!prepared.sep7_tx || typeof prepared.sep7_tx !== "string") {
+        throw new Error(t.qrFallbackError);
+      }
+      setRouterSep7(prepared.sep7_tx);
+    } catch (e) {
+      setRouterSep7(null);
+      setError(e instanceof Error ? e.message : t.genericError);
+    } finally {
+      setQrPreparing(false);
+    }
+  }
+
+  useEffect(() => {
+    if (method !== "qr" || !routerMode || !qrPayer) return;
+    void prepareRouterSep7(qrPayer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    method,
+    routerMode,
+    qrPayer,
+    intent.id,
+    intent.client_secret,
+    intent.abonos_enabled,
+    abonoAmount,
+  ]);
+
+  const qrPayload = routerMode ? routerSep7 : classicSep7;
+
+  useEffect(() => {
+    if (!qrPayload) {
+      setQrDataUrl(null);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
-        const url = await QRCode.toDataURL(sep7, {
-          errorCorrectionLevel: "L",
+        const url = await QRCode.toDataURL(qrPayload, {
+          errorCorrectionLevel: "M",
           margin: 1,
           width: 320,
           color: { dark: "#0B1020", light: "#ffffff" },
@@ -118,7 +178,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
     return () => {
       cancelled = true;
     };
-  }, [sep7, routerMode]);
+  }, [qrPayload]);
 
   function redirectIfNeeded(next: {
     success_url?: string | null;
@@ -700,16 +760,61 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                 </div>
               ) : (
                 <div className="mt-5 space-y-4">
-                  {routerMode ? (
+                  {routerMode && !qrPayer ? (
                     <>
-                      <p className="pay-notice">{t.qrRouterOnly}</p>
+                      <p
+                        className="text-center text-sm"
+                        style={{ color: "var(--text-2)" }}
+                      >
+                        {t.qrNeedPayer}
+                      </p>
                       <button
                         type="button"
                         className="act act--primary"
-                        onClick={() => setMethod("wallet")}
+                        disabled={busy}
+                        onClick={() => {
+                          setBusy(true);
+                          setError(null);
+                          walletKit
+                            .connect()
+                            .catch((e: unknown) => {
+                              setError(
+                                e instanceof Error
+                                  ? e.message
+                                  : t.connectFailed,
+                              );
+                            })
+                            .finally(() => setBusy(false));
+                        }}
                       >
                         <Wallet className="h-4 w-4" aria-hidden="true" />
-                        {t.walletTab}
+                        {t.connectWallet}
+                      </button>
+                      <label className="block text-left text-xs" style={{ color: "var(--text-2)" }}>
+                        {t.qrPayerLabel}
+                        <input
+                          type="text"
+                          value={manualPayer}
+                          onChange={(e) => setManualPayer(e.target.value)}
+                          placeholder={t.qrPayerPlaceholder}
+                          spellCheck={false}
+                          className="mt-1 w-full rounded-[var(--r-md)] px-3 py-2 text-sm"
+                          style={{
+                            background: "var(--surface)",
+                            border: "1px solid var(--border)",
+                            color: "var(--text)",
+                          }}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="act act--ghost"
+                        disabled={!manualOk || qrPreparing}
+                        onClick={() => {
+                          if (manualOk) void prepareRouterSep7(manualPayer.trim());
+                        }}
+                      >
+                        {qrPreparing ? t.qrGeneratingContract : t.qrGenerate}
                       </button>
                     </>
                   ) : (
@@ -735,7 +840,9 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                             className="flex h-[240px] w-[240px] items-center justify-center text-sm"
                             style={{ color: "var(--text-2)" }}
                           >
-                            {t.qrGenerating}
+                            {qrPreparing || routerMode
+                              ? t.qrGeneratingContract
+                              : t.qrGenerating}
                           </div>
                         )}
                       </div>
@@ -743,7 +850,9 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                         className="text-center text-sm"
                         style={{ color: "var(--text-2)" }}
                       >
-                        {splitReady ? (
+                        {routerMode ? (
+                          t.qrRouterReady
+                        ) : splitReady ? (
                           t.qrReady
                         ) : (
                           <>
@@ -752,47 +861,72 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                           </>
                         )}
                       </p>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => {
-                          setBusy(true);
-                          setError(null);
-                          refreshStatus()
-                            .then((next) => {
-                              if (next !== "succeeded") setError(t.notSeenYet);
-                            })
-                            .catch((e: unknown) => {
-                              setError(
-                                e instanceof Error
-                                  ? e.message
-                                  : t.genericError,
-                              );
-                            })
-                            .finally(() => setBusy(false));
-                        }}
-                        className="act act--primary"
-                      >
-                        {busy ? (
-                          <>
-                            <Loader2
-                              className="h-4 w-4 animate-spin"
-                              aria-hidden="true"
-                            />{" "}
-                            {t.checking}
-                          </>
-                        ) : (
-                          t.checkPayment
-                        )}
-                      </button>
-                      <p
-                        className="text-center text-xs"
-                        style={{ color: "var(--text-2)" }}
-                      >
-                        {t.qrHint}
-                      </p>
+                      {routerMode && qrPayer ? (
+                        <button
+                          type="button"
+                          className="act act--ghost"
+                          disabled={qrPreparing}
+                          onClick={() => void prepareRouterSep7(qrPayer)}
+                        >
+                          {qrPreparing ? t.qrGeneratingContract : t.qrGenerate}
+                        </button>
+                      ) : null}
                     </>
                   )}
+                  {pageUrl ? (
+                    <button
+                      type="button"
+                      className="act act--ghost"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(pageUrl).then(() => {
+                          setPayLinkCopied(true);
+                          window.setTimeout(
+                            () => setPayLinkCopied(false),
+                            1600,
+                          );
+                        });
+                      }}
+                    >
+                      {payLinkCopied ? t.payLinkCopied : t.copyPayLink}
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => {
+                      setBusy(true);
+                      setError(null);
+                      refreshStatus()
+                        .then((next) => {
+                          if (next !== "succeeded") setError(t.notSeenYet);
+                        })
+                        .catch((e: unknown) => {
+                          setError(
+                            e instanceof Error ? e.message : t.genericError,
+                          );
+                        })
+                        .finally(() => setBusy(false));
+                    }}
+                    className="act act--primary"
+                  >
+                    {busy ? (
+                      <>
+                        <Loader2
+                          className="h-4 w-4 animate-spin"
+                          aria-hidden="true"
+                        />{" "}
+                        {t.checking}
+                      </>
+                    ) : (
+                      t.checkPayment
+                    )}
+                  </button>
+                  <p
+                    className="text-center text-xs"
+                    style={{ color: "var(--text-2)" }}
+                  >
+                    {routerMode ? t.qrRouterHint : t.qrHint}
+                  </p>
                 </div>
               )}
 

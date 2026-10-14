@@ -122,7 +122,7 @@ const header = ViaPay.encodePaymentHeader({ signed_xdr });
 | Enviar firmado | `POST /v1/checkout/:id/submit` `{ client_secret, signed_xdr }` |
 | Callback móvil | `POST /v1/checkout/:id/sep7` (form `xdr`) |
 
-El QR es SEP-7 `tx` con split, **no** `web+stellar:pay`.
+Con **payment-router** (prod), el QR del checkout es el **link** `pay_url` (abrir cobro en el teléfono y firmar con billetera). Sin router / modo simulated, el QR es SEP-7 `tx` con split, **no** `web+stellar:pay`.
 
 UI del pagador: **total** + preview/recibo del split + puertas billetera / QR / agente x402.
 

@@ -15,7 +15,7 @@
 2. Ve el **total a pagar** y cómo se reparte on-chain (comercio / ViaPay / revendedor)  
 3. Elige cómo pagar:
    - **Wallet** → Stellar Wallets Kit (Freighter, Lobstr, xBull, …) → Firmar y pagar. La misma tx parte neto, fee ViaPay y (si hay) revendedor. Si el asset es USDC y falta trustline, la firma también la abre.  
-   - **Código QR** → SEP-7 `tx` (split), no `pay`.  
+   - **Código QR** → con router: link del cobro (`pay_url`); sin router: SEP-7 `tx` (split), no `pay`.  
 4. Pantalla de confirmación (+ redirect a `success_url` si existe)  
 
 ## Técnico (interno)

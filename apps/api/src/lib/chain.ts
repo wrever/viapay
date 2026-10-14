@@ -1,6 +1,7 @@
 import {
   buildRouterPayXdr,
   buildSep7SplitUri,
+  buildSep7TxUri,
   buildSplitPaymentXdr,
   buildTrustlineSep7,
   findConfirmedSplit,
@@ -153,14 +154,18 @@ export function sep7CallbackUrl(id: string, clientSecret: string): string {
   return url.toString();
 }
 
+/**
+ * Classic multi-op SEP-7 (no router). With payment-router, SEP-7 must be built
+ * from `prepare` with a real payer (`sep7_tx` on the prepare response).
+ */
 export function buildCheckoutSep7(row: PaymentIntentRow): string {
   const network = intentNetwork(row);
   if (usesPaymentRouter(network)) {
     throw Object.assign(
       new Error(
-        "Este cobro liquida por el contrato payment-router. Usá Billetera (Freighter); el QR clásico no aplica.",
+        "Este cobro liquida por payment-router: pedí prepare con la cuenta pagadora para obtener sep7_tx (QR del contrato).",
       ),
-      { status: 400 },
+      { status: 400, code: "sep7_needs_prepare" },
     );
   }
   const leg = splitLegFor(row, getTreasuryAddress());
@@ -168,6 +173,24 @@ export function buildCheckoutSep7(row: PaymentIntentRow): string {
     ...leg,
     placeholderSource: getTreasuryAddress(),
     callbackUrl: sep7CallbackUrl(row.id, row.client_secret),
+  });
+}
+
+function sep7UriForPrepared(
+  row: PaymentIntentRow,
+  prepared: { xdr: string; networkPassphrase: string; settlement: string },
+  asset: string,
+  gross: string,
+): string {
+  const msg =
+    prepared.settlement === "router"
+      ? `ViaPay payment-router: pagar ${gross} ${asset} (pay). Escaneá y firmá.`
+      : `ViaPay: pagar ${gross} ${asset} con split en una tx.`;
+  return buildSep7TxUri({
+    xdr: prepared.xdr,
+    callbackUrl: sep7CallbackUrl(row.id, row.client_secret),
+    networkPassphrase: prepared.networkPassphrase,
+    msg,
   });
 }
 
@@ -269,6 +292,11 @@ export async function prepareCheckoutXdr(
   const remaining = remainingAmount(row.amount, ledger);
   const gross = payAmount?.trim() || remaining;
   const leg = splitLegFor(row, source, ledger ? gross : undefined);
+  const payAmountFmt = formatAssetAmount(
+    parseAssetAmount(leg.netAmount) +
+      parseAssetAmount(leg.feeAmount) +
+      parseAssetAmount(leg.resellerAmount ?? "0.0000000"),
+  );
   const routerId = paymentRouterContractId(network);
   if (routerId) {
     const prepared = await buildRouterPayXdr(leg, routerId);
@@ -279,13 +307,19 @@ export async function prepareCheckoutXdr(
       settlement: "router" as const,
       contract_id: prepared.contractId,
       network,
-      pay_amount: formatAssetAmount(
-        parseAssetAmount(leg.netAmount) +
-          parseAssetAmount(leg.feeAmount) +
-          parseAssetAmount(leg.resellerAmount ?? "0.0000000"),
-      ),
+      pay_amount: payAmountFmt,
       amount_remaining: remaining,
       abonos_enabled: Boolean(ledger),
+      sep7_tx: sep7UriForPrepared(
+        row,
+        {
+          xdr: prepared.xdr,
+          networkPassphrase: prepared.networkPassphrase,
+          settlement: "router",
+        },
+        row.asset_code,
+        payAmountFmt,
+      ),
     };
   }
   // Simulated / local only — onchain without contract id fails via require.
@@ -300,6 +334,16 @@ export async function prepareCheckoutXdr(
     settlement: "classic" as const,
     contract_id: null,
     network,
+    sep7_tx: sep7UriForPrepared(
+      row,
+      {
+        xdr: prepared.xdr,
+        networkPassphrase: prepared.networkPassphrase,
+        settlement: "classic",
+      },
+      row.asset_code,
+      payAmountFmt,
+    ),
   };
 }
 

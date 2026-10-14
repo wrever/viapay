@@ -57,15 +57,19 @@ export async function GET(
     } catch {
       receive = null;
     }
+    const routerId = paymentRouterContractId(network);
     let sep7Tx: string | null = null;
     let sep7Error: string | null = null;
-    try {
-      sep7Tx = buildCheckoutSep7(row);
-    } catch (error) {
-      sep7Error = error instanceof Error ? error.message : "No se pudo armar el QR";
+    // Router SEP-7 needs a real payer via POST …/prepare → sep7_tx (Soroban sim).
+    if (!routerId) {
+      try {
+        sep7Tx = buildCheckoutSep7(row);
+      } catch (error) {
+        sep7Error =
+          error instanceof Error ? error.message : "No se pudo armar el QR";
+      }
     }
 
-    const routerId = paymentRouterContractId(network);
     return jsonOk({
       ...(await serializePaymentIntentAsync(row)),
       treasury_wallet: getTreasuryAddress(),

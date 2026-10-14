@@ -41,4 +41,4 @@ Red: **testnet** para demo producto · **mainnet** fila #7 (evidencia jurado). T
 
 ## Límites honestos
 
-Demo producto en testnet · mainnet = 2 pays (self + third-party merchant) · cobros opt-in con env mainnet · fee 1% · SEP-24 fiat simulado · sin audit · sin tracción · Meta Live / Resend / Lab SEP-55 = ops · pagador necesita wallet+crypto · QR clásico off con router.
+Demo producto en testnet · mainnet = 2 pays (self + third-party merchant) · cobros opt-in con env mainnet · fee 1% · SEP-24 fiat simulado · sin audit · sin tracción · Meta Live / Resend / Lab SEP-55 = ops · pagador necesita wallet+crypto · QR router = SEP-7 del XDR `pay()`.

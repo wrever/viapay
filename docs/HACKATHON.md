@@ -20,7 +20,7 @@ Un comercio que vende en cripto termina con tres problemas que no son suyos:
 
 Un único objeto `payment_intent` con dos puertas:
 
-- **Checkout hosted** (`https://viapay.vercel.app/pay/…`) para humanos: wallet (Freighter, Lobstr, xBull, …) o QR SEP-7.
+- **Checkout hosted** (`https://viapay.vercel.app/pay/…`) para humanos: wallet (Freighter, Lobstr, xBull, …) o QR del link (`pay_url`; SEP-7 solo sin router).
 - **`GET /v1/x402/:id`** para agentes: responde `402 Payment Required` con los requisitos de pago, el agente firma y liquida con el header `X-PAYMENT`.
 
 Las dos puertas llaman al mismo `prepare` / `submit`, así que el reparto y la verificación son idénticos. ViaPay nunca tiene las llaves del pagador ni recibe el dinero del comercio: construye la transacción, la verifica y la empuja a Horizon.
@@ -41,7 +41,7 @@ La matemática está en `calcFeeSplit` (`packages/shared`): unidades atómicas e
 
 - **Path canónico: Soroban `payment-router`.** `pay(token, payer, merchant, treasury, reseller?, net, fee, reseller_fee, intent_id)` sobre SAC SEP-41. Hasta tres patas + evento `Paid`. Testnet `CDI6XC5Q…` · mainnet `CA4FJAYS…` (mismo wasm `2ef55539…`). `prepare` arma la invoke; `assertRouterPayXdr` valida contrato + patas + `intent_id` antes del RPC.
 - **Verificación server-side.** Con router, un XDR que no sea esa invoke se rechaza. Path clásico multi-op (`assertSplitXdr`) solo si `STELLAR_MODE=simulated` sin contract id.
-- **SEP-7.** Con router onchain el QR clásico se desactiva (Freighter = path canónico). Sin router, SEP-7 `web+stellar:tx` con `replace=sourceAccount` (nunca `web+stellar:pay`, que rompería el split).
+- **QR / SEP-7.** Billetera y QR usan el mismo path on-chain. Con router: `prepare` → `sep7_tx` (`web+stellar:tx` con XDR de `pay()`). Sin router: SEP-7 clásico con `replace=sourceAccount` (nunca `web+stellar:pay`).
 - **Trustlines SEP-41/SAC.** USDC exige trustline en comercio, tesorería y revendedor; el dashboard avisa antes de cobrar.
 - **Reconciliación.** Cobros router quedan `succeeded` vía `submit`. Horizon por memo (últimas 40 txs) sigue siendo fallback del path clásico.
 
