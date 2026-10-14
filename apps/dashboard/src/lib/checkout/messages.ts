@@ -8,14 +8,10 @@ export type Messages = {
   walletTab: string;
   qrTab: string;
   routerChip: string;
-  /** Router: need payer G… before building contract SEP-7 QR. */
-  qrNeedPayer: string;
-  qrGenerate: string;
-  qrGeneratingContract: string;
+  /** Router: scan-first QR opens pay_url on phone; settle with mobile wallet. */
   qrRouterReady: string;
   qrRouterHint: string;
-  qrPayerLabel: string;
-  qrPayerPlaceholder: string;
+  qrAltLink: string;
   copyPayLink: string;
   payLinkCopied: string;
   splitTitle: string;
@@ -117,16 +113,11 @@ const es: Messages = {
   walletTab: "Billetera",
   qrTab: "Código QR",
   routerChip: "Soroban router",
-  qrNeedPayer:
-    "Para el QR del contrato necesitamos la cuenta que paga (misma G… que va a escanear).",
-  qrGenerate: "Generar QR del contrato",
-  qrGeneratingContract: "Armando pay() del router…",
   qrRouterReady:
-    "Escaneá con Lobstr o Freighter Mobile. Firmás el pay() del payment-router (mismo path que Billetera).",
+    "Escaneá para abrir este cobro en el teléfono. Ahí conectás Freighter/Lobstr y firmás el payment-router — sin conectar acá.",
   qrRouterHint:
-    "Wallet y QR liquidan por el mismo contrato. El QR es SEP-7 con el XDR de prepare (no un pago clásico).",
-  qrPayerLabel: "Cuenta que paga (G…)",
-  qrPayerPlaceholder: "G… de la billetera del teléfono",
+    "El QR es el link del cobro. En el teléfono pagás con billetera móvil por el mismo contrato que la pestaña Billetera.",
+  qrAltLink: "Código QR con el link de pago ViaPay",
   copyPayLink: "Copiar link del cobro",
   payLinkCopied: "Link copiado",
   splitTitle: "En esta firma se reparte",
@@ -232,16 +223,11 @@ const en: Messages = {
   walletTab: "Wallet",
   qrTab: "QR code",
   routerChip: "Soroban router",
-  qrNeedPayer:
-    "For the contract QR we need the paying account (same G… that will scan).",
-  qrGenerate: "Generate contract QR",
-  qrGeneratingContract: "Building router pay()…",
   qrRouterReady:
-    "Scan with Lobstr or Freighter Mobile. You sign payment-router pay() — same path as Wallet.",
+    "Scan to open this charge on your phone. Connect Freighter/Lobstr there and sign the payment-router — no need to connect here.",
   qrRouterHint:
-    "Wallet and QR both settle via the contract. The QR is SEP-7 with the prepare XDR (not a classic payment).",
-  qrPayerLabel: "Paying account (G…)",
-  qrPayerPlaceholder: "G… of the phone wallet",
+    "The QR is the charge link. On your phone you pay with a mobile wallet via the same contract as the Wallet tab.",
+  qrAltLink: "QR code with the ViaPay payment link",
   copyPayLink: "Copy charge link",
   payLinkCopied: "Link copied",
   splitTitle: "This signature splits to",
@@ -347,16 +333,11 @@ const pt: Messages = {
   walletTab: "Carteira",
   qrTab: "Código QR",
   routerChip: "Soroban router",
-  qrNeedPayer:
-    "Para o QR do contrato precisamos da conta que paga (a mesma G… que vai escanear).",
-  qrGenerate: "Gerar QR do contrato",
-  qrGeneratingContract: "Montando pay() do router…",
   qrRouterReady:
-    "Escaneie com Lobstr ou Freighter Mobile. Você assina o pay() do payment-router — mesmo caminho que Carteira.",
+    "Escaneie para abrir esta cobrança no telefone. Lá conecte Freighter/Lobstr e assine o payment-router — sem conectar aqui.",
   qrRouterHint:
-    "Carteira e QR liquidam pelo mesmo contrato. O QR é SEP-7 com o XDR do prepare (não um pagamento clássico).",
-  qrPayerLabel: "Conta que paga (G…)",
-  qrPayerPlaceholder: "G… da carteira do telefone",
+    "O QR é o link da cobrança. No telefone você paga com carteira móvel pelo mesmo contrato da aba Carteira.",
+  qrAltLink: "Código QR com o link de pagamento ViaPay",
   copyPayLink: "Copiar link da cobrança",
   payLinkCopied: "Link copiado",
   splitTitle: "Nesta assinatura o valor vai para",

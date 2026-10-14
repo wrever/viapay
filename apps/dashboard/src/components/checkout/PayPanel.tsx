@@ -72,9 +72,6 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [payLinkCopied, setPayLinkCopied] = useState(false);
   const [pageUrl, setPageUrl] = useState(intent.pay_url ?? "");
-  const [manualPayer, setManualPayer] = useState("");
-  const [routerSep7, setRouterSep7] = useState<string | null>(null);
-  const [qrPreparing, setQrPreparing] = useState(false);
   const networkRaw = intent.stellar?.network ?? intent.network;
   const network =
     networkRaw === "mainnet" || networkRaw === "local" ? networkRaw : "testnet";
@@ -101,60 +98,14 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   }, [intent, routerMode]);
   const splitReady = Boolean(intent.sep7_tx) && !routerMode;
 
-  const connectedPayer = pollar?.address ?? walletKit.address;
-  const manualOk =
-    manualPayer.trim().startsWith("G") && manualPayer.trim().length >= 56;
-  const qrPayer = connectedPayer ?? (manualOk ? manualPayer.trim() : null);
-
   useEffect(() => {
     setPageUrl(intent.pay_url || window.location.href);
   }, [intent.pay_url]);
 
-  async function prepareRouterSep7(source: string) {
-    setQrPreparing(true);
-    setError(null);
-    try {
-      const payAmt = intent.abonos_enabled
-        ? Number(abonoAmount.replace(",", ".")).toFixed(7)
-        : undefined;
-      const prep = await fetch(`${API}/v1/checkout/${intent.id}/prepare`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          client_secret: intent.client_secret,
-          source,
-          ...(payAmt ? { amount: payAmt } : {}),
-        }),
-      });
-      const prepared = await prep.json();
-      if (!prep.ok) throw new Error(prepared.error ?? t.prepareFailed);
-      if (!prepared.sep7_tx || typeof prepared.sep7_tx !== "string") {
-        throw new Error(t.qrFallbackError);
-      }
-      setRouterSep7(prepared.sep7_tx);
-    } catch (e) {
-      setRouterSep7(null);
-      setError(e instanceof Error ? e.message : t.genericError);
-    } finally {
-      setQrPreparing(false);
-    }
-  }
-
-  useEffect(() => {
-    if (method !== "qr" || !routerMode || !qrPayer) return;
-    void prepareRouterSep7(qrPayer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    method,
-    routerMode,
-    qrPayer,
-    intent.id,
-    intent.client_secret,
-    intent.abonos_enabled,
-    abonoAmount,
-  ]);
-
-  const qrPayload = routerMode ? routerSep7 : classicSep7;
+  // Router: scan-first QR = pay_url (phone opens /pay and signs there).
+  // Soroban pay() needs the payer account at prepare-time, so a blind SEP-7
+  // XDR cannot be built before scan — the link handoff is the mobile path.
+  const qrPayload = routerMode ? pageUrl : classicSep7;
 
   useEffect(() => {
     if (!qrPayload) {
@@ -760,119 +711,46 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                 </div>
               ) : (
                 <div className="mt-5 space-y-4">
-                  {routerMode && !qrPayer ? (
-                    <>
-                      <p
-                        className="text-center text-sm"
-                        style={{ color: "var(--text-2)" }}
-                      >
-                        {t.qrNeedPayer}
-                      </p>
-                      <button
-                        type="button"
-                        className="act act--primary"
-                        disabled={busy}
-                        onClick={() => {
-                          setBusy(true);
-                          setError(null);
-                          walletKit
-                            .connect()
-                            .catch((e: unknown) => {
-                              setError(
-                                e instanceof Error
-                                  ? e.message
-                                  : t.connectFailed,
-                              );
-                            })
-                            .finally(() => setBusy(false));
-                        }}
-                      >
-                        <Wallet className="h-4 w-4" aria-hidden="true" />
-                        {t.connectWallet}
-                      </button>
-                      <label className="block text-left text-xs" style={{ color: "var(--text-2)" }}>
-                        {t.qrPayerLabel}
-                        <input
-                          type="text"
-                          value={manualPayer}
-                          onChange={(e) => setManualPayer(e.target.value)}
-                          placeholder={t.qrPayerPlaceholder}
-                          spellCheck={false}
-                          className="mt-1 w-full rounded-[var(--r-md)] px-3 py-2 text-sm"
-                          style={{
-                            background: "var(--surface)",
-                            border: "1px solid var(--border)",
-                            color: "var(--text)",
-                          }}
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        className="act act--ghost"
-                        disabled={!manualOk || qrPreparing}
-                        onClick={() => {
-                          if (manualOk) void prepareRouterSep7(manualPayer.trim());
-                        }}
-                      >
-                        {qrPreparing ? t.qrGeneratingContract : t.qrGenerate}
-                      </button>
-                    </>
-                  ) : (
-                    <>
+                  <div
+                    className="mx-auto w-fit rounded-[var(--r-lg)] p-3"
+                    style={{
+                      background: "#ffffff",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    {qrDataUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={qrDataUrl}
+                        alt={routerMode ? t.qrAltLink : t.qrAlt}
+                        width={240}
+                        height={240}
+                        className="block"
+                      />
+                    ) : (
                       <div
-                        className="mx-auto w-fit rounded-[var(--r-lg)] p-3"
-                        style={{
-                          background: "#ffffff",
-                          border: "1px solid var(--border)",
-                        }}
-                      >
-                        {qrDataUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={qrDataUrl}
-                            alt={t.qrAlt}
-                            width={240}
-                            height={240}
-                            className="block"
-                          />
-                        ) : (
-                          <div
-                            className="flex h-[240px] w-[240px] items-center justify-center text-sm"
-                            style={{ color: "var(--text-2)" }}
-                          >
-                            {qrPreparing || routerMode
-                              ? t.qrGeneratingContract
-                              : t.qrGenerating}
-                          </div>
-                        )}
-                      </div>
-                      <p
-                        className="text-center text-sm"
+                        className="flex h-[240px] w-[240px] items-center justify-center text-sm"
                         style={{ color: "var(--text-2)" }}
                       >
-                        {routerMode ? (
-                          t.qrRouterReady
-                        ) : splitReady ? (
-                          t.qrReady
-                        ) : (
-                          <>
-                            {t.qrFallback}{" "}
-                            {intent.stellar?.sep7_error ?? t.qrFallbackError}
-                          </>
-                        )}
-                      </p>
-                      {routerMode && qrPayer ? (
-                        <button
-                          type="button"
-                          className="act act--ghost"
-                          disabled={qrPreparing}
-                          onClick={() => void prepareRouterSep7(qrPayer)}
-                        >
-                          {qrPreparing ? t.qrGeneratingContract : t.qrGenerate}
-                        </button>
-                      ) : null}
-                    </>
-                  )}
+                        {t.qrGenerating}
+                      </div>
+                    )}
+                  </div>
+                  <p
+                    className="text-center text-sm"
+                    style={{ color: "var(--text-2)" }}
+                  >
+                    {routerMode ? (
+                      t.qrRouterReady
+                    ) : splitReady ? (
+                      t.qrReady
+                    ) : (
+                      <>
+                        {t.qrFallback}{" "}
+                        {intent.stellar?.sep7_error ?? t.qrFallbackError}
+                      </>
+                    )}
+                  </p>
                   {pageUrl ? (
                     <button
                       type="button"

@@ -1,6 +1,6 @@
 # ViaPay — memoria de proyecto
 
-Actualizado: 2026-10-13 (**QR contrato = SEP-7 del prepare/router** · wallet+QR mismo path · WA/Resend fuera · perfil listo). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
+Actualizado: 2026-10-13 (**QR router = scan-first `pay_url`** · sin pedir G… en desktop · WA/Resend fuera). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
 **Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `git commit-tree` (sin hooks; Cursor inyecta Co-authored-by en `git commit`). Repo: https://github.com/wrever/viapay. Workflow `.github/workflows/*` queda **local** (push rechazado sin scope `workflow` en el token OAuth; reintentar con PAT que tenga `workflow`).
 
@@ -31,7 +31,7 @@ Fuente viva: `GET /v1/health` · checklist hashes: [`submission/evidence-index.m
 | x402 mismo `checkout_url` | LISTO (código; hash evidencia fila #5 **pendiente documentar**) |
 | Parity / settle-proof / VP-codes / `/r` / kit `pnpm verify -- --kit` | LISTO |
 | SEP-1 / 10 / 24 (fiat simulado) / 41 | LISTO (probes live) |
-| SEP-7 / QR router | LISTO: `prepare` → `sep7_tx` (XDR `pay()`); tab QR pide G… pagadora |
+| SEP-7 / QR router | QR UI = `pay_url` (scan → teléfono firma); `prepare.sep7_tx` queda en API |
 | USDC trustline + cobro | CÓDIGO listo; evidencia fila #4/#6 **pendiente** |
 | Shop consumer | Solo local `:3005` (no deploy) |
 
@@ -103,7 +103,7 @@ cd node_modules/.pnpm/better-sqlite3@11.10.0/node_modules/better-sqlite3 && npx 
 
 Pagos non-custodial en Stellar. El cliente paga en un checkout hosted. El comercio no custodia la clave del pagador. Un agente IA puede pagar lo mismo por HTTP 402 (x402).
 
-**Tesis de producto (demo):** un mismo `payment_intent` → **un `checkout_url`** → humano (billetera / QR SEP-7) o agente (x402) → split hasta 3 patas → un hash. El link compartido es la gateway `/v1/x402/:id` (`Sec-Fetch-Dest: document` / HTML → 302 a `pay_url`; JSON/agente → 402). UI `/pay` sin tab agente; recibo post-pago sí. Con payment-router, **Billetera y QR** liquidan por el mismo `pay()`: QR = SEP-7 con XDR de `prepare` (hace falta la G… pagadora para simular Soroban); callback `/v1/checkout/:id/sep7`.
+**Tesis de producto (demo):** un mismo `payment_intent` → **un `checkout_url`** → humano (billetera / QR) o agente (x402) → split hasta 3 patas → un hash. El link compartido es la gateway `/v1/x402/:id` (`Sec-Fetch-Dest: document` / HTML → 302 a `pay_url`; JSON/agente → 402). UI `/pay` sin tab agente; recibo post-pago sí. Con payment-router: **Billetera** = prepare/firmar acá; **QR** = escaneá `pay_url` → abrís el cobro en el teléfono → firmás ahí (mismo `pay()`). No se pide conectar G… en desktop para generar el QR (Soroban no arma XDR ciego sin pagador).
 
 **El reparto es de hasta tres patas, en una sola transacción:**
 
