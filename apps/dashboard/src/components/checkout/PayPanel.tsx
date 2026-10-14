@@ -404,9 +404,6 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
                   ? "Stellar mainnet"
                   : `Stellar ${network}`}
               </span>
-              <span className="pay-chip" title="Solo Paid on-chain confirma">
-                sin capturas
-              </span>
               {routerMode && (
                 (intent.contract_id ?? intent.stellar?.payment_router) ? (
                   <a
