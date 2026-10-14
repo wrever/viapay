@@ -62,7 +62,7 @@ Todo opt-in del comercio al crear el link (default = cobro simple).
 
 - **Recibo que no miente:** `/recibo?id=pi_…` — 4 comparaciones (intent·x402·Paid·recibo); `?demo=altered` = captura falsa. Spec/guion: [`submission/RECIBO_QUE_NO_MIENTE.md`](./submission/RECIBO_QUE_NO_MIENTE.md) · demo [`submission/demo-90s.md`](./submission/demo-90s.md).
 - Spec firma: [`submission/LINK_SIG_V2.md`](./submission/LINK_SIG_V2.md).
-- Checklist anti-phishing en `/pay`. `/verify` decode tx. `/r` → link a `/recibo`.
+- Checklist anti-phishing en `/pay`: drawer derecho (icono `?`, slide horizontal) «Antes de firmar, revisá». `/verify` decode tx. `/r` → link a `/recibo`.
 - Tests: shared **20** · API **29** · router **9**. Dora: [`submission/DORA_DESCRIPTION.md`](./submission/DORA_DESCRIPTION.md).
 - Feedback de ranking en chat **no es evaluación oficial de jurado** — no citarlo como tal.
 
