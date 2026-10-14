@@ -5,9 +5,11 @@ import QRCode from "qrcode";
 import {
   ArrowLeftRight,
   CheckCircle2,
+  CircleHelp,
   Loader2,
   QrCode,
   Wallet,
+  X,
 } from "lucide-react";
 import { LOCALE_TAG } from "@viapay/prefs";
 import { Logo } from "@/components/Logo";
@@ -72,6 +74,7 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [payLinkCopied, setPayLinkCopied] = useState(false);
   const [pageUrl, setPageUrl] = useState(intent.pay_url ?? "");
+  const [helpOpen, setHelpOpen] = useState(false);
   const networkRaw = intent.stellar?.network ?? intent.network;
   const network =
     networkRaw === "mainnet" || networkRaw === "local" ? networkRaw : "testnet";
@@ -101,6 +104,15 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
   useEffect(() => {
     setPageUrl(intent.pay_url || window.location.href);
   }, [intent.pay_url]);
+
+  useEffect(() => {
+    if (!helpOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setHelpOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [helpOpen]);
 
   // Router: scan-first QR = pay_url (phone opens /pay and signs there).
   // Soroban pay() needs the payer account at prepare-time, so a blind SEP-7
@@ -506,65 +518,6 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
 
           {warning && <p className="pay-notice mt-4">{warning}</p>}
 
-          <section
-            className="mt-5 rounded-[var(--r-lg)] px-3 py-3 text-xs"
-            style={{
-              border: "1px solid var(--border)",
-              color: "var(--text-2)",
-            }}
-            aria-label="Checklist del cobro"
-          >
-            <p
-              className="font-medium"
-              style={{ color: "var(--text)" }}
-            >
-              Antes de firmar, revisá
-            </p>
-            <ul className="mt-2 list-disc space-y-1 pl-4">
-              <li>
-                Cobrado por{" "}
-                <span className="font-mono">
-                  {intent.merchant_wallet.slice(0, 4)}…
-                  {intent.merchant_wallet.slice(-4)}
-                </span>
-                {intent.link_sig_status === "verified" ||
-                intent.link_verified === true
-                  ? " · firma del comercio OK"
-                  : intent.link_sig_status === "invalid"
-                    ? " · ⚠ firma inválida (link alterado)"
-                    : intent.link_sig_status === "expired"
-                      ? " · firma vencida"
-                      : " · sin firma de enlace"}
-              </li>
-              <li>
-                Total{" "}
-                {totalAmount(
-                  intent.abonos_enabled && intent.amount_remaining
-                    ? intent.amount_remaining
-                    : intent.amount,
-                  localeTag,
-                )}{" "}
-                {intent.asset}
-                {intent.fee_amount
-                  ? ` · fee ${intent.fee_amount} · neto comercio ${intent.net_amount}`
-                  : ""}
-              </li>
-              <li>
-                Red{" "}
-                {network === "mainnet" ? "mainnet" : network}
-                {" · "}
-                {status === "succeeded"
-                  ? "ya pagado"
-                  : intent.plan_enabled &&
-                      intent.plan_summary?.role === "child"
-                    ? `cuota ${intent.plan_summary.installment_index}/${intent.plan_summary.installment_count}`
-                    : intent.abonos_enabled
-                      ? "acepta abonos"
-                      : "un pago"}
-              </li>
-            </ul>
-          </section>
-
           {intent.plan_enabled &&
           intent.plan_summary?.role === "parent" &&
           status !== "succeeded" ? (
@@ -843,6 +796,88 @@ export function PayPanel({ intent }: { intent: CheckoutIntent }) {
           )}
         </div>
       </div>
+
+      <button
+        type="button"
+        className="pay-help-fab"
+        aria-expanded={helpOpen}
+        aria-controls="pay-help-drawer"
+        aria-label="Antes de firmar, revisá"
+        onClick={() => setHelpOpen((open) => !open)}
+      >
+        <CircleHelp className="h-5 w-5" aria-hidden="true" />
+      </button>
+
+      <div
+        className={`pay-help-backdrop${helpOpen ? " is-open" : ""}`}
+        aria-hidden={!helpOpen}
+        onClick={() => setHelpOpen(false)}
+      />
+
+      <aside
+        id="pay-help-drawer"
+        className={`pay-help-drawer${helpOpen ? " is-open" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pay-help-title"
+        aria-hidden={!helpOpen}
+      >
+        <div className="pay-help-drawer__head">
+          <h2 id="pay-help-title" className="pay-help-drawer__title">
+            Antes de firmar, revisá
+          </h2>
+          <button
+            type="button"
+            className="pay-help-drawer__close"
+            aria-label="Cerrar"
+            onClick={() => setHelpOpen(false)}
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+        <ul className="pay-help-drawer__list">
+          <li>
+            Cobrado por{" "}
+            <span className="font-mono">
+              {intent.merchant_wallet.slice(0, 4)}…
+              {intent.merchant_wallet.slice(-4)}
+            </span>
+            {intent.link_sig_status === "verified" ||
+            intent.link_verified === true
+              ? " · firma del comercio OK"
+              : intent.link_sig_status === "invalid"
+                ? " · ⚠ firma inválida (link alterado)"
+                : intent.link_sig_status === "expired"
+                  ? " · firma vencida"
+                  : " · sin firma de enlace"}
+          </li>
+          <li>
+            Total{" "}
+            {totalAmount(
+              intent.abonos_enabled && intent.amount_remaining
+                ? intent.amount_remaining
+                : intent.amount,
+              localeTag,
+            )}{" "}
+            {intent.asset}
+            {intent.fee_amount
+              ? ` · fee ${intent.fee_amount} · neto comercio ${intent.net_amount}`
+              : ""}
+          </li>
+          <li>
+            Red {network === "mainnet" ? "mainnet" : network}
+            {" · "}
+            {status === "succeeded"
+              ? "ya pagado"
+              : intent.plan_enabled &&
+                  intent.plan_summary?.role === "child"
+                ? `cuota ${intent.plan_summary.installment_index}/${intent.plan_summary.installment_count}`
+                : intent.abonos_enabled
+                  ? "acepta abonos"
+                  : "un pago"}
+          </li>
+        </ul>
+      </aside>
     </PollarShell>
   );
 }

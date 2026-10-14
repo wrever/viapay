@@ -1,6 +1,6 @@
 # ViaPay — memoria de proyecto
 
-Actualizado: 2026-10-13 (**QR router = scan-first `pay_url`** · sin pedir G… en desktop · WA/Resend fuera). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
+Actualizado: 2026-10-13 (**Checkout help drawer** «Antes de firmar» · QR scan-first · WA/Resend fuera). Lee esto antes de explorar el repo. Si cambias una capacidad, actualiza este archivo en el mismo cambio.
 
 **Git / autor:** historial público solo `wrever`. Nunca `Co-authored-by: Cursor`. Commits del agente: `git commit-tree` (sin hooks; Cursor inyecta Co-authored-by en `git commit`). Repo: https://github.com/wrever/viapay. Workflow `.github/workflows/*` queda **local** (push rechazado sin scope `workflow` en el token OAuth; reintentar con PAT que tenga `workflow`).
 
